@@ -17,20 +17,9 @@
 Version 0.1
 ===========
 
-Enhancements
-------------
-
-- xxx
-
-Bugs
-----
-
-- xxx
-
-API and behavior changes
-------------------------
-
-- xxx
+- Add I/O to load and save BibTex files (by `Mathieu Scheltienne`_)
+- Add :func:`bibclean.check_bib_database` to prevent duplicate entries in a BibTex file (by `Mathieu Scheltienne`_)
+- Add :func:`bibclean.clean_bib_database` to clean-up and alphabetically order enries in a BibTex file (by `Mathieu Scheltienne`_)
 
 Authors
 -------

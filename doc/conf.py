@@ -9,17 +9,17 @@ from datetime import date
 from importlib import import_module
 from typing import Dict, Optional
 
-import template
+import bibclean
 
 # -- project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "template-python"
+project = "bibclean"
 author = "Mathieu Scheltienne"
 copyright = f"{date.today().year}, {author}"
-release = template.__version__
-package = template.__name__
-gh_url = "http://github.com/mscheltienne/template-python"
+release = bibclean.__version__
+package = bibclean.__name__
+gh_url = "http://github.com/mscheltienne/bibclean"
 
 # -- general configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -96,6 +96,7 @@ autoclass_content = "class"
 
 # -- intersphinx -------------------------------------------------------------
 intersphinx_mapping = {
+    "bibtexparser": ("https://bibtexparser.readthedocs.io/en/master/", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
     "mne": ("https://mne.tools/stable/", None),
     "numpy": ("https://numpy.org/devdocs", None),
@@ -119,6 +120,8 @@ numpydoc_attributes_as_param_list = False
 # x-ref
 numpydoc_xref_param_type = True
 numpydoc_xref_aliases = {
+    # BibTex
+    "BibDatabase": "bibtexparser.bibdatabase.BibDatabase",
     # Matplotlib
     "Axes": "matplotlib.axes.Axes",
     "Figure": "matplotlib.figure.Figure",

@@ -1,45 +1,39 @@
 .. include:: ./links.inc
 
-**template-python**
-===================
+**BibClean**
+============
 
 .. toctree::
    :hidden:
 
    api/index
-   generated/tutorials/index
    changes/index
 
-This is a template python-repository.
+``bibclean`` is a simple auto-formater for BibTex file. It was designed to
+clean ``.bib`` files provided to sphinx documentation build using
+`sphinxcontrib-bibtex`_.
 
-tab-set
+Install
 -------
+
+BibClean is available on `Pypi <project pypi_>`_.
 
 .. tab-set::
 
-    .. tab-item:: From source
-
-        You can install a package from source with ``pip``.
+    .. tab-item:: Pypi
 
         .. code-block:: bash
 
-            pip install git+https://github.com/mscheltienne/template-python
+            pip install bibclean
 
-    .. tab-item:: From repository
-
-        You can install a package from source manually by first cloning the
-        repository with ``git`` and installing the package with ``pip``.
+    .. tab-item:: Source
 
         .. code-block:: bash
 
-            git clone https://github.com/mscheltienne/template-python
-            pip install template-python
+            pip install git+https://github.com/mscheltienne/bibclean
 
-    .. tab-item:: Editable mode
+License
+-------
 
-        You can install a package with ``pip`` in editable mode.
-
-        .. code-block:: bash
-
-            git clone https://github.com/mscheltienne/template-python
-            pip install -e template-python
+``bibclean`` is licensed under the `MIT license`_.
+A full copy of the license can be found `on GitHub <project license_>`_.

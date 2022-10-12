@@ -1,7 +1,7 @@
 Logging
 =======
 
-.. currentmodule:: template
+.. currentmodule:: bibclean
 
 .. autosummary::
     :toctree: generated/
