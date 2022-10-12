@@ -3,9 +3,9 @@ requires = ['setuptools >= 61.0.0']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'template'
+name = 'bibclean'
 version = '0.1.0'
-description = 'Template for python projects.'
+description = 'A simple BibTex file checker and cleaner.'
 readme = 'README.md'
 license = {file = 'LICENSE'}
 requires-python = '>=3.8'
@@ -17,7 +17,7 @@ maintainers = [
 ]
 keywords = [
     'python',
-    'template',
+    'bibtex',
 ]
 classifiers = [
     'Operating System :: Microsoft :: Windows',
@@ -31,6 +31,7 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
 ]
 dependencies = [
+    'bibtexparser',
     'numpy>=1.21',
     'psutil',
 ]
@@ -64,30 +65,30 @@ test = [
     'pytest-cov',
 ]
 all = [
-    'template[style]',
-    'template[doc]',
-    'template[test]',
-    'template[build]',
+    'bibclean[style]',
+    'bibclean[doc]',
+    'bibclean[test]',
+    'bibclean[build]',
 ]
 full = [
-    'template[all]',
+    'bibclean[all]',
 ]
 
 [project.urls]
-homepage = 'https://github.com/mscheltienne/template-python'
-documentation = 'https://github.com/mscheltienne/template-python'
-source = 'https://github.com/mscheltienne/template-python'
-tracker = 'https://github.com/mscheltienne/template-python/issues'
+homepage = 'https://github.com/mscheltienne/bibclean'
+documentation = 'https://github.com/mscheltienne/bibclean'
+source = 'https://github.com/mscheltienne/bibclean'
+tracker = 'https://github.com/mscheltienne/bibclean/issues'
 
 [project.scripts]
-template-sys_info = 'template.commands.sys_info:run'
+bibclean-sys_info = 'bibclean.commands.sys_info:run'
 
 [tool.setuptools]
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ['template*']
-exclude = ['template*tests']
+include = ['bibclean*']
+exclude = ['bibclean*tests']
 
 [tool.black]
 line-length = 79
@@ -99,7 +100,6 @@ extend-exclude = '''
     | \.github
     | setup.py
     | doc/
-    | examples/
     | tutorials/
 )
 '''
@@ -112,7 +112,6 @@ py_version = 38
 extend_skip_glob = [
     'setup.py',
     'doc/*',
-    'examples/*',
     'tutorials/*'
 ]
 
@@ -120,7 +119,7 @@ extend_skip_glob = [
 convention = 'numpy'
 ignore-decorators = '(copy_doc|property|.*setter|.*getter|pyqtSlot|Slot)'
 match = '^(?!setup|__init__|test_).*\.py'
-match-dir = '^template.*'
+match-dir = '^bibclean.*'
 add_ignore = 'D100,D104,D107'
 
 [tool.pytest.ini_options]
@@ -133,8 +132,8 @@ branch = true
 cover_pylib = false
 omit = [
     '**/__init__.py',
-    '**/template/_version.py',
-    '**/template/commands/*',
+    '**/bibclean/_version.py',
+    '**/bibclean/commands/*',
     '**/tests/**',
 ]
 
