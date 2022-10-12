@@ -1,6 +1,5 @@
-from typing import Union
-
 from pathlib import Path
+from typing import Union
 
 from bibtexparser import load
 from bibtexparser.bibdatabase import BibDatabase
@@ -8,9 +7,7 @@ from bibtexparser.bibdatabase import BibDatabase
 from .utils._checks import _check_type
 
 
-def load_bib(
-    file: Union[str, Path], encoding: str = "utf-8"
-) -> BibDatabase:
+def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     """Load a BibTex file.
 
     Parameters

@@ -2,8 +2,8 @@ from typing import List, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
-from .utils._checks import _check_type, _check_value
 from ._typing import Entry
+from .utils._checks import _check_type, _check_value
 
 
 def check(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
@@ -27,12 +27,16 @@ def check(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
 
-    entries = [entry for entry in bib_database.entries if entry["ID"] not in exclude]
+    entries = [
+        entry for entry in bib_database.entries if entry["ID"] not in exclude
+    ]
 
     # check for duplicate entries
     _check_duplicate_entries(entries)
     # check minimum fields
-    _check_minimum_fields(entries, required_fields={"year", "author", "title", "journal", "doi"})
+    _check_minimum_fields(
+        entries, required_fields={"year", "author", "title", "journal", "doi"}
+    )
 
 
 def _check_duplicate_entries(entries: List[Entry]) -> None:
@@ -55,7 +59,12 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
             )
 
     # define hash as (title, authors, year)
-    hashes = [hash((entry["year"], entry["author"], entry["title"]) for entry in entries)]
+    hashes = [
+        hash(
+            (entry["year"], entry["author"], entry["title"])
+            for entry in entries
+        )
+    ]
     if len(hashes) != len(set(hashes)):
         raise RuntimeError(
             "The BibTex file contains duplicate entries with different cite "
