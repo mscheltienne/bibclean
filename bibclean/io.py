@@ -5,8 +5,10 @@ from bibtexparser import dump, load
 from bibtexparser.bibdatabase import BibDatabase
 
 from .utils._checks import _check_type
+from .utils._docs import fill_doc
 
 
+@fill_doc
 def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     """Load a BibTex file.
 
@@ -14,9 +16,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     ----------
     file : str | Path
         Path to the ``.bib`` file to load.
-    encoding : str
-        Encoding used to read the file. The provided encoding is forwarded to
-        :func:`open`.
+    %(encoding)s
 
     Returns
     -------
@@ -35,6 +35,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     return bib_database
 
 
+@fill_doc
 def save_bib(
     bib_database: BibDatabase,
     file: Union[str, Path],
@@ -49,9 +50,7 @@ def save_bib(
         BibTex database.
     file : str | Path
         Path to the ``.bib`` file to save.
-    encoding : str
-        Encoding used to read the file. The provided encoding is forwarded to
-        :func:`open`.
+    %(encoding)s
     overwrite : bool
         If True, an existing file will be overwritten.
     """
@@ -65,5 +64,5 @@ def save_bib(
             "want to overwrite the file."
         )
 
-    with open(file, 'w', encoding=encoding) as bibtex_file:
+    with open(file, "w", encoding=encoding) as bibtex_file:
         dump(bib_database, bibtex_file)
