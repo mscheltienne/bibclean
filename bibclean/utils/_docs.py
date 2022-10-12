@@ -21,6 +21,14 @@ verbose : int | str | bool | None
     If a bool is provided, the verbosity is set to "WARNING" for False and to
     "INFO" for True."""
 
+# ------------------------------------ io ------------------------------------
+docdict[
+    "encoding"
+] = """
+encoding : str
+    Encoding used to read the file. The provided encoding is forwarded to
+    :func:`open`."""
+
 # ------------------------- Documentation functions --------------------------
 docdict_indented: Dict[int, Dict[str, str]] = dict()
 

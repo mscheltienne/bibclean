@@ -4,6 +4,7 @@ from typing import Union
 from bibtexparser import dump, load
 from bibtexparser.bibdatabase import BibDatabase
 
+from . import logger
 from .utils._checks import _check_type
 from .utils._docs import fill_doc
 
@@ -30,6 +31,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     if not file.exists():
         raise IOError("The provided file does not exist.")
 
+    logger.info("Loading file %s", file)
     with open(file, "r", encoding=encoding) as bibtex_file:
         bib_database = load(bibtex_file)
     return bib_database
@@ -64,5 +66,6 @@ def save_bib(
             "want to overwrite the file."
         )
 
+    logger.info("Saving to file %s", file)
     with open(file, "w", encoding=encoding) as bibtex_file:
         dump(bib_database, bibtex_file)
