@@ -12,8 +12,9 @@ ignore =
 exclude =
     .git
     .github
-    setup.py
+    data
     doc
+    setup.py
     *.egg-info
 
 per-file-ignores =
