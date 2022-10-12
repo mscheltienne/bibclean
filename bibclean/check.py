@@ -1,9 +1,9 @@
-from typing import Dict, List
+from typing import List, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
 from .utils._checks import _check_type, _check_value
-from ._typing import Entry, Entries
+from ._typing import Entry
 
 
 def check(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
@@ -28,24 +28,27 @@ def check(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
         _check_value(elt, bib_database.entries_dict)
 
     entries = [entry for entry in bib_database.entries if entry["ID"] not in exclude]
-    entries_dict = {cite_key: entry for cite_key, entry in bib_database.entries_dict.items() if cite_key not in exclude}
 
     # check for duplicate entries
-    _check_duplicate_entries(entries, entries_dict)
+    _check_duplicate_entries(entries)
+    # check minimum fields
+    _check_minimum_fields(entries, required_fields={"year", "author", "title", "journal", "doi"})
 
 
-def _check_duplicate_entries(entries: Entries, entries_dict: Dict[str, Entry]):
+def _check_duplicate_entries(entries: List[Entry]) -> None:
     """Check for duplicate entries."""
     # check for duplicate entries with the same cite key
-    if len(entries) != len(entries_dict):
+    idx = [entry["ID"] for entry in entries]
+    if len(idx) != len(set(idx)):
         raise RuntimeError(
             "The BibTex file contains duplicate entries with the same cite "
             "key."
         )
 
     # check minimum set of fields for hash
-    for entry in entries_dict.values():
-        if any(field not in entry for field in ("year", "author", "title")):
+    hash_fields = {"year", "author", "title"}
+    for entry in entries:
+        if len(hash_fields - set(entry)) != 0:
             raise RuntimeError(
                 "The BibTex file contains entries that are missing some basic "
                 "information: year, author, title."
@@ -58,3 +61,16 @@ def _check_duplicate_entries(entries: Entries, entries_dict: Dict[str, Entry]):
             "The BibTex file contains duplicate entries with different cite "
             "keys."
         )
+
+
+def _check_minimum_fields(
+    entries: List[Entry],
+    required_fields: Set[str],
+) -> None:
+    """Check that each entry has the minimum required fields."""
+    for entry in entries:
+        if len(required_fields - set(entry)) != 0:
+            raise RuntimeError(
+                "The BibTex file contains entries which are missing one of "
+                "the required field."
+            )

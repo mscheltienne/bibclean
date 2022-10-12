@@ -1,5 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 
 Entry = Dict[str, str]
-Entries = List[Dict[str, str]]
