@@ -80,4 +80,7 @@ def clean_bib_database(
     logger.debug("Remaking the entry dictionary.")
     bib_database._make_entries_dict()
 
+    # remove comments
+    bib_database.comments = []
+
     return bib_database
