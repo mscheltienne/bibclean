@@ -2,6 +2,7 @@ from typing import List
 
 from bibtexparser.bibdatabase import BibDatabase
 
+from .check import check_bib_database
 from .utils._checks import _check_type, _check_value
 
 
@@ -25,3 +26,4 @@ def clean(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
+    check_bib_database(bib_database, exclude)

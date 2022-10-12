@@ -6,7 +6,9 @@ from ._typing import Entry
 from .utils._checks import _check_type, _check_value
 
 
-def check(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
+def check_bib_database(
+    bib_database: BibDatabase, exclude: List[str] = []
+) -> BibDatabase:
     """Check a BibTex database.
 
     Parameters
@@ -60,10 +62,8 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
     # define hash as (title, authors, year)
     hashes = [
-        hash(
-            (entry["year"], entry["author"], entry["title"])
-            for entry in entries
-        )
+        hash((entry["year"], entry["author"], entry["title"]))
+        for entry in entries
     ]
     if len(hashes) != len(set(hashes)):
         raise RuntimeError(
