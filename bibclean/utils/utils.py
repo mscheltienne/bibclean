@@ -16,6 +16,7 @@ def get_entry_types(bib_database: BibDatabase) -> Dict[str, str]:
     entry_types : dict
         A dictionary with the cite key as key and the type as value.
     """
+    bib_database._make_entries_dict()
     return {
         cite_key: entry["ENTRYTYPE"]
         for cite_key, entry in bib_database.entries_dict.items()
