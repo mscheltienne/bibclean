@@ -43,7 +43,7 @@ def _check_duplicate_entries(entries: Entries, entries_dict: Dict[str, Entry]):
             "key."
         )
 
-    # check minimum set of keys for hash
+    # check minimum set of fields for hash
     for entry in entries_dict.values():
         if any(field not in entry for field in ("year", "author", "title")):
             raise RuntimeError(
