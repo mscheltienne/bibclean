@@ -13,8 +13,8 @@ def clean(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
     ----------
     bib_database : BibDatabase
         BibTex database.
-    exclude : TYPE, optional
-        DESCRIPTION. The default is list().
+    exclude : list of str
+        List of entries to ignore. An entry is specified by its cite key.
 
     Returns
     -------
@@ -27,3 +27,32 @@ def clean(bib_database: BibDatabase, exclude: List[str] = []) -> BibDatabase:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
     check_bib_database(bib_database, exclude)
+
+    # reset entries dictionary
+    bib_database._entries_dict = {}
+
+    # remove un-wanted fields
+    keep_fields = {
+        "author",
+        "doi",
+        "journal",
+        "month",
+        "number",
+        "pages",
+        "title",
+        "volume",
+        "year",
+    }
+    for k, entry in enumerate(bib_database.entries):
+        if entry["ID"] in exclude:
+            continue
+        fields_to_remove = [
+            field for field in set(entry) - keep_fields if field.islower()
+        ]
+        for field in fields_to_remove:
+            del bib_database.entries[k][field]
+
+    # make entries dictionary
+    bib_database._make_entries_dict()
+
+    return bib_database
