@@ -81,6 +81,7 @@ tracker = 'https://github.com/mscheltienne/bibclean/issues'
 
 [project.scripts]
 bibclean-sys_info = 'bibclean.commands.sys_info:run'
+bibclean = 'bibclean.commands.bibclean:run'
 
 [tool.setuptools]
 include-package-data = false

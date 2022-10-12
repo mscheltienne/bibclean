@@ -4,7 +4,7 @@ from typing import Union
 from bibtexparser import dump, load
 from bibtexparser.bibdatabase import BibDatabase
 
-from . import logger
+from .utils._logs import logger
 from .utils._checks import _check_type
 from .utils._docs import fill_doc
 
