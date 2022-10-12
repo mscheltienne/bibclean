@@ -14,10 +14,11 @@ def run():
         type=str,
         metavar="path",
         help="path to the .bib file to clean. If an output is not provided, "
-             "this file is overwritten.",
+        "this file is overwritten.",
     )
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         metavar="path",
         help="path to the output .bib file.",

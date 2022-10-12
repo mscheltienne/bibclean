@@ -2,9 +2,9 @@ from typing import List
 
 from bibtexparser.bibdatabase import BibDatabase
 
-from .utils._logs import logger
 from .check import check_bib_database
 from .utils._checks import _check_type, _check_value
+from .utils._logs import logger
 
 
 def clean_bib_database(
