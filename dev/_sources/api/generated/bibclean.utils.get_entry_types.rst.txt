@@ -1,0 +1,6 @@
+﻿bibclean.utils.get\_entry\_types
+================================
+
+.. currentmodule:: bibclean.utils
+
+.. autofunction:: get_entry_types

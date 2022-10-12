@@ -1,0 +1,6 @@
+﻿bibclean.check\_bib\_database
+=============================
+
+.. currentmodule:: bibclean
+
+.. autofunction:: check_bib_database

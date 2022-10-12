@@ -1,0 +1,6 @@
+﻿bibclean.clean\_bib\_database
+=============================
+
+.. currentmodule:: bibclean
+
+.. autofunction:: clean_bib_database

@@ -1,0 +1,6 @@
+﻿bibclean.add\_stream\_handler
+=============================
+
+.. currentmodule:: bibclean
+
+.. autofunction:: add_stream_handler

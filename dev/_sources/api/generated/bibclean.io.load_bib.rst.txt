@@ -1,0 +1,6 @@
+﻿bibclean.io.load\_bib
+=====================
+
+.. currentmodule:: bibclean.io
+
+.. autofunction:: load_bib
