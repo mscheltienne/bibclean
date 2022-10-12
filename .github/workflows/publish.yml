@@ -1,8 +1,8 @@
 name: publish
 on:
   workflow_dispatch:
-  # release:
-  #   types: [published]
+  release:
+    types: [published]
 
 jobs:
   pypi:
@@ -21,7 +21,7 @@ jobs:
           python -m pip install --progress-bar off --upgrade pip setuptools wheel
           python -m pip install --progress-bar off .[build]
       - name: Display system information
-        run: template-sys_info --developer
+        run: bibclean-sys_info --developer
       - name: Build and publish
         env:
           TWINE_USERNAME: __token__

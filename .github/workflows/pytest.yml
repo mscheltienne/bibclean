@@ -38,9 +38,9 @@ jobs:
           python -m pip install --progress-bar off --upgrade pip setuptools wheel
           python -m pip install --progress-bar off .[test]
       - name: Display system information
-        run: template-sys_info --developer
+        run: bibclean-sys_info --developer
       - name: Run pytest
-        run: pytest template --cov=template --cov-report=xml --cov-config=pyproject.toml
+        run: pytest bibclean --cov=bibclean --cov-report=xml --cov-config=pyproject.toml
       - name: Upload to codecov
         if: ${{ matrix.os == 'ubuntu' && matrix.python-version == 3.9 }}
         uses: codecov/codecov-action@v3
