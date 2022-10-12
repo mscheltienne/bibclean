@@ -54,7 +54,7 @@ def clean_bib_database(
     for k, entry in enumerate(bib_database.entries):
         if entry["ID"] in exclude:
             logger.info(
-                "Entry '%s' is listed for exlusion. Skipping.", entry["ID"]
+                "Entry '%s' is listed for exclusion. Skipping.", entry["ID"]
             )
             continue
         # determine the fields to remove
