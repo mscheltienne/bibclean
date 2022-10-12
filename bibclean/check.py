@@ -1,5 +1,6 @@
 from typing import List, Set
 
+import numpy as np
 from bibtexparser.bibdatabase import BibDatabase
 
 from ._typing import Entry
@@ -46,9 +47,16 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
     # check for duplicate entries with the same cite key
     idx = [entry["ID"] for entry in entries]
     if len(idx) != len(set(idx)):
+        from collections import Counter
+
+        duplicates = [
+            f"{cite_key} ({n})"
+            for cite_key, n in Counter(idx).items()
+            if n != 1
+        ]
         raise RuntimeError(
             "The BibTex file contains duplicate entries with the same cite "
-            "key."
+            f"key: {', '.join(duplicates)}."
         )
 
     # check minimum set of fields for hash
@@ -56,7 +64,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
     for entry in entries:
         if len(hash_fields - set(entry)) != 0:
             raise RuntimeError(
-                "The BibTex file contains entries that are missing some basic "
+                f"The BibTex file entry '{entry['ID']}' is missing some basic "
                 "information: year, author, title."
             )
 
@@ -66,9 +74,21 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         for entry in entries
     ]
     if len(hashes) != len(set(hashes)):
+        from collections import Counter
+
+        duplicates = list()
+        duplicate_hashes = [
+            hash_ for hash_, n in Counter(hashes).items() if n != 1
+        ]
+        hashes = np.array(hashes)
+        for hash_ in duplicate_hashes:
+            idx = np.where(hashes == hash_)[0]
+            duplicates.append(
+                f"({', '.join([entries[k]['ID'] for k in idx])})"
+            )
         raise RuntimeError(
             "The BibTex file contains duplicate entries with different cite "
-            "keys."
+            f"keys: {', '.join(duplicates)}."
         )
 
 
@@ -80,6 +100,6 @@ def _check_minimum_fields(
     for entry in entries:
         if len(required_fields - set(entry)) != 0:
             raise RuntimeError(
-                "The BibTex file contains entries which are missing one of "
-                "the required field."
+                f"The BibTex file entry '{entry['ID']}' is missing one of "
+                f"the required field: {', '.join(required_fields)}."
             )
