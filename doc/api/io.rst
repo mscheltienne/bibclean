@@ -1,7 +1,7 @@
 File I/O
 ========
 
-.. currentmodule:: bibclean
+.. currentmodule:: bibclean.io
 
 .. autosummary::
     :toctree: generated/
