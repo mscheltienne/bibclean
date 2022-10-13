@@ -95,9 +95,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         hashes = np.array(hashes)
         for hash_ in duplicate_hashes:
             idx = np.where(hashes == hash_)[0]
-            duplicates.append(
-                f"({', '.join(entries[k]['ID'] for k in idx)})"
-            )
+            duplicates.append(f"({', '.join(entries[k]['ID'] for k in idx)})")
         raise RuntimeError(
             "The BibTex file contains duplicate entries with different cite "
             f"keys: {', '.join(duplicates)}."

@@ -59,6 +59,7 @@ def save_bib(
     overwrite : bool
         If True, an existing file will be overwritten.
     """
+    _check_type(bib_database, (BibDatabase,), "bib_database")
     _check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
@@ -66,6 +67,7 @@ def save_bib(
             "The provided file extension is not '.bib'. "
             f"'{file.suffix}' is invalid."
         )
+    _check_type(overwrite, (bool,), "overwrite")
     if file.exists() and not overwrite:
         raise IOError(
             "The provided file already exist. Set overwrite to True if you "
