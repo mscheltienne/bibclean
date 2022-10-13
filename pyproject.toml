@@ -91,6 +91,9 @@ include-package-data = false
 include = ['bibclean*']
 exclude = ['bibclean*tests']
 
+[tool.setuptools.package-data]
+"bibclean.config" = ["*.ini"]
+
 [tool.black]
 line-length = 79
 target-version = ['py38']
