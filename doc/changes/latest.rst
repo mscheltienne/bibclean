@@ -25,7 +25,7 @@ Enhancements
 Bugs
 ----
 
-- Fix exit code returned by ``bibclean-check`` when a duplicate is found (by `Mathieu Scheltienne`_)
+- Fix exit code returned by ``bibclean-check`` when a duplicate is found
 
 API and behavior changes
 ------------------------

@@ -18,12 +18,12 @@ Version 0.3
 Enhancements
 ------------
 
-- Add entry-point for Continuous Integration tools (CIs): ``bibclean-check`` (by `Mathieu Scheltienne`_)
+- Add entry-point for Continuous Integration tools (CIs): ``bibclean-check``
 
 Bugs
 ----
 
-- Fix packaging of the default configuration (by `Mathieu Scheltienne`_)
+- Fix packaging of the default configuration
 
 Authors
 -------

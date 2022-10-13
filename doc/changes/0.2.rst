@@ -18,9 +18,9 @@ Version 0.2
 Enhancements
 ------------
 
-- Add a configuration module including a default configuration (by `Mathieu Scheltienne`_)
-- Non-supported entry types will not raise anymore, instead all the fields are retained and sorted (by `Mathieu Scheltienne`_)
-- Error messages now explicitly mention the problematic entries (by `Mathieu Scheltienne`_)
+- Add a configuration module including a default configuration
+- Non-supported entry types will not raise anymore, instead all the fields are retained and sorted
+- Error messages now explicitly mention the problematic entries
 
 Authors
 -------
