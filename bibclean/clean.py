@@ -110,11 +110,19 @@ def clean_bib_database(
 
 
 def _clean_doi_url(entry: Entry) -> bool:
-    """Clean DOI and URL. Only one of the 2 is kept, preferably the DOI."""
+    """Look for the fields DOI and URL.
+
+    If only one is present, then we keep it, regardless of which one it is.
+    If both are present, we remove the URL.
+    """
     field = [key in entry for key in ("url", "doi")]
     if sum(field) == 0:
         logger.warning("Entry '%s' is missing a DOI or URL.", entry["ID"])
     elif sum(field) == 1:
+        if field[0]:
+            logger.warning(
+                "Entry '%s' has a URL instead of a DOI.", entry["ID"]
+            )
         return False
     elif sum(field) == 2:
         return True
