@@ -12,25 +12,18 @@
 
 .. include:: ./authors.inc
 
-.. _latest:
-
-Version 0.4
+Version 0.3
 ===========
 
 Enhancements
 ------------
 
-- xxx
+- Add entry-point for Continuous Integration tools (CIs): ``bibclean-check`` (by `Mathieu Scheltienne`_)
 
 Bugs
 ----
 
-- Fix exit code returned by ``bibclean-check`` when a duplicate is found (by `Mathieu Scheltienne`_)
-
-API and behavior changes
-------------------------
-
-- xxx
+- Fix packaging of the default configuration (by `Mathieu Scheltienne`_)
 
 Authors
 -------

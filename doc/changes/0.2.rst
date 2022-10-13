@@ -12,25 +12,15 @@
 
 .. include:: ./authors.inc
 
-.. _latest:
-
-Version 0.4
+Version 0.2
 ===========
 
 Enhancements
 ------------
 
-- xxx
-
-Bugs
-----
-
-- Fix exit code returned by ``bibclean-check`` when a duplicate is found (by `Mathieu Scheltienne`_)
-
-API and behavior changes
-------------------------
-
-- xxx
+- Add a configuration module including a default configuration (by `Mathieu Scheltienne`_)
+- Non-supported entry types will not raise anymore, instead all the fields are retained and sorted (by `Mathieu Scheltienne`_)
+- Error messages now explicitly mention the problematic entries (by `Mathieu Scheltienne`_)
 
 Authors
 -------
