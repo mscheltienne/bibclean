@@ -1,9 +1,11 @@
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Tuple
+
+from .._typing import FieldSet
 
 
-def _load_default_config() -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+def _load_default_config() -> Tuple[FieldSet, FieldSet]:
     """Load the default config from 'default.ini'."""
     config = ConfigParser()
     config.optionxform = str

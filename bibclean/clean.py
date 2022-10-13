@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional, Set
+from typing import List, Optional
 
 from bibtexparser.bibdatabase import BibDatabase
 
-from ._typing import Entry
+from ._typing import Entry, FieldSet
 from .check import check_bib_database
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
@@ -12,7 +12,7 @@ from .utils._logs import logger
 def clean_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
-    keep_fields: Optional[Dict[str, Set[str]]] = None,
+    keep_fields: Optional[FieldSet] = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
 

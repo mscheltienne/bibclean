@@ -1,9 +1,9 @@
-from typing import Dict, List, Optional, Set
+from typing import List, Optional
 
 import numpy as np
 from bibtexparser.bibdatabase import BibDatabase
 
-from ._typing import Entry
+from ._typing import Entry, FieldSet
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
 
@@ -11,7 +11,7 @@ from .utils._checks import _check_type, _check_value
 def check_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
-    required_fields: Optional[Dict[str, Set[str]]] = None,
+    required_fields: Optional[FieldSet] = None,
 ) -> None:
     """Check a BibTex database.
 
@@ -104,7 +104,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
 def _check_minimum_fields(
     entries: List[Entry],
-    required_fields: Dict[str, Set[str]],
+    required_fields: FieldSet,
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:
