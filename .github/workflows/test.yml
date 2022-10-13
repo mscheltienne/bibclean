@@ -29,4 +29,4 @@ jobs:
           python -m pip install --progress-bar off --upgrade pip setuptools wheel
           python -m pip install --progress-bar off .
       - name: Run test
-        run: bibclean-check data/zotero-blabla.bib
+        run: bibclean-check data/zotero.bib
