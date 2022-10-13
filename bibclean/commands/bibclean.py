@@ -25,14 +25,21 @@ def run():
         default=None,
     )
     parser.add_argument(
+        "-e",
+        "--encoding",
+        type=str,
+        help="encoding of the .bib file.",
+        default="utf-8",
+    )
+    parser.add_argument(
         "--overwrite",
         help="overwrite the file provided in --output if it exists.",
         action="store_true",
     )
     args = parser.parse_args()
 
-    bib_database = load_bib(args.bib)
+    bib_database = load_bib(args.bib, encoding=args.encoding)
     bib_database = clean_bib_database(bib_database)
     output = args.bib if args.output is None else args.output
     overwrite = True if args.output is None else args.overwrite
-    save_bib(bib_database, output, overwrite=overwrite)
+    save_bib(bib_database, output, encoding=args.encoding, overwrite=overwrite)
