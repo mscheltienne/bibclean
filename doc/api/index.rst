@@ -8,7 +8,6 @@ This is the reference for classes (``CamelCase`` names) and functions
     :maxdepth: 2
 
     io.rst
-    check.rst
     clean.rst
     utils.rst
     logging.rst
