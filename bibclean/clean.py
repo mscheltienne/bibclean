@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
+from ._typing import Entry
 from .check import check_bib_database
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
@@ -93,6 +94,11 @@ def clean_bib_database(
         for field in fields_to_remove:
             del bib_database.entries[k][field]
 
+        # clean doi and url
+        need_cleaning = _clean_doi_url(bib_database)
+        if need_cleaning:
+            del bib_database.entries[k]["url"]
+
     # make entries dictionary
     logger.debug("Remaking the entry dictionary.")
     bib_database._make_entries_dict()
@@ -100,12 +106,15 @@ def clean_bib_database(
     # remove comments
     bib_database.comments = []
 
-    # clean doi and url
-    _clean_doi_url()
-
     return bib_database
 
 
-def _clean_doi_url():
+def _clean_doi_url(entry: Entry) -> bool:
     """Clean DOI and URL. Only one of the 2 is kept, preferably the DOI."""
-    pass
+    field = [key in entry for key in ("url", "doi")]
+    if sum(field) == 0:
+        logger.warning("Entry '%s' is missing a DOI or URL.", entry["ID"])
+    elif sum(field) == 1:
+        return False
+    elif sum(field) == 2:
+        return True
