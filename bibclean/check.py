@@ -1,14 +1,17 @@
-from typing import List, Set
+from typing import Dict, List, Optional, Set
 
 import numpy as np
 from bibtexparser.bibdatabase import BibDatabase
 
 from ._typing import Entry
+from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
 
 
 def check_bib_database(
-    bib_database: BibDatabase, exclude: List[str] = []
+    bib_database: BibDatabase,
+    exclude: List[str] = [],
+    required_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> BibDatabase:
     """Check a BibTex database.
 
@@ -18,6 +21,11 @@ def check_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
+    required_fields : dict | None
+        Required fields for each entry type. If None, a default configuration
+        is loaded. The dictionary format is:
+            key : str - the entry type
+            value : set of str - the required fields
 
     Returns
     -------
@@ -29,6 +37,12 @@ def check_bib_database(
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
+    _check_type(required_fields, (dict, None), "required_fields")
+    for key, value in required_fields.items():
+        _check_type(key, (str,))
+        _check_type(value, (set,))
+        for v in value:
+            _check_type(v, (str,))
 
     entries = [
         entry for entry in bib_database.entries if entry["ID"] not in exclude
@@ -37,8 +51,12 @@ def check_bib_database(
     # check for duplicate entries
     _check_duplicate_entries(entries)
     # check minimum fields
+    required_fields = (
+        _load_default_config() if required_fields is None else required_fields
+    )
     _check_minimum_fields(
-        entries, required_fields={"year", "author", "title", "journal", "doi"}
+        entries,
+        required_fields=required_fields,
     )
 
 
@@ -94,12 +112,15 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
 def _check_minimum_fields(
     entries: List[Entry],
-    required_fields: Set[str],
+    required_fields: Dict[str, Set[str]],
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:
-        if len(required_fields - set(entry)) != 0:
+        if entry["ENTRYTYPE"] not in required_fields:
+            continue
+        if len(required_fields["ENTRYTYPE"] - set(entry)) != 0:
             raise RuntimeError(
                 f"The BibTex file entry '{entry['ID']}' is missing one of "
-                f"the required field: {', '.join(required_fields)}."
+                f"the required field for a '{entry['ENTRYTYPE']}':"
+                f"{', '.join(required_fields['ENTRYTYPE'])}."
             )

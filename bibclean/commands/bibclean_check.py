@@ -19,6 +19,4 @@ def run():
 
     load_bib(args.bib)
 
-    raise NotImplementedError(
-        "A check-only mode will be soon implemented."
-    )
+    raise NotImplementedError("A check-only mode will be soon implemented.")
