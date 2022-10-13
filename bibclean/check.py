@@ -12,7 +12,7 @@ def check_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
     required_fields: Optional[Dict[str, Set[str]]] = None,
-) -> BibDatabase:
+) -> None:
     """Check a BibTex database.
 
     Parameters
@@ -25,11 +25,6 @@ def check_bib_database(
         Required fields for each entry type. If None, a default configuration
         is loaded. The dictionary is defined with the entry-type as key (`str`)
         and the required fields as value (`set` of `str`).
-
-    Returns
-    -------
-    bib_database : BibDatabase
-        BibTex database.
     """
     _check_type(bib_database, (BibDatabase,), "bib_database")
     _check_type(exclude, (list, tuple), "exclude")

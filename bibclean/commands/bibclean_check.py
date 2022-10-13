@@ -4,7 +4,7 @@ from ..io import load_bib
 
 
 def run():
-    """Run bibclean() command."""
+    """Run bibclean-check() command."""
     parser = argparse.ArgumentParser(
         prog=f"{__package__.split('.')[0]}-sys_info", description="sys_info"
     )

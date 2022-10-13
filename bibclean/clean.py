@@ -31,10 +31,6 @@ def clean_bib_database(
     -------
     bib_database : BibDatabase
         BibTex database.
-
-    Notes
-    -----
-    For now, this function was design to handle article entries.
     """
     _check_type(bib_database, (BibDatabase,), "bib_database")
     _check_type(exclude, (list, tuple), "exclude")
