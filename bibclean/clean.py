@@ -24,9 +24,8 @@ def clean_bib_database(
         List of entries to ignore. An entry is specified by its cite key.
     keep_fields : dict | None
         Fields to keep for each entry type. If None, a default configuration
-        is loaded. The dictionary format is:
-            key : str - the entry type
-            value : set of str - the fields to keep
+        is loaded. The dictionary is defined with the entry-type as key (`str`)
+        and the required fields as value (`set` of `str`).
 
     Returns
     -------
@@ -95,7 +94,7 @@ def clean_bib_database(
             del bib_database.entries[k][field]
 
         # clean doi and url
-        need_cleaning = _clean_doi_url(bib_database)
+        need_cleaning = _clean_doi_url(entry)
         if need_cleaning:
             del bib_database.entries[k]["url"]
 

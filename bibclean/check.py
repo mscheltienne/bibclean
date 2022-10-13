@@ -23,9 +23,8 @@ def check_bib_database(
         List of entries to ignore. An entry is specified by its cite key.
     required_fields : dict | None
         Required fields for each entry type. If None, a default configuration
-        is loaded. The dictionary format is:
-            key : str - the entry type
-            value : set of str - the required fields
+        is loaded. The dictionary is defined with the entry-type as key (`str`)
+        and the required fields as value (`set` of `str`).
 
     Returns
     -------
