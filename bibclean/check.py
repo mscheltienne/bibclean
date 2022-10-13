@@ -61,11 +61,11 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
     if len(idx) != len(set(idx)):
         from collections import Counter
 
-        duplicates = [
+        duplicates = (
             f"{cite_key} ({n})"
             for cite_key, n in Counter(idx).items()
             if n != 1
-        ]
+        )
         raise RuntimeError(
             "The BibTex file contains duplicate entries with the same cite "
             f"key: {', '.join(duplicates)}."
@@ -96,7 +96,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         for hash_ in duplicate_hashes:
             idx = np.where(hashes == hash_)[0]
             duplicates.append(
-                f"({', '.join([entries[k]['ID'] for k in idx])})"
+                f"({', '.join(entries[k]['ID'] for k in idx)})"
             )
         raise RuntimeError(
             "The BibTex file contains duplicate entries with different cite "
