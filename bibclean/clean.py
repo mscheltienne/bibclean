@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Set
 from bibtexparser.bibdatabase import BibDatabase
 
 from .check import check_bib_database
+from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
 from .utils._logs import logger
 
@@ -41,11 +42,14 @@ def clean_bib_database(
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
     _check_type(keep_fields, (dict, None), "keep_fields")
-    for key, value in keep_fields.items():
-        _check_type(key, (str,))
-        _check_type(value, (set,))
-        for v in value:
-            _check_type(v, (str,))
+    if isinstance(keep_fields, dict):
+        for key, value in keep_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        _, keep_fields = _load_default_config()
     check_bib_database(bib_database, exclude)
 
     # reset entries dictionary

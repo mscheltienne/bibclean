@@ -38,11 +38,14 @@ def check_bib_database(
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
     _check_type(required_fields, (dict, None), "required_fields")
-    for key, value in required_fields.items():
-        _check_type(key, (str,))
-        _check_type(value, (set,))
-        for v in value:
-            _check_type(v, (str,))
+    if isinstance(required_fields, dict):
+        for key, value in required_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        required_fields, _ = _load_default_config()
 
     entries = [
         entry for entry in bib_database.entries if entry["ID"] not in exclude
@@ -51,8 +54,6 @@ def check_bib_database(
     # check for duplicate entries
     _check_duplicate_entries(entries)
     # check minimum fields
-    if required_fields is None:
-        required_fields, _ = _load_default_config()
     _check_minimum_fields(
         entries,
         required_fields=required_fields,
