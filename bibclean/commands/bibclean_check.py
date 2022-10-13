@@ -1,10 +1,17 @@
 import argparse
+import sys
 from copy import deepcopy
 
 from bibtexparser import dumps
 
-from .. import clean_bib_database
+from .. import clean_bib_database, logger
 from ..io import load_bib
+
+
+class ReturnCode:
+    no_violations_found = 0
+    violations_found = 1
+    invalid_options = 2
 
 
 def run():
@@ -21,14 +28,29 @@ def run():
     )
     args = parser.parse_args()
 
-    bib_database = load_bib(args.bib)
-    bib_database_clean = clean_bib_database(deepcopy(bib_database))
+    try:
+        sys.exit(_run(args.bib))
+    except KeyboardInterrupt:
+        pass
+
+
+def _run(file):
+    """Run bibclean-check() command and return an exit-code."""
+    try:
+        bib_database = load_bib(file)
+        bib_database_clean = clean_bib_database(deepcopy(bib_database))
+    except Exception:
+        return ReturnCode.invalid_options
 
     # check that the file is sorted
     original = dumps(bib_database)
     cleaned = dumps(bib_database_clean)
     if original != cleaned:
-        raise RuntimeError(
+        logger.error(
             "The provided '.bib' file is not properly formatted. Please use "
             "the 'bibclean' command to auto-format the entries."
         )
+        exit_code = ReturnCode.violations_found
+    else:
+        exit_code = ReturnCode.no_violations_found
+    return exit_code
