@@ -1,5 +1,9 @@
 import argparse
+from copy import deepcopy
 
+from bibtexparser import dumps
+
+from .. import clean_bib_database
 from ..io import load_bib
 
 
@@ -17,6 +21,14 @@ def run():
     )
     args = parser.parse_args()
 
-    load_bib(args.bib)
+    bib_database = load_bib(args.bib)
+    bib_database_clean = clean_bib_database(deepcopy(bib_database))
 
-    raise NotImplementedError("A check-only mode will be soon implemented.")
+    # check that the file is sorted
+    original = dumps(bib_database)
+    cleaned = dumps(bib_database_clean)
+    if original != cleaned:
+        raise RuntimeError(
+            "The provided '.bib' file is not properly formatted. Please use "
+            "the 'bibclean' command to auto-format the entries."
+        )
