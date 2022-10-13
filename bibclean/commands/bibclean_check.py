@@ -39,6 +39,8 @@ def _run(file):
     try:
         bib_database = load_bib(file)
         bib_database_clean = clean_bib_database(deepcopy(bib_database))
+    except RuntimeError:
+        return ReturnCode.violations_found
     except Exception:
         return ReturnCode.invalid_options
 
