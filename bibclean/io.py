@@ -22,12 +22,15 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     Returns
     -------
     bib_database : BibDatabase
-        BibTex database.
+        BibTex database loaded.
     """
     _check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
-        raise IOError("The provided file extensioon is not '.bib'.")
+        raise IOError(
+            "The provided file extension is not '.bib'. "
+            f"'{file.suffix}' is invalid."
+        )
     if not file.exists():
         raise IOError("The provided file does not exist.")
 
@@ -49,7 +52,7 @@ def save_bib(
     Parameters
     ----------
     bib_database : BibDatabase
-        BibTex database.
+        BibTex database to save.
     file : str | Path
         Path to the ``.bib`` file to save.
     %(encoding)s
@@ -59,7 +62,10 @@ def save_bib(
     _check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
-        raise IOError("The provided file extensioon is not '.bib'.")
+        raise IOError(
+            "The provided file extension is not '.bib'. "
+            f"'{file.suffix}' is invalid."
+        )
     if file.exists() and not overwrite:
         raise IOError(
             "The provided file already exist. Set overwrite to True if you "
