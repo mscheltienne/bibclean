@@ -36,8 +36,12 @@ def test_save_bib(tmp_path):
     # save/reload
     save_bib(bib_database, tmp_path / "101.bib")
     bib_database_loaded = load_bib(tmp_path / "101.bib")
-    assert all(elt in bib_database_loaded.entries for elt in bib_database.entries)
-    assert all(elt in bib_database.entries for elt in bib_database_loaded.entries)
+    assert all(
+        elt in bib_database_loaded.entries for elt in bib_database.entries
+    )
+    assert all(
+        elt in bib_database.entries for elt in bib_database_loaded.entries
+    )
 
     # overwrite
     with pytest.raises(IOError, match="The provided file already exist."):
@@ -47,8 +51,12 @@ def test_save_bib(tmp_path):
     # encoding
     save_bib(bib_database, tmp_path / "101-2.bib", encoding="utf-16")
     bib_database_loaded = load_bib(tmp_path / "101-2.bib", encoding="utf-16")
-    assert all(elt in bib_database_loaded.entries for elt in bib_database.entries)
-    assert all(elt in bib_database.entries for elt in bib_database_loaded.entries)
+    assert all(
+        elt in bib_database_loaded.entries for elt in bib_database.entries
+    )
+    assert all(
+        elt in bib_database.entries for elt in bib_database_loaded.entries
+    )
 
 
 def test_save_bib_invalid_args():
