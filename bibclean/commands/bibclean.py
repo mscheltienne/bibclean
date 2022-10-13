@@ -29,17 +29,7 @@ def run():
         help="overwrite the file provided in --output if it exists.",
         action="store_true",
     )
-    parser.add_argument(
-        "--check",
-        help="check that the .bib file is already cleaned.",
-        action="store_true",
-    )
     args = parser.parse_args()
-
-    if args.check:
-        raise NotImplementedError(
-            "A check-only mode will be soon implemented."
-        )
 
     bib_database = load_bib(args.bib)
     bib_database = clean_bib_database(bib_database)
