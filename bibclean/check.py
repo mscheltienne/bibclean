@@ -51,9 +51,8 @@ def check_bib_database(
     # check for duplicate entries
     _check_duplicate_entries(entries)
     # check minimum fields
-    required_fields = (
-        _load_default_config() if required_fields is None else required_fields
-    )
+    if required_fields is None:
+        required_fields, _ = _load_default_config()
     _check_minimum_fields(
         entries,
         required_fields=required_fields,
@@ -116,11 +115,12 @@ def _check_minimum_fields(
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:
-        if entry["ENTRYTYPE"] not in required_fields:
+        entry_type = entry["ENTRYTYPE"]
+        if entry_type not in required_fields:
             continue
-        if len(required_fields["ENTRYTYPE"] - set(entry)) != 0:
+        if len(required_fields[entry_type] - set(entry)) != 0:
             raise RuntimeError(
                 f"The BibTex file entry '{entry['ID']}' is missing one of "
                 f"the required field for a '{entry['ENTRYTYPE']}':"
-                f"{', '.join(required_fields['ENTRYTYPE'])}."
+                f"{', '.join(required_fields[entry_type])}."
             )

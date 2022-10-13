@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Optional, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
@@ -8,7 +8,9 @@ from .utils._logs import logger
 
 
 def clean_bib_database(
-    bib_database: BibDatabase, exclude: List[str] = []
+    bib_database: BibDatabase,
+    exclude: List[str] = [],
+    keep_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
 
@@ -18,6 +20,11 @@ def clean_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
+    keep_fields : dict | None
+        Fields to keep for each entry type. If None, a default configuration
+        is loaded. The dictionary format is:
+            key : str - the entry type
+            value : set of str - the fields to keep
 
     Returns
     -------
@@ -33,33 +40,39 @@ def clean_bib_database(
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
+    _check_type(keep_fields, (dict, None), "keep_fields")
+    for key, value in keep_fields.items():
+        _check_type(key, (str,))
+        _check_type(value, (set,))
+        for v in value:
+            _check_type(v, (str,))
     check_bib_database(bib_database, exclude)
 
     # reset entries dictionary
     logger.debug("Resetting the entry dictionary.")
     bib_database._entries_dict = {}
 
+    # add URL and DOI to the fields to keep, they will be handled later
+    for entry_type in keep_fields:
+        keep_fields[entry_type].update({"url", "doi"})
+
     # remove un-wanted fields
-    keep_fields = {
-        "author",
-        "doi",
-        "journal",
-        "month",
-        "number",
-        "pages",
-        "title",
-        "volume",
-        "year",
-    }
     for k, entry in enumerate(bib_database.entries):
         if entry["ID"] in exclude:
             logger.info(
                 "Entry '%s' is listed for exclusion. Skipping.", entry["ID"]
             )
             continue
+
+        entry_type = entry["ENTRYTYPE"]
+        if entry_type not in keep_fields:
+            continue
+
         # determine the fields to remove
         fields_to_remove = [
-            field for field in set(entry) - keep_fields if field.islower()
+            field
+            for field in set(entry) - keep_fields[entry_type]
+            if field.islower()
         ]
         # logging
         if len(fields_to_remove) == 0:
@@ -83,4 +96,12 @@ def clean_bib_database(
     # remove comments
     bib_database.comments = []
 
+    # clean doi and url
+    _clean_doi_url()
+
     return bib_database
+
+
+def _clean_doi_url():
+    """Clean DOI and URL. Only one of the 2 is kept, preferably the DOI."""
+    pass
