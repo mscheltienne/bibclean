@@ -14,12 +14,23 @@
 
 .. _latest:
 
-Version 0.1
+Version 0.4
 ===========
 
-- Add I/O to load and save BibTex files (by `Mathieu Scheltienne`_)
-- Add :func:`bibclean.check_bib_database` to prevent duplicate entries in a BibTex file (by `Mathieu Scheltienne`_)
-- Add :func:`bibclean.clean_bib_database` to clean-up and alphabetically order enries in a BibTex file (by `Mathieu Scheltienne`_)
+Enhancements
+------------
+
+- xxx
+
+Bugs
+----
+
+- Fix exit code returned by ``bibclean-check`` when a duplicate is found
+
+API and behavior changes
+------------------------
+
+- xxx
 
 Authors
 -------
