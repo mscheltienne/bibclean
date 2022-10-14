@@ -6,6 +6,9 @@
 .. toctree::
    :hidden:
 
+   bibtex.rst
+   cli.rst
+   configuration.rst
    api/index
    changes/index
 
