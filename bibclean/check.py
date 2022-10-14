@@ -3,6 +3,7 @@ from typing import List, Optional
 import numpy as np
 from bibtexparser.bibdatabase import BibDatabase
 
+from ._exception import DuplicateEntry, MissingReqField
 from ._typing import Entry, FieldSet
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
@@ -66,7 +67,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
             for cite_key, n in Counter(idx).items()
             if n != 1
         )
-        raise RuntimeError(
+        raise DuplicateEntry(
             "The BibTex file contains duplicate entries with the same cite "
             f"key: {', '.join(duplicates)}."
         )
@@ -75,7 +76,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
     hash_fields = {"year", "author", "title"}
     for entry in entries:
         if len(hash_fields - set(entry)) != 0:
-            raise RuntimeError(
+            raise MissingReqField(
                 f"The BibTex file entry '{entry['ID']}' is missing some basic "
                 "information: year, author, title."
             )
@@ -96,7 +97,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         for hash_ in duplicate_hashes:
             idx = np.where(hashes == hash_)[0]
             duplicates.append(f"({', '.join(entries[k]['ID'] for k in idx)})")
-        raise RuntimeError(
+        raise DuplicateEntry(
             "The BibTex file contains duplicate entries with different cite "
             f"keys: {', '.join(duplicates)}."
         )
@@ -112,7 +113,7 @@ def _check_minimum_fields(
         if entry_type not in required_fields:
             continue
         if len(required_fields[entry_type] - set(entry)) != 0:
-            raise RuntimeError(
+            raise MissingReqField(
                 f"The BibTex file entry '{entry['ID']}' is missing one of "
                 f"the required field for a '{entry['ENTRYTYPE']}':"
                 f"{', '.join(required_fields[entry_type])}."

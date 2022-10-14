@@ -5,6 +5,7 @@ from copy import deepcopy
 from bibtexparser import dumps
 
 from .. import clean_bib_database, logger
+from .._exception import DuplicateEntry, MissingReqField
 from ..io import load_bib
 
 
@@ -39,7 +40,7 @@ def _run(file):
     try:
         bib_database = load_bib(file)
         bib_database_clean = clean_bib_database(deepcopy(bib_database))
-    except RuntimeError:
+    except (DuplicateEntry, MissingReqField):
         return ReturnCode.violations_found
     except Exception:
         return ReturnCode.invalid_options
