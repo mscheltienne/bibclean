@@ -13,6 +13,11 @@ def test_check_bib_database():
 
     # test without providing a configuration
     check_bib_database(load_bib(directory / "zotero-articles.bib"))
+    # test with configuration
+    check_bib_database(
+        load_bib(directory / "zotero-articles.bib"),
+        required_fields=dict(test={"test"}),
+    )
 
     # test with an excluded duplicate
     check_bib_database(
