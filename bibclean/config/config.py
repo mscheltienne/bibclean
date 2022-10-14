@@ -44,14 +44,16 @@ def load_config(
             req = config[key]["required"]
         except KeyError:
             raise KeyError(
-                "TOML file is invalid. The 'required' key is missing."
+                "TOML file is invalid. The 'required' key is missing from "
+                f"entry-type '{key}'."
             )
 
         try:
             keep = config[key]["keep"]
         except KeyError:
             raise KeyError(
-                "'.toml' file is invalid. The 'keep' key is missing."
+                "'.toml' file is invalid. The 'keep' key is missing from "
+                f"entry-type '{key}'."
             )
 
         if len(req) != len(set(req)) or len(keep) != len(set(keep)):

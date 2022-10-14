@@ -42,12 +42,12 @@ def test_load_config():
         load_config(directory / "bibclean-missing.toml")
 
     with pytest.raises(
-        KeyError, match="TOML file is invalid. The 'required' key is missing."
+        KeyError, match="TOML file is invalid. The 'required' key is missing"
     ):
         load_config(directory / "required-missing.toml")
 
     with pytest.raises(
-        KeyError, match="'.toml' file is invalid. The 'keep' key is missing."
+        KeyError, match="'.toml' file is invalid. The 'keep' key is missing"
     ):
         load_config(directory / "keep-missing.toml")
 
