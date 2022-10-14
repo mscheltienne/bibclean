@@ -1,11 +1,13 @@
 import argparse
 import sys
 from copy import deepcopy
+from typing import Optional
 
 from bibtexparser import dumps
 
 from .. import clean_bib_database, logger
 from .._exception import DuplicateEntry, MissingReqField
+from ..config import load_config
 from ..io import load_bib
 
 
@@ -27,19 +29,36 @@ def run():
         help="path to the .bib file to clean. If an output is not provided, "
         "this file is overwritten.",
     )
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        metavar="path",
+        help="path to the TOML configuration.",
+        default=None,
+    )
     args = parser.parse_args()
 
     try:
-        sys.exit(_run(args.bib))
+        sys.exit(_run(args.bib, args.config))
     except KeyboardInterrupt:
         pass
 
 
-def _run(file):
+def _run(file: str, config: Optional[str]):
     """Run bibclean-check() command and return an exit-code."""
     try:
         bib_database = load_bib(file)
-        bib_database_clean = clean_bib_database(deepcopy(bib_database))
+        if config is None:
+            required_fields = None
+            keep_fields = None
+        else:
+            required_fields, keep_fields = load_config(config)
+        bib_database_clean = clean_bib_database(
+            deepcopy(bib_database),
+            required_fields=required_fields,
+            keep_fields=keep_fields,
+        )
     except (DuplicateEntry, MissingReqField):
         return ReturnCode.violations_found
     except Exception:

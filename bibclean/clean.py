@@ -14,6 +14,7 @@ from .utils._logs import logger
 def clean_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
+    required_fields: Optional[Dict[str, Set[str]]] = None,
     keep_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
@@ -24,6 +25,7 @@ def clean_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
+    %(required_fields)s
     %(keep_fields)s
 
     Returns
@@ -36,6 +38,7 @@ def clean_bib_database(
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
+    req_fields_def, keep_fields_def = _load_default_config()
     _check_type(keep_fields, (dict, None), "keep_fields")
     if isinstance(keep_fields, dict):
         for key, value in keep_fields.items():
@@ -44,8 +47,19 @@ def clean_bib_database(
             for v in value:
                 _check_type(v, (str,))
     else:
-        _, keep_fields = _load_default_config()
-    check_bib_database(bib_database, exclude)
+        keep_fields = keep_fields_def
+    _check_type(required_fields, (dict, None), "required_fields")
+    if isinstance(required_fields, dict):
+        for key, value in required_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        required_fields = req_fields_def
+    del req_fields_def
+    del keep_fields_def
+    check_bib_database(bib_database, exclude, required_fields)
 
     # reset entries dictionary
     logger.debug("Resetting the entry dictionary.")
