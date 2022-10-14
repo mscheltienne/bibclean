@@ -10,5 +10,4 @@ This is the reference for classes (``CamelCase`` names) and functions
     io.rst
     clean.rst
     config.rst
-    utils.rst
     logging.rst
