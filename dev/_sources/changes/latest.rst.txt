@@ -20,7 +20,7 @@ Version 0.4
 Enhancements
 ------------
 
-- xxx
+- Add support for configuration via ``pyproject.toml`` in the sections ``'tool.bibclean.entry_type'``
 
 Bugs
 ----
@@ -30,7 +30,7 @@ Bugs
 API and behavior changes
 ------------------------
 
-- xxx
+- Replace ``.ini`` configuration file with TOML
 
 Authors
 -------
