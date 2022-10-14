@@ -54,6 +54,7 @@ def run():
     if args.config is None:
         required_fields = None
         keep_fields = None
+        exclude = list()
     else:
         required_fields, keep_fields, exclude = load_config(args.config)
     check_bib_database(bib_database, exclude, required_fields)
