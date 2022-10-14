@@ -23,3 +23,14 @@
 .. sphinxcontrib-bibtex
 
 .. _sphinxcontrib-bibtex: https://sphinxcontrib-bibtex.readthedocs.io/en/latest/
+
+
+.. bibtex
+
+.. _bibtex format: https://www.bibtex.com/g/bibtex-format/
+.. _bibtex website: https://www.bibtex.com
+
+
+.. bibclean
+
+.. _default config: https://github.com/mscheltienne/bibclean/blob/main/bibclean/config/default.toml
