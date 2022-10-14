@@ -26,8 +26,17 @@ def test_load_config():
     """Test loading of a TOML configuration."""
     directory = Path(__file__).parent / "data"
 
-    required_fields, keep_fields = load_config(directory / "valid.toml")
+    required_fields, keep_fields, exclude = load_config(
+        directory / "valid.toml"
+    )
     _check_config(required_fields, keep_fields)
+    assert isinstance(exclude, list)
+    assert len(exclude) == 0
+    required_fields, keep_fields, exclude = load_config(
+        directory / "valid-exclusion.toml"
+    )
+    _check_config(required_fields, keep_fields)
+    assert exclude == ["test", "101"]
 
     with pytest.raises(
         RuntimeError,

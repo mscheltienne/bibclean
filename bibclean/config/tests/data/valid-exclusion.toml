@@ -1,0 +1,37 @@
+[tool.bibclean]
+exclude = [
+    'test',
+    '101',
+]
+
+[tool.bibclean.article]
+required = [
+    'author',
+    'journal',
+    'title',
+    'year',
+]
+keep = [
+    'author',
+    'journal',
+    'month',
+    'number',
+    'pages',
+    'title',
+    'volume',
+    'year',
+]
+
+[tool.bibclean.book]
+required = [
+    'author',
+    'publisher',
+    'title',
+    'year',
+]
+keep = [
+    'author',
+    'publisher',
+    'title',
+    'year',
+]
