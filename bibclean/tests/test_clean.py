@@ -34,6 +34,13 @@ def test_clean_bib_database():
     assert "author" not in bib_db.entries[0]
     assert "year" not in bib_db.entries[0]
 
+    # test skip
+    bib_db = clean_bib_database(
+        load_bib(directory / "zotero-keep-fields.bib"),
+        keep_fields=dict(book={"title", "issn"}),
+    )
+    assert "author" in bib_db.entries[0]
+
 
 def test_clean_bib_database_invalid_args():
     """Test passing invalid argument to clean_bib_database."""
