@@ -1,6 +1,6 @@
 import argparse
 
-from .. import clean_bib_database
+from .. import clean_bib_database, check_bib_database
 from ..config import load_config
 from ..io import load_bib, save_bib
 
@@ -56,9 +56,8 @@ def run():
         keep_fields = None
     else:
         required_fields, keep_fields = load_config(args.config)
-    bib_database = clean_bib_database(
-        bib_database, required_fields=required_fields, keep_fields=keep_fields
-    )
+    check_bib_database(bib_database, required_fields=required_fields)
+    bib_database = clean_bib_database(bib_database, keep_fields=keep_fields)
 
     # save
     output = args.bib if args.output is None else args.output

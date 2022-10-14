@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
 from ._typing import Entry
-from .check import check_bib_database
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
 from .utils._docs import fill_doc
@@ -14,7 +13,6 @@ from .utils._logs import logger
 def clean_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
-    required_fields: Optional[Dict[str, Set[str]]] = None,
     keep_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
@@ -25,7 +23,6 @@ def clean_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
-    %(required_fields)s
     %(keep_fields)s
 
     Returns
@@ -38,10 +35,15 @@ def clean_bib_database(
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
-    required_fields, keep_fields = _check_arg_fields(
-        required_fields, keep_fields
-    )
-    check_bib_database(bib_database, exclude, required_fields)
+    _check_type(keep_fields, (dict, None), "keep_fields")
+    if isinstance(keep_fields, dict):
+        for key, value in keep_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        _, keep_fields = _load_default_config()
 
     # reset entries dictionary
     logger.debug("Resetting the entry dictionary.")
@@ -116,35 +118,3 @@ def _clean_doi_url(entry: Entry) -> bool:
         return False
     elif sum(field) == 2:
         return True
-
-
-def _check_arg_fields(
-    required_fields: Any, keep_fields: Any
-) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
-    """Check the required_fields and keep_fields arguments."""
-    # load defaults
-    req_fields_def, keep_fields_def = _load_default_config()
-
-    # required-fields
-    _check_type(required_fields, (dict, None), "required_fields")
-    if isinstance(required_fields, dict):
-        for key, value in required_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
-            for v in value:
-                _check_type(v, (str,))
-    else:
-        required_fields = req_fields_def
-
-    # keep-fields
-    _check_type(keep_fields, (dict, None), "keep_fields")
-    if isinstance(keep_fields, dict):
-        for key, value in keep_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
-            for v in value:
-                _check_type(v, (str,))
-    else:
-        keep_fields = keep_fields_def
-
-    return required_fields, keep_fields
