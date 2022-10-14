@@ -34,6 +34,7 @@ dependencies = [
     'bibtexparser',
     'numpy>=1.21',
     'psutil',
+    'toml',
 ]
 
 [project.optional-dependencies]
@@ -118,7 +119,7 @@ extend_skip_glob = [
     'setup.py',
     'data/*',
     'doc/*',
-    'tutorials/*'
+    'tutorials/*',
 ]
 
 [tool.pydocstyle]

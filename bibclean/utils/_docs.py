@@ -29,6 +29,22 @@ encoding : str
     Encoding used to read the file. The provided encoding is forwarded to
     :func:`open`."""
 
+# ---------------------------------- fields ----------------------------------
+docdict[
+    "keep_fields"
+] = """
+keep_fields : dict
+    Fields to keep for each entry type. If None, a default configuration
+    is loaded. The dictionary is defined with the entry-type as key (`str`)
+    and the required fields as value (`set` of `str`)."""
+docdict[
+    "required_fields"
+] = """
+required_fields : dict
+    Required fields for each entry type. If None, a default configuration
+    is loaded. The dictionary is defined with the entry-type as key (`str`)
+    and the required fields as value (`set` of `str`)."""
+
 # ------------------------- Documentation functions --------------------------
 docdict_indented: Dict[int, Dict[str, str]] = dict()
 

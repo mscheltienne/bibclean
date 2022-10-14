@@ -1,18 +1,20 @@
-from typing import List, Optional
+from typing import Dict, List, Optional, Set
 
 from bibtexparser.bibdatabase import BibDatabase
 
-from ._typing import Entry, FieldSet
+from ._typing import Entry
 from .check import check_bib_database
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
 from .utils._logs import logger
+from .utils._docs import fill_doc
 
 
+@fill_doc
 def clean_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
-    keep_fields: Optional[FieldSet] = None,
+    keep_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
 
@@ -22,10 +24,7 @@ def clean_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
-    keep_fields : dict | None
-        Fields to keep for each entry type. If None, a default configuration
-        is loaded. The dictionary is defined with the entry-type as key (`str`)
-        and the required fields as value (`set` of `str`).
+    %(keep_fields)s
 
     Returns
     -------

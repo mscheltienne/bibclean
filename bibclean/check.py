@@ -1,18 +1,20 @@
-from typing import List, Optional
+from typing import Dict, List, Optional, Set
 
 import numpy as np
 from bibtexparser.bibdatabase import BibDatabase
 
 from ._exception import DuplicateEntry, MissingReqField
-from ._typing import Entry, FieldSet
+from ._typing import Entry
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
+from .utils._docs import fill_doc
 
 
+@fill_doc
 def check_bib_database(
     bib_database: BibDatabase,
     exclude: List[str] = [],
-    required_fields: Optional[FieldSet] = None,
+    required_fields: Optional[Dict[str, Set[str]]] = None,
 ) -> None:
     """Check a BibTex database.
 
@@ -22,10 +24,7 @@ def check_bib_database(
         BibTex database.
     exclude : list of str
         List of entries to ignore. An entry is specified by its cite key.
-    required_fields : dict | None
-        Required fields for each entry type. If None, a default configuration
-        is loaded. The dictionary is defined with the entry-type as key (`str`)
-        and the required fields as value (`set` of `str`).
+    %(required_fields)s
     """
     _check_type(bib_database, (BibDatabase,), "bib_database")
     _check_type(exclude, (list, tuple), "exclude")
@@ -105,7 +104,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
 def _check_minimum_fields(
     entries: List[Entry],
-    required_fields: FieldSet,
+    required_fields: Dict[str, Set[str]],
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:
