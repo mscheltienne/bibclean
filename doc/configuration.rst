@@ -144,7 +144,7 @@ configuration is required:
     commands.
 
     Note that excluded entries will still have their fields sorted
-    alphabetically and will still be positionned in an alphabetical order
+    alphabetically and will still be positioned in an alphabetical order
     in the cleaned BibTex file.
 
 The processing of the BibTex file above with the configuration above results
