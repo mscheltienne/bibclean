@@ -63,8 +63,8 @@ for this entry-type.
 configuration, either a user-defined configuration or the default
 configuration.
 
-Types
------
+Example
+-------
 
 ``exclude`` defines the cite-key ignored by ``bibclean``.
 ``required`` defines the fields that any entry of a given type should have.
