@@ -30,7 +30,7 @@ def check_bib_database(
     _check_type(exclude, (list, tuple), "exclude")
     for elt in exclude:
         _check_type(elt, (str,))
-        _check_value(elt, bib_database.entries_dict)
+        _check_value(elt, bib_database.entries_dict, "exclude")
     _check_type(required_fields, (dict, None), "required_fields")
     if isinstance(required_fields, dict):
         for key, value in required_fields.items():
