@@ -26,6 +26,8 @@ Bugs
 ----
 
 - Fix exit code returned by ``bibclean-check`` when a duplicate is found
+- Replace ``.ini`` configuration file with TOML
+- Add support for configuration via ``pyproject.toml`` in the sections ``'tool.bibclean.entry_type'``
 
 API and behavior changes
 ------------------------
