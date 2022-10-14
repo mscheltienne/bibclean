@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from bibtexparser.bibdatabase import BibDatabase
 
@@ -38,27 +38,9 @@ def clean_bib_database(
     for elt in exclude:
         _check_type(elt, (str,))
         _check_value(elt, bib_database.entries_dict)
-    req_fields_def, keep_fields_def = _load_default_config()
-    _check_type(keep_fields, (dict, None), "keep_fields")
-    if isinstance(keep_fields, dict):
-        for key, value in keep_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
-            for v in value:
-                _check_type(v, (str,))
-    else:
-        keep_fields = keep_fields_def
-    _check_type(required_fields, (dict, None), "required_fields")
-    if isinstance(required_fields, dict):
-        for key, value in required_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
-            for v in value:
-                _check_type(v, (str,))
-    else:
-        required_fields = req_fields_def
-    del req_fields_def
-    del keep_fields_def
+    required_fields, keep_fields = _check_arg_fields(
+        required_fields, keep_fields
+    )
     check_bib_database(bib_database, exclude, required_fields)
 
     # reset entries dictionary
@@ -134,3 +116,35 @@ def _clean_doi_url(entry: Entry) -> bool:
         return False
     elif sum(field) == 2:
         return True
+
+
+def _check_arg_fields(
+    required_fields: Any, keep_fields: Any
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+    """Check the required_fields and keep_fields arguments."""
+    # load defaults
+    req_fields_def, keep_fields_def = _load_default_config()
+
+    # required-fields
+    _check_type(required_fields, (dict, None), "required_fields")
+    if isinstance(required_fields, dict):
+        for key, value in required_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        required_fields = req_fields_def
+
+    # keep-fields
+    _check_type(keep_fields, (dict, None), "keep_fields")
+    if isinstance(keep_fields, dict):
+        for key, value in keep_fields.items():
+            _check_type(key, (str,))
+            _check_type(value, (set,))
+            for v in value:
+                _check_type(v, (str,))
+    else:
+        keep_fields = keep_fields_def
+
+    return required_fields, keep_fields
