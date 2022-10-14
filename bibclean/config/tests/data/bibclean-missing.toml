@@ -1,0 +1,22 @@
+[tool.test.article]
+required = [
+    'author',
+    'year',
+]
+keep = [
+    'author',
+    'journal',
+    'month',
+    'year',
+]
+
+[tool.test.book]
+required = [
+    'author',,
+    'title',
+    'year',
+]
+keep = [
+    'author',
+    'year',
+]

@@ -6,8 +6,8 @@ from ._typing import Entry
 from .check import check_bib_database
 from .config import _load_default_config
 from .utils._checks import _check_type, _check_value
-from .utils._logs import logger
 from .utils._docs import fill_doc
+from .utils._logs import logger
 
 
 @fill_doc

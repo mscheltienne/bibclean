@@ -1,0 +1,17 @@
+[tool.bibclean.article]
+required = [
+    'author',
+    'journal',
+    'title',
+    'year',
+]
+test = [
+    'author',
+    'journal',
+    'month',
+    'number',
+    'pages',
+    'title',
+    'volume',
+    'year',
+]

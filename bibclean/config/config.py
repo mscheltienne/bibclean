@@ -7,7 +7,9 @@ from ..utils._docs import fill_doc
 
 
 @fill_doc
-def load_config(file: Union[str, Path]) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+def load_config(
+    file: Union[str, Path]
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
     """Load the bibclean configuration form a TOML file.
 
     Parameters

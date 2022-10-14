@@ -1,3 +1,3 @@
-from typing import Dict, Set
+from typing import Dict
 
 Entry = Dict[str, str]
