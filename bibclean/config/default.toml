@@ -1,3 +1,6 @@
+[tool.bibclean]
+exclude = []
+
 [tool.bibclean.article]
 required = [
     'author',

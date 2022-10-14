@@ -5,7 +5,7 @@ from typing import Optional
 
 from bibtexparser import dumps
 
-from .. import clean_bib_database, logger, check_bib_database
+from .. import check_bib_database, clean_bib_database, logger
 from .._exception import DuplicateEntry, MissingReqField
 from ..config import load_config
 from ..io import load_bib
@@ -53,11 +53,12 @@ def _run(file: str, config: Optional[str]):
             required_fields = None
             keep_fields = None
         else:
-            required_fields, keep_fields = load_config(config)
-        check_bib_database(bib_database, required_fields=required_fields)
+            required_fields, keep_fields, exclude = load_config(config)
+        check_bib_database(bib_database, exclude, required_fields)
         bib_database_clean = clean_bib_database(
             deepcopy(bib_database),
-            keep_fields=keep_fields,
+            exclude,
+            keep_fields,
         )
     except (DuplicateEntry, MissingReqField):
         return ReturnCode.violations_found

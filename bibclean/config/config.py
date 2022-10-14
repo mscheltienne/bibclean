@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 from toml import load
 
@@ -9,7 +9,7 @@ from ..utils._docs import fill_doc
 @fill_doc
 def load_config(
     file: Union[str, Path]
-) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]], List[str]]:
     """Load the bibclean configuration form a TOML file.
 
     Parameters
@@ -38,7 +38,12 @@ def load_config(
 
     required_fields = dict()
     keep_fields = dict()
+    exclude = list()
     for key in config:
+
+        if key == "exclude":
+            exclude = config[key]
+            continue
 
         try:
             req = config[key]["required"]
@@ -65,9 +70,12 @@ def load_config(
         required_fields[key] = set(req)
         keep_fields[key] = set(keep)
 
-    return required_fields, keep_fields
+    return required_fields, keep_fields, exclude
 
 
 def _load_default_config() -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
     """Load the default config from 'default.toml'."""
-    return load_config(Path(__file__).parent / "default.toml")
+    required_fields, keep_fields, _ = load_config(
+        Path(__file__).parent / "default.toml"
+    )
+    return required_fields, keep_fields
