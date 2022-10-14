@@ -34,7 +34,7 @@ def clean_bib_database(
     _check_type(exclude, (list, tuple), "exclude")
     for elt in exclude:
         _check_type(elt, (str,))
-        _check_value(elt, bib_database.entries_dict)
+        _check_value(elt, bib_database.entries_dict, "exclude")
     _check_type(keep_fields, (dict, None), "keep_fields")
     if isinstance(keep_fields, dict):
         for key, value in keep_fields.items():
