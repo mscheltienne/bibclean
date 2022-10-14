@@ -93,7 +93,7 @@ include = ['bibclean*']
 exclude = ['bibclean*tests']
 
 [tool.setuptools.package-data]
-"bibclean.config" = ["*.ini"]
+"bibclean.config" = ["*.toml"]
 
 [tool.black]
 line-length = 79
