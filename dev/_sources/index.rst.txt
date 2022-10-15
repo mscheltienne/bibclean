@@ -73,6 +73,8 @@ can be configured with the ``-c`` or ``--config`` flag which overwrite the
 
             # check if the file references.bib is already processed
             bibclean-check references.bib
+            # check if the file references.bib is already processed with the configuration in pyproject.toml
+            bibclean-check references.bib -c pyproject.toml
 
 License
 -------
