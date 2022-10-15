@@ -22,6 +22,7 @@ def load_config(
     -------
     %(required_fields)s
     %(keep_fields)s
+    %(exclude)s
     """
     config = load(file)
     if "tool" not in config:

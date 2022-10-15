@@ -45,6 +45,13 @@ required_fields : dict
     is loaded. The dictionary is defined with the entry-type as key (`str`)
     and the required fields as value (`set` of `str`)."""
 
+# ------------------------------ --- entries ---------------------------------
+docdict[
+    "exclude"
+] = """
+exclude : list of str
+    List of entries to ignore. An entry is specified by its cite key."""
+
 # ------------------------- Documentation functions --------------------------
 docdict_indented: Dict[int, Dict[str, str]] = dict()
 

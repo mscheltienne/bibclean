@@ -21,8 +21,7 @@ def clean_bib_database(
     ----------
     bib_database : BibDatabase
         BibTex database.
-    exclude : list of str
-        List of entries to ignore. An entry is specified by its cite key.
+    %(exclude)s
     %(keep_fields)s
 
     Returns

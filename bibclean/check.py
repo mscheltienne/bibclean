@@ -22,8 +22,7 @@ def check_bib_database(
     ----------
     bib_database : BibDatabase
         BibTex database.
-    exclude : list of str
-        List of entries to ignore. An entry is specified by its cite key.
+    %(exclude)s
     %(required_fields)s
     """
     _check_type(bib_database, (BibDatabase,), "bib_database")
