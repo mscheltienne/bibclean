@@ -185,7 +185,8 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="changes/index.html">Changelog</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="changes/latest.html">Version 0.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/latest.html">Version 0.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/0.4.html">Version 0.4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.3.html">Version 0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.2.html">Version 0.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.1.html">Version 0.1</a></li>
@@ -229,12 +230,13 @@
 <h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">bibclean</span></code> commands can be configured in a TOML file, usually the
 <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file. The configuration is defined in sections heading
-with <code class="docutils literal notranslate"><span class="pre">tool.bibclean</span></code> and defines for each entry-type:</p>
+with <code class="docutils literal notranslate"><span class="pre">tool.bibclean</span></code> and defines for each
+<a class="reference internal" href="bibtex.html#entry-type"><span class="std std-ref">entry-type</span></a>:</p>
 <ul class="simple">
-<li><p>under <code class="docutils literal notranslate"><span class="pre">required</span></code>, which fields are required when checking a BibTex with
-<a class="reference internal" href="api/generated/bibclean.check_bib_database.html#bibclean.check_bib_database" title="bibclean.check_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_bib_database()</span></code></a>.</p></li>
-<li><p>under <code class="docutils literal notranslate"><span class="pre">keep</span></code>, which fields are kept when cleaning a BibTex with
-<a class="reference internal" href="api/generated/bibclean.clean_bib_database.html#bibclean.clean_bib_database" title="bibclean.clean_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">clean_bib_database()</span></code></a>.</p></li>
+<li><p>under <code class="docutils literal notranslate"><span class="pre">required</span></code>, which <a class="reference internal" href="bibtex.html#fields"><span class="std std-ref">fields</span></a> are required when
+checking a BibTex with <a class="reference internal" href="api/generated/bibclean.check_bib_database.html#bibclean.check_bib_database" title="bibclean.check_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_bib_database()</span></code></a>.</p></li>
+<li><p>under <code class="docutils literal notranslate"><span class="pre">keep</span></code>, which <a class="reference internal" href="bibtex.html#fields"><span class="std std-ref">fields</span></a> are kept when cleaning a
+BibTex with <a class="reference internal" href="api/generated/bibclean.clean_bib_database.html#bibclean.clean_bib_database" title="bibclean.clean_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">clean_bib_database()</span></code></a>.</p></li>
 </ul>
 <section id="default">
 <h2>Default<a class="headerlink" href="#default" title="Permalink to this heading">#</a></h2>
@@ -276,18 +278,20 @@ with <code class="docutils literal notranslate"><span class="pre">tool.bibclean<
 <span class="p">]</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Each entry-type is defined in its own section. The configuration of an
-entry-type is complete only when both <code class="docutils literal notranslate"><span class="pre">required</span></code> and <code class="docutils literal notranslate"><span class="pre">keep</span></code> are defined
-for this entry-type.</p>
+<p>Each <a class="reference internal" href="bibtex.html#entry-type"><span class="std std-ref">entry-type</span></a> is defined in its own section. The
+onfiguration of an <a class="reference internal" href="bibtex.html#entry-type"><span class="std std-ref">entry-type</span></a> is complete only when
+both <code class="docutils literal notranslate"><span class="pre">required</span></code> and <code class="docutils literal notranslate"><span class="pre">keep</span></code> are defined for this
+<a class="reference internal" href="bibtex.html#entry-type"><span class="std std-ref">entry-type</span></a>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">bibclean</span></code> will only process the entry-types that are defined in the loaded
 configuration, either a user-defined configuration or the default
 configuration.</p>
 </section>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">exclude</span></code> defines the cite-key ignored by <code class="docutils literal notranslate"><span class="pre">bibclean</span></code>.
-<code class="docutils literal notranslate"><span class="pre">required</span></code> defines the fields that any entry of a given type should have.
-<code class="docutils literal notranslate"><span class="pre">keep</span></code> defines the fields that are kept when auto-formating entries of a
+<p><code class="docutils literal notranslate"><span class="pre">exclude</span></code> defines the <a class="reference internal" href="bibtex.html#cite-key"><span class="std std-ref">cite-key</span></a> ignored by
+<code class="docutils literal notranslate"><span class="pre">bibclean</span></code>. <code class="docutils literal notranslate"><span class="pre">required</span></code> defines the <a class="reference internal" href="bibtex.html#fields"><span class="std std-ref">fields</span></a> that any
+entry of a given type should have. <code class="docutils literal notranslate"><span class="pre">keep</span></code> defines the
+<a class="reference internal" href="bibtex.html#fields"><span class="std std-ref">fields</span></a> that are kept when auto-formating entries of a
 given type. In all 3 case, the TOML configuration uses an array of strings.</p>
 <p>Consider the following BibTex file with an entry for <code class="docutils literal notranslate"><span class="pre">numpy</span></code> and an entry for
 <code class="docutils literal notranslate"><span class="pre">scipy</span></code>:</p>
@@ -396,8 +400,8 @@ in:</p>
 <section id="enhancement">
 <h2>Enhancement<a class="headerlink" href="#enhancement" title="Permalink to this heading">#</a></h2>
 <p>Please contact the developer on <a class="reference external" href="https://github.com/mscheltienne/bibclean">GitHub</a> to propose
-modifications to the default configuration. At term, it should include a
-sensible default for most entry-types.</p>
+modifications to the <a class="reference internal" href="#default"><span class="std std-ref">default TOML configuration</span></a>.
+At term, it should include a sensible default for most entry-types.</p>
 </section>
 </section>
 

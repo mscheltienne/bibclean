@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -185,7 +185,8 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="changes/index.html">Changelog</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="changes/latest.html">Version 0.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/latest.html">Version 0.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/0.4.html">Version 0.4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.3.html">Version 0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.2.html">Version 0.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes/0.1.html">Version 0.1</a></li>
@@ -219,7 +220,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -227,6 +228,98 @@
         <article role="main">
           <section id="command-lines">
 <h1>Command-lines<a class="headerlink" href="#command-lines" title="Permalink to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">bibclean</span></code> has 2 CLI entry-points: <a class="reference internal" href="#bibclean"><span class="std std-ref">bibclean</span></a> and
+<a class="reference internal" href="#bibclean-check"><span class="std std-ref">bibclean-check</span></a>.</p>
+<section id="bibclean">
+<h2>bibclean<a class="headerlink" href="#bibclean" title="Permalink to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bibclean</span></code> process a single <code class="docutils literal notranslate"><span class="pre">.bib</span></code> file, checks it with
+<a class="reference internal" href="api/generated/bibclean.check_bib_database.html#bibclean.check_bib_database" title="bibclean.check_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">bibclean.check_bib_database()</span></code></a> and cleans it with
+<a class="reference internal" href="api/generated/bibclean.clean_bib_database.html#bibclean.clean_bib_database" title="bibclean.clean_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">bibclean.clean_bib_database()</span></code></a>.
+Details about the arguments can be retrieved with <code class="docutils literal notranslate"><span class="pre">bibclean</span> <span class="pre">--help</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: bibclean <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-o path<span class="o">]</span> <span class="o">[</span>-e str<span class="o">]</span> <span class="o">[</span>--overwrite<span class="o">]</span> <span class="o">[</span>-c path<span class="o">]</span> path
+
+cleans a .bib file.
+
+positional arguments:
+  path                     path to the .bib file to clean. If an output is not provided, this file is overwritten.
+
+optional arguments:
+  -h, --help               show this <span class="nb">help</span> message and <span class="nb">exit</span>
+  -o path, --output path   path to the output .bib file.
+  -e str, --encoding str   encoding of the .bib file.
+  --overwrite              overwrite the file provided <span class="k">in</span> --output <span class="k">if</span> it exists.
+  -c path, --config path   path to the TOML configuration.
+</pre></div>
+</div>
+<p>To clean the file <code class="docutils literal notranslate"><span class="pre">bib/references.bib</span></code> in place, use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib
+</pre></div>
+</div>
+<p>To prevent overwriting the existing file, an output path must be provided:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib --output bib/references-clean.bib
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="configuration.html#default"><span class="std std-ref">default TOML configuration</span></a>.
+can be overwritten with <code class="docutils literal notranslate"><span class="pre">-c</span></code> or <code class="docutils literal notranslate"><span class="pre">--config</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib --config pyproject.toml
+</pre></div>
+</div>
+</section>
+<section id="bibclean-check">
+<h2>bibclean-check<a class="headerlink" href="#bibclean-check" title="Permalink to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bibclean-check</span></code> is designed for use in CIs. It will exit with the code <code class="docutils literal notranslate"><span class="pre">0</span></code>
+if the provided <code class="docutils literal notranslate"><span class="pre">.bib</span></code> file is already processed, with the exit code <code class="docutils literal notranslate"><span class="pre">1</span></code> if
+a violation has been found, and with the exit code <code class="docutils literal notranslate"><span class="pre">2</span></code> if the provided
+configuration/paths are invalid.
+Details about the arguments can be retrieved with <code class="docutils literal notranslate"><span class="pre">bibclean-check</span> <span class="pre">--help</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: bibclean-check <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-c path<span class="o">]</span> path
+
+confirms that a .bib file is processed.
+
+positional arguments:
+  path                     path to the .bib file to clean. If an output is not provided, this file is overwritten.
+
+optional arguments:
+  -h, --help               show this <span class="nb">help</span> message and <span class="nb">exit</span>
+  -c path, --config path   path to the TOML configuration.
+</pre></div>
+</div>
+<section id="github-action-ci">
+<h3>GitHub action CI<a class="headerlink" href="#github-action-ci" title="Permalink to this heading">#</a></h3>
+<p>Below is an example of GitHub action workflow configuration to confirm
+that the file <code class="docutils literal notranslate"><span class="pre">doc/references.bib</span></code> used by a sphinx documentation build is
+cleaned.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-style</span><span class="w"></span>
+<span class="nt">concurrency</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}</span><span class="w"></span>
+<span class="w">  </span><span class="nt">cancel-in-progress</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"></span>
+<span class="nt">on</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">push</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">]</span><span class="w"></span>
+
+<span class="nt">jobs</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">style</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w"></span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span><span class="w"></span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout repository</span><span class="w"></span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Setup Python 3.9</span><span class="w"></span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span><span class="w"></span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.9&#39;</span><span class="w"></span>
+<span class="w">          </span><span class="nt">architecture</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;x64&#39;</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span><span class="w"></span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w"></span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off --upgrade pip setuptools wheel</span><span class="w"></span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off bibclean</span><span class="w"></span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off .</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run bibclean</span><span class="w"></span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bibclean-check doc/references.bib</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
         </article>
@@ -278,8 +371,31 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Command-lines</a><ul>
+<li><a class="reference internal" href="#bibclean">bibclean</a></li>
+<li><a class="reference internal" href="#bibclean-check">bibclean-check</a><ul>
+<li><a class="reference internal" href="#github-action-ci">GitHub action CI</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

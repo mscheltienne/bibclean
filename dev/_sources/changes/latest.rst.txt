@@ -14,23 +14,23 @@
 
 .. _latest:
 
-Version 0.4
+Version 0.5
 ===========
 
 Enhancements
 ------------
 
-- Add support for configuration via ``pyproject.toml`` in the sections ``'tool.bibclean.entry_type'``
+- xxx
 
 Bugs
 ----
 
-- Fix exit code returned by ``bibclean-check`` when a duplicate is found
+- xxx
 
 API and behavior changes
 ------------------------
 
-- Replace ``.ini`` configuration file with TOML
+- xxx
 
 Authors
 -------

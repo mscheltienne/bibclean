@@ -19,8 +19,8 @@ Cite-key
 The cite-key follows the entry-type and is a unique identifier of the entry.
 For instance, ``@book{MyUniqueCitekey, ... }``.
 
-Bibliographic data
-------------------
+Fields
+------
 
 The bibliographic data follows the cite-key as a list of key-value pairs.
 
