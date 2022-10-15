@@ -8,7 +8,7 @@ from ..io import load_bib, save_bib
 def run():
     """Run bibclean() command."""
     parser = argparse.ArgumentParser(
-        prog=f"{__package__.split('.')[0]}-sys_info", description="sys_info"
+        prog=f"{__package__.split('.')[0]}", description="cleans a .bib file."
     )
     parser.add_argument(
         "bib",
@@ -29,6 +29,7 @@ def run():
         "-e",
         "--encoding",
         type=str,
+        metavar="str",
         help="encoding of the .bib file.",
         default="utf-8",
     )

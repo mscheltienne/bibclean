@@ -5,12 +5,13 @@ Configuration
 
 ``bibclean`` commands can be configured in a TOML file, usually the
 ``pyproject.toml`` file. The configuration is defined in sections heading
-with ``tool.bibclean`` and defines for each entry-type:
+with ``tool.bibclean`` and defines for each
+:ref:`entry-type <bibtex:entry-type>`:
 
-- under ``required``, which fields are required when checking a BibTex with
-  :func:`~bibclean.check_bib_database`.
-- under ``keep``, which fields are kept when cleaning a BibTex with
-  :func:`~bibclean.clean_bib_database`.
+- under ``required``, which :ref:`fields <bibtex:fields>` are required when
+  checking a BibTex with :func:`~bibclean.check_bib_database`.
+- under ``keep``, which :ref:`fields <bibtex:fields>` are kept when cleaning a
+  BibTex with :func:`~bibclean.clean_bib_database`.
 
 Default
 -------
@@ -55,9 +56,10 @@ The default configuration of ``bibclean`` can be found
         'year',
     ]
 
-Each entry-type is defined in its own section. The configuration of an
-entry-type is complete only when both ``required`` and ``keep`` are defined
-for this entry-type.
+Each :ref:`entry-type <bibtex:entry-type>` is defined in its own section. The
+onfiguration of an :ref:`entry-type <bibtex:entry-type>` is complete only when
+both ``required`` and ``keep`` are defined for this
+:ref:`entry-type <bibtex:entry-type>`.
 
 ``bibclean`` will only process the entry-types that are defined in the loaded
 configuration, either a user-defined configuration or the default
@@ -66,9 +68,10 @@ configuration.
 Example
 -------
 
-``exclude`` defines the cite-key ignored by ``bibclean``.
-``required`` defines the fields that any entry of a given type should have.
-``keep`` defines the fields that are kept when auto-formating entries of a
+``exclude`` defines the :ref:`cite-key <bibtex:cite-key>` ignored by
+``bibclean``. ``required`` defines the :ref:`fields <bibtex:fields>` that any
+entry of a given type should have. ``keep`` defines the
+:ref:`fields <bibtex:fields>` that are kept when auto-formating entries of a
 given type. In all 3 case, the TOML configuration uses an array of strings.
 
 Consider the following BibTex file with an entry for ``numpy`` and an entry for
@@ -185,5 +188,5 @@ Enhancement
 -----------
 
 Please contact the developer on `GitHub <project github_>`_ to propose
-modifications to the default configuration. At term, it should include a
-sensible default for most entry-types.
+modifications to the :ref:`default TOML configuration <configuration:default>`.
+At term, it should include a sensible default for most entry-types.

@@ -20,7 +20,8 @@ class ReturnCode:
 def run():
     """Run bibclean-check() command."""
     parser = argparse.ArgumentParser(
-        prog=f"{__package__.split('.')[0]}-sys_info", description="sys_info"
+        prog=f"{__package__.split('.')[0]}-check",
+        description="confirms that a .bib file is processed.",
     )
     parser.add_argument(
         "bib",
