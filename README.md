@@ -9,16 +9,5 @@
 
 # BibClean
 
-A simple BibTex file checker and cleaner. It focuses on ``article`` entries and
-on ``.bib`` files which will be fed to ``sphinxcontrib-bibtex``.
-
-After installation via ``pip``, it can be used via CLI:
-
-```
-# to list the arguments
-bibclean --help
-# to clean in-place
-bibclean references.bib
-# to clean and output in a different file
-bibclean references.bib -o references-clean.bib
-```
+A simple BibTex file checker and cleaner. The documentation can be found
+[here](https://mscheltienne.github.io/bibclean/dev/index.html).
