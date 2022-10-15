@@ -41,7 +41,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",
     "numpydoc",
-    "sphinxcontrib.bibtex",
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_issues",
