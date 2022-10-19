@@ -52,6 +52,11 @@ def test_load_invalid_config():
     # missing section(s)
     with pytest.raises(
         RuntimeError,
+        match="TOML file is invalid. The section 'tool' is missing.",
+    ):
+        load_config(directory / "invalid-missing-tool.toml")
+    with pytest.raises(
+        RuntimeError,
         match=re.escape(
             "invalid. The section(s) 'tool.bibclean' are missing."
         ),
