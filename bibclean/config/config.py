@@ -106,7 +106,7 @@ def _load_config(
             continue
         elif key == "exclude_type":
             exclude_type = config[key]
-            for exc in exclude:
+            for exc in exclude_type:
                 if not isinstance(exc, str):
                     raise TypeError(
                         "TOML file is invalid. The excluded types must be "
@@ -116,9 +116,9 @@ def _load_config(
             continue
 
         # check that TOML is valid
-        invalid = set(config[key].keys()) - {"keep", "required"}
+        invalid = sorted(set(config[key].keys()) - {"keep", "required"})
         if len(invalid) != 0:
-            plural = "s" if len(invalid) == 1 else ""
+            plural = "" if len(invalid) == 1 else "s"
             raise KeyError(
                 f"TOML file is invalid. Unexpected {invalid} key{plural} in "
                 f"section 'bibclean.{key}'."

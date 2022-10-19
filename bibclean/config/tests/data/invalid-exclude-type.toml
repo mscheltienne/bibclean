@@ -1,0 +1,2 @@
+[tool.bibclean]
+exclude_type = [101]

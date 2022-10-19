@@ -1,0 +1,7 @@
+[tool.bibclean.test]
+author = [
+    'Mathieu',
+]
+year = [
+    '2022',
+]

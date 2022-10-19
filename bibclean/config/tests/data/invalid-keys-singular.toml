@@ -1,0 +1,4 @@
+[tool.bibclean.test]
+author = [
+    'Mathieu',
+]
