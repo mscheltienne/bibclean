@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Logging" href="../logging.html" /><link rel="prev" title="Configuration" href="../config.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
         <title>bibclean.config.load_config - bibclean</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -230,13 +230,16 @@
 <h1>bibclean.config.load_config<a class="headerlink" href="#bibclean-config-load-config" title="Permalink to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="bibclean.config.load_config">
-<span class="sig-prename descclassname"><span class="pre">bibclean.config.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/config/config.py#L9-L74"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.config.load_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Load the bibclean configuration form a TOML file.</p>
+<span class="sig-prename descclassname"><span class="pre">bibclean.config.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/config/config.py#L9-L71"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.config.load_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Load the <code class="docutils literal notranslate"><span class="pre">bibclean</span></code> configuration form a TOML file.</p>
+<p>The loaded configuration is merged with the
+<a class="reference internal" href="../../configuration.html#default"><span class="std std-ref">default TOML configuration</span></a>, overwriting
+the defaults with the provided configuration.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Path</span></code></a></span></dt><dd><p>Path to the TOML file containing the <code class="docutils literal notranslate"><span class="pre">'tool.bibclean.entry_type'</span></code>
-sections.</p>
+<dt><strong>file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Path</span></code></a></span></dt><dd><p>Path to the TOML file containing the <code class="docutils literal notranslate"><span class="pre">tool.bibclean</span></code> and
+<code class="docutils literal notranslate"><span class="pre">'tool.bibclean.entry_type'</span></code> sections.</p>
 </dd>
 </dl>
 </dd>
