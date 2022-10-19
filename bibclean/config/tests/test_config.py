@@ -55,6 +55,17 @@ def test_load_config():
     assert "book" not in keep
     assert exclude == ["test"]
 
+    # valid-exclude-type
+    req, keep, exclude = load_config(directory / "valid-exclude-type.toml")
+    assert len(req) == len(keep) == len(req_def) == len(keep_def)
+    assert req["article"] == {"author", "journal", "title", "year"}
+    assert req["book"] == {"author", "publisher", "title", "year"}
+    assert keep["article"] == {"author", "journal", "title", "issn", "year"}
+    assert keep["book"] == keep_def["book"]
+    assert len(exclude) == 0
+    assert "test" not in req
+    assert "test" not in keep
+
 
 def test_load_invalid_config():
     """Test loading an invalid TOML configuration."""
