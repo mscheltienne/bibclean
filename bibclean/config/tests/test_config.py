@@ -30,9 +30,18 @@ def test_load_config():
 
     # valid
     req, keep, exclude = load_config(directory / "valid.toml")
-    assert len(req) == len(keep) == 2
+    assert len(req) == len(keep) == len(req_def) == len(keep_def)
     assert req["article"] == {"author", "journal", "title", "year"}
     assert req["book"] == {"author", "publisher", "title", "year"}
+    assert keep["article"] == {"author", "journal", "title", "issn", "year"}
+    assert keep["book"] == keep_def["book"]
+    assert exclude == ["test"]
+
+    # valid with minimal overwrite
+    req, keep, exclude = load_config(directory / "valid-2.toml")
+    assert len(req) == len(keep) == len(req_def) == len(keep_def)
+    assert req["article"] == req_def["article"]
+    assert req["book"] == req_def["book"]
     assert keep["article"] == {"author", "journal", "title", "issn", "year"}
     assert keep["book"] == keep_def["book"]
     assert exclude == ["test"]

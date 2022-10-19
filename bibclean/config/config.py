@@ -36,7 +36,7 @@ def load_config(
         if key not in required_fields:
             required_fields[key] = required_fields_def[key]
     for key, value in keep_fields_def.items():
-        if key not in required_fields:
+        if key not in keep_fields:
             keep_fields[key] = keep_fields_def[key]
 
     for key, value in required_fields.items():
