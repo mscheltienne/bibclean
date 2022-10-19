@@ -5,7 +5,6 @@ import pytest
 
 from bibclean.config import _load_default_config, load_config
 
-
 directory = Path(__file__).parent / "data"
 
 
@@ -53,38 +52,37 @@ def test_load_invalid_config():
     # missing section(s)
     with pytest.raises(
         RuntimeError,
-        match=re.escape("invalid. The section(s) 'tool.bibclean' are missing.")
+        match=re.escape(
+            "invalid. The section(s) 'tool.bibclean' are missing."
+        ),
     ):
         load_config(directory / "invalid-missing-section.toml")
 
     # invalid keys
     with pytest.raises(
-        KeyError,
-        match=re.escape("invalid. Unexpected ['author'] key")
+        KeyError, match=re.escape("invalid. Unexpected ['author'] key")
     ):
         load_config(directory / "invalid-keys-singular.toml")
     with pytest.raises(
         KeyError,
-        match=re.escape("invalid. Unexpected ['author', 'year'] keys")
+        match=re.escape("invalid. Unexpected ['author', 'year'] keys"),
     ):
         load_config(directory / "invalid-keys-plural.toml")
 
     # wrong format
     with pytest.raises(
         TypeError,
-        match="excluded entries must be provided as cite-keys in str format"
+        match="excluded entries must be provided as cite-keys in str format",
     ):
         load_config(directory / "invalid-exclude.toml")
     with pytest.raises(
-        TypeError,
-        match="The excluded types must be provided in str format"
+        TypeError, match="The excluded types must be provided in str format"
     ):
         load_config(directory / "invalid-exclude-type.toml")
 
     # duplicated fields
     with pytest.raises(
-        ValueError,
-        match="invalid. Some fields are present multiple times"
+        ValueError, match="invalid. Some fields are present multiple times"
     ):
         load_config(directory / "invalid-duplicate-fields.toml")
 
@@ -93,12 +91,12 @@ def test_invalid_merge():
     """Test invalid merge when default configuration is absent."""
     with pytest.raises(
         RuntimeError,
-        match="'tool.bibclean.test' does not have a 'required' default."
+        match="'tool.bibclean.test' does not have a 'required' default.",
     ):
         load_config(directory / "invalid-missing-req-def.toml")
 
     with pytest.raises(
         RuntimeError,
-        match="'tool.bibclean.test' does not have a 'keep' default."
+        match="'tool.bibclean.test' does not have a 'keep' default.",
     ):
         load_config(directory / "invalid-missing-keep-def.toml")

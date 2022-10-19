@@ -201,7 +201,7 @@ in:
 .. note::
 
     Note that ``doi`` is preserved. ``bibclean`` was designed with
-    ``sphinxcontrib-bibtex`` in mind where a DOI (prefered) or a URL yields
+    ``sphinxcontrib-bibtex`` in mind where a DOI (preferred) or a URL yields
     a cross-ref link to the reference on the build documentation. Thus,
     ``bibclean`` will always keep at least one of those 2 fields if it is
     present.
