@@ -61,9 +61,10 @@ configuration of an :ref:`entry-type <bibtex:entry-type>` is complete only when
 both ``required`` and ``keep`` are defined for this
 :ref:`entry-type <bibtex:entry-type>`.
 
-``bibclean`` will only process the entry-types that are defined in the loaded
-configuration. The loaded configuration is either the default configuration, or
-a merge between the user-defined and the default configuration.
+``bibclean`` will only process the :ref:`entry-types <bibtex:entry-type>` that
+are defined in the loaded configuration. The loaded configuration is either the
+default configuration, or a merge between the user-defined and the default
+configuration.
 
 Example
 -------
@@ -201,7 +202,7 @@ in:
 .. note::
 
     Note that ``doi`` is preserved. ``bibclean`` was designed with
-    ``sphinxcontrib-bibtex`` in mind where a DOI (preferred) or a URL yields
+    `sphinxcontrib-bibtex`_ in mind where a DOI (preferred) or a URL yields
     a cross-ref link to the reference on the build documentation. Thus,
     ``bibclean`` will always keep at least one of those 2 fields if it is
     present.
