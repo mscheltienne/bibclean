@@ -1,5 +1,9 @@
+[tool.bibclean]
+exclude = ['test']
+exclude_type = ['book']
+
 [tool.bibclean.article]
-req = [
+required = [
     'author',
     'journal',
     'title',
@@ -8,10 +12,7 @@ req = [
 keep = [
     'author',
     'journal',
-    'month',
-    'number',
-    'pages',
     'title',
-    'volume',
+    'issn',
     'year',
 ]

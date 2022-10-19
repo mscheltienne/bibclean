@@ -30,7 +30,7 @@ Bugs
 API and behavior changes
 ------------------------
 
-- xxx
+- Loading a different configuration will now merge it with the default configuration, overwriting the default values (:pr:`5`)
 
 Authors
 -------

@@ -1,0 +1,2 @@
+[tool.bibclean]
+exclude = [101]

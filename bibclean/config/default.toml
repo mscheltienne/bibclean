@@ -1,5 +1,6 @@
 [tool.bibclean]
 exclude = []
+exclude_type = []
 
 [tool.bibclean.article]
 required = [
