@@ -1,0 +1,19 @@
+[tool.bibclean]
+exclude = ['test']
+exclude_type = ['book']
+
+[tool.bibclean.article]
+required = [
+    'author',
+    'author',
+    'journal',
+    'title',
+    'year',
+]
+keep = [
+    'author',
+    'journal',
+    'title',
+    'issn',
+    'year',
+]

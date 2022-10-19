@@ -6,6 +6,9 @@ import pytest
 from bibclean.config import _load_default_config, load_config
 
 
+directory = Path(__file__).parent / "data"
+
+
 def _check_config(required_fields, keep_fields):
     """Check the returned config types."""
     for fields in (required_fields, keep_fields):
@@ -24,7 +27,6 @@ def test_load_default_config():
 
 def test_load_config():
     """Test loading of a TOML configuration."""
-    directory = Path(__file__).parent / "data"
     req_def, keep_def = _load_default_config()
 
     # valid
@@ -48,8 +50,6 @@ def test_load_config():
 
 def test_load_invalid_config():
     """Test loading an invalid TOML configuration."""
-    directory = Path(__file__).parent / "data"
-
     # missing section(s)
     with pytest.raises(
         RuntimeError,
@@ -80,3 +80,25 @@ def test_load_invalid_config():
         match="The excluded types must be provided in str format"
     ):
         load_config(directory / "invalid-exclude-type.toml")
+
+    # duplicated fields
+    with pytest.raises(
+        ValueError,
+        match="invalid. Some fields are present multiple times"
+    ):
+        load_config(directory / "invalid-duplicate-fields.toml")
+
+
+def test_invalid_merge():
+    """Test invalid merge when default configuration is absent."""
+    with pytest.raises(
+        RuntimeError,
+        match="'tool.bibclean.test' does not have a 'required' default."
+    ):
+        load_config(directory / "invalid-missing-req-def.toml")
+
+    with pytest.raises(
+        RuntimeError,
+        match="'tool.bibclean.test' does not have a 'keep' default."
+    ):
+        load_config(directory / "invalid-missing-keep-def.toml")
