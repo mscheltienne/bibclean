@@ -203,13 +203,12 @@ in:
 
     Note that ``doi`` is preserved. ``bibclean`` was designed with
     `sphinxcontrib-bibtex`_ in mind where a DOI (preferred) or a URL yields
-    a cross-ref link to the reference on the build documentation. Thus,
-    ``bibclean`` will always keep at least one of those 2 fields if it is
-    present.
+    a cross-reference link in the build documentation. Thus, ``bibclean`` will
+    always keep at least one of those 2 fields if it is present.
 
 Enhancement
 -----------
 
-Please contact the developer on `GitHub <project github_>`_ to propose
+Please contact the developers on `GitHub <project github_>`_ to propose
 modifications to the :ref:`default TOML configuration <configuration:default>`.
 At term, it should include a sensible default for most entry-types.
