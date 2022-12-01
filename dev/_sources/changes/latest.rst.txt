@@ -14,7 +14,7 @@
 
 .. _latest:
 
-Version 0.5
+Version 0.6
 ===========
 
 Enhancements
@@ -30,7 +30,7 @@ Bugs
 API and behavior changes
 ------------------------
 
-- Loading a different configuration will now merge it with the default configuration, overwriting the default values (:pr:`5`)
+- xxx
 
 Authors
 -------
