@@ -20,7 +20,7 @@ Version 0.6
 Enhancements
 ------------
 
-- xxx
+- Improve error checking for integers and paths
 
 Bugs
 ----
