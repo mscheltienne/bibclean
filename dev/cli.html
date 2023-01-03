@@ -237,32 +237,32 @@
 <a class="reference internal" href="api/generated/bibclean.check_bib_database.html#bibclean.check_bib_database" title="bibclean.check_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">bibclean.check_bib_database()</span></code></a> and cleans it with
 <a class="reference internal" href="api/generated/bibclean.clean_bib_database.html#bibclean.clean_bib_database" title="bibclean.clean_bib_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">bibclean.clean_bib_database()</span></code></a>.
 Details about the arguments can be retrieved with <code class="docutils literal notranslate"><span class="pre">bibclean</span> <span class="pre">--help</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: bibclean <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-o path<span class="o">]</span> <span class="o">[</span>-e str<span class="o">]</span> <span class="o">[</span>--overwrite<span class="o">]</span> <span class="o">[</span>-c path<span class="o">]</span> path
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage:<span class="w"> </span>bibclean<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>path<span class="o">]</span><span class="w"> </span><span class="o">[</span>-e<span class="w"> </span>str<span class="o">]</span><span class="w"> </span><span class="o">[</span>--overwrite<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>path<span class="o">]</span><span class="w"> </span>path
 
-cleans a .bib file.
+cleans<span class="w"> </span>a<span class="w"> </span>.bib<span class="w"> </span>file.
 
-positional arguments:
-  path                     path to the .bib file to clean. If an output is not provided, this file is overwritten.
+positional<span class="w"> </span>arguments:
+<span class="w">  </span>path<span class="w">                     </span>path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>.bib<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>clean.<span class="w"> </span>If<span class="w"> </span>an<span class="w"> </span>output<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>provided,<span class="w"> </span>this<span class="w"> </span>file<span class="w"> </span>is<span class="w"> </span>overwritten.
 
-optional arguments:
-  -h, --help               show this <span class="nb">help</span> message and <span class="nb">exit</span>
-  -o path, --output path   path to the output .bib file.
-  -e str, --encoding str   encoding of the .bib file.
-  --overwrite              overwrite the file provided <span class="k">in</span> --output <span class="k">if</span> it exists.
-  -c path, --config path   path to the TOML configuration.
+optional<span class="w"> </span>arguments:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">               </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>-o<span class="w"> </span>path,<span class="w"> </span>--output<span class="w"> </span>path<span class="w">   </span>path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>.bib<span class="w"> </span>file.
+<span class="w">  </span>-e<span class="w"> </span>str,<span class="w"> </span>--encoding<span class="w"> </span>str<span class="w">   </span>encoding<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>.bib<span class="w"> </span>file.
+<span class="w">  </span>--overwrite<span class="w">              </span>overwrite<span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>provided<span class="w"> </span><span class="k">in</span><span class="w"> </span>--output<span class="w"> </span><span class="k">if</span><span class="w"> </span>it<span class="w"> </span>exists.
+<span class="w">  </span>-c<span class="w"> </span>path,<span class="w"> </span>--config<span class="w"> </span>path<span class="w">   </span>path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>TOML<span class="w"> </span>configuration.
 </pre></div>
 </div>
 <p>To clean the file <code class="docutils literal notranslate"><span class="pre">bib/references.bib</span></code> in place, use:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean<span class="w"> </span>bib/references.bib
 </pre></div>
 </div>
 <p>To prevent overwriting the existing file, an output path must be provided:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib --output bib/references-clean.bib
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean<span class="w"> </span>bib/references.bib<span class="w"> </span>--output<span class="w"> </span>bib/references-clean.bib
 </pre></div>
 </div>
 <p>The <a class="reference internal" href="configuration.html#default"><span class="std std-ref">default TOML configuration</span></a>.
 can be overwritten with <code class="docutils literal notranslate"><span class="pre">-c</span></code> or <code class="docutils literal notranslate"><span class="pre">--config</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean bib/references.bib --config pyproject.toml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bibclean<span class="w"> </span>bib/references.bib<span class="w"> </span>--config<span class="w"> </span>pyproject.toml
 </pre></div>
 </div>
 </section>
@@ -273,16 +273,16 @@ if the provided <code class="docutils literal notranslate"><span class="pre">.bi
 a violation has been found, and with the exit code <code class="docutils literal notranslate"><span class="pre">2</span></code> if the provided
 configuration/paths are invalid.
 Details about the arguments can be retrieved with <code class="docutils literal notranslate"><span class="pre">bibclean-check</span> <span class="pre">--help</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: bibclean-check <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-c path<span class="o">]</span> path
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage:<span class="w"> </span>bibclean-check<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>path<span class="o">]</span><span class="w"> </span>path
 
-confirms that a .bib file is processed.
+confirms<span class="w"> </span>that<span class="w"> </span>a<span class="w"> </span>.bib<span class="w"> </span>file<span class="w"> </span>is<span class="w"> </span>processed.
 
-positional arguments:
-  path                     path to the .bib file to clean. If an output is not provided, this file is overwritten.
+positional<span class="w"> </span>arguments:
+<span class="w">  </span>path<span class="w">                     </span>path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>.bib<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>clean.<span class="w"> </span>If<span class="w"> </span>an<span class="w"> </span>output<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>provided,<span class="w"> </span>this<span class="w"> </span>file<span class="w"> </span>is<span class="w"> </span>overwritten.
 
-optional arguments:
-  -h, --help               show this <span class="nb">help</span> message and <span class="nb">exit</span>
-  -c path, --config path   path to the TOML configuration.
+optional<span class="w"> </span>arguments:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">               </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>-c<span class="w"> </span>path,<span class="w"> </span>--config<span class="w"> </span>path<span class="w">   </span>path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>TOML<span class="w"> </span>configuration.
 </pre></div>
 </div>
 <section id="github-action-ci">
@@ -290,33 +290,33 @@ optional arguments:
 <p>Below is an example of GitHub action workflow configuration to confirm
 that the file <code class="docutils literal notranslate"><span class="pre">doc/references.bib</span></code> used by a sphinx documentation build is
 cleaned.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-style</span><span class="w"></span>
-<span class="nt">concurrency</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}</span><span class="w"></span>
-<span class="w">  </span><span class="nt">cancel-in-progress</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"></span>
-<span class="nt">on</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">push</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">]</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-style</span>
+<span class="nt">concurrency</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}</span>
+<span class="w">  </span><span class="nt">cancel-in-progress</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">on</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">]</span>
 
-<span class="nt">jobs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">style</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w"></span>
-<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span><span class="w"></span>
-<span class="w">    </span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout repository</span><span class="w"></span>
-<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Setup Python 3.9</span><span class="w"></span>
-<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span><span class="w"></span>
-<span class="w">        </span><span class="nt">with</span><span class="p">:</span><span class="w"></span>
-<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.9&#39;</span><span class="w"></span>
-<span class="w">          </span><span class="nt">architecture</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;x64&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span><span class="w"></span>
-<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w"></span>
-<span class="w">          </span><span class="no">python -m pip install --progress-bar off --upgrade pip setuptools wheel</span><span class="w"></span>
-<span class="w">          </span><span class="no">python -m pip install --progress-bar off bibclean</span><span class="w"></span>
-<span class="w">          </span><span class="no">python -m pip install --progress-bar off .</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run bibclean</span><span class="w"></span>
-<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bibclean-check doc/references.bib</span><span class="w"></span>
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">style</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">timeout-minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout repository</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Setup Python 3.9</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.9&#39;</span>
+<span class="w">          </span><span class="nt">architecture</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;x64&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off --upgrade pip setuptools wheel</span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off bibclean</span>
+<span class="w">          </span><span class="no">python -m pip install --progress-bar off .</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run bibclean</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bibclean-check doc/references.bib</span>
 </pre></div>
 </div>
 </section>
@@ -352,7 +352,7 @@ cleaned.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022, Mathieu Scheltienne
+                Copyright &#169; 2023, Mathieu Scheltienne
             </div>
             Made with 
             <a href="https://github.com/pradyunsg/furo">Furo</a>

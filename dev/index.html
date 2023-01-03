@@ -241,14 +241,14 @@ clean <code class="docutils literal notranslate"><span class="pre">.bib</span></
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-0">
 Pypi</label><div class="sd-tab-content docutils">
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install bibclean
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>bibclean
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-1">
 Source</label><div class="sd-tab-content docutils">
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/mscheltienne/bibclean
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/mscheltienne/bibclean
 </pre></div>
 </div>
 </div>
@@ -269,11 +269,11 @@ bibclean</label><div class="sd-tab-content docutils">
 <p><code class="docutils literal notranslate"><span class="pre">bibclean</span></code> process a single file. See <a class="reference internal" href="cli.html#bibclean"><span class="std std-ref">here</span></a> for
 additional information.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># clean the file references.bib in-place</span>
-bibclean references.bib
+bibclean<span class="w"> </span>references.bib
 <span class="c1"># clean the file references.bib and output in references-clean.bib</span>
-bibclean references.bib -o references-clean.bib
+bibclean<span class="w"> </span>references.bib<span class="w"> </span>-o<span class="w"> </span>references-clean.bib
 <span class="c1"># clean the file references.bib in-place with the configuration in pyproject.toml</span>
-bibclean references.bib -c pyproject.toml
+bibclean<span class="w"> </span>references.bib<span class="w"> </span>-c<span class="w"> </span>pyproject.toml
 </pre></div>
 </div>
 </div>
@@ -286,9 +286,9 @@ found and with the exit-code <code class="docutils literal notranslate"><span cl
 are invalid. See <a class="reference internal" href="cli.html#bibclean-check"><span class="std std-ref">here</span></a> for additional
 information.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># check if the file references.bib is already processed</span>
-bibclean-check references.bib
+bibclean-check<span class="w"> </span>references.bib
 <span class="c1"># check if the file references.bib is already processed with the configuration in pyproject.toml</span>
-bibclean-check references.bib -c pyproject.toml
+bibclean-check<span class="w"> </span>references.bib<span class="w"> </span>-c<span class="w"> </span>pyproject.toml
 </pre></div>
 </div>
 </div>
@@ -320,7 +320,7 @@ A full copy of the license can be found <a class="reference external" href="http
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022, Mathieu Scheltienne
+                Copyright &#169; 2023, Mathieu Scheltienne
             </div>
             Made with 
             <a href="https://github.com/pradyunsg/furo">Furo</a>
