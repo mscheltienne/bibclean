@@ -98,10 +98,10 @@ intersphinx_mapping = {
     "bibtexparser": ("https://bibtexparser.readthedocs.io/en/master/", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
     "mne": ("https://mne.tools/stable/", None),
-    "numpy": ("https://numpy.org/devdocs", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "python": ("https://docs.python.org/3", None),
-    "scipy": ("https://scipy.github.io/devdocs", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
 }
 intersphinx_timeout = 5
