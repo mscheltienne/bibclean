@@ -93,7 +93,6 @@ def _load_config(
     exclude = list()
     exclude_type = list()
     for key in config:
-
         if key == "exclude":
             exclude = config[key]
             for exc in exclude:
