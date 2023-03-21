@@ -1,6 +1,0 @@
-﻿bibclean.set\_handler\_log\_level
-=================================
-
-.. currentmodule:: bibclean
-
-.. autofunction:: set_handler_log_level

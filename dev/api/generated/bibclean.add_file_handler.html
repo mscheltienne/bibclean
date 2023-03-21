@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="bibclean.add_stream_handler" href="bibclean.add_stream_handler.html" /><link rel="prev" title="Logging" href="../logging.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="bibclean.set_log_level" href="bibclean.set_log_level.html" /><link rel="prev" title="Logging" href="../logging.html" />
 
     <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
         <title>bibclean.add_file_handler - bibclean</title>
@@ -177,8 +177,6 @@
 </li>
 <li class="toctree-l2 current has-children"><a class="reference internal" href="../logging.html">Logging</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">bibclean.add_file_handler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bibclean.add_stream_handler.html">bibclean.add_stream_handler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bibclean.set_handler_log_level.html">bibclean.set_handler_log_level</a></li>
 <li class="toctree-l3"><a class="reference internal" href="bibclean.set_log_level.html">bibclean.set_log_level</a></li>
 </ul>
 </li>
@@ -231,7 +229,7 @@
 <h1>bibclean.add_file_handler<a class="headerlink" href="#bibclean-add-file-handler" title="Permalink to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="bibclean.add_file_handler">
-<span class="sig-prename descclassname"><span class="pre">bibclean.</span></span><span class="sig-name descname"><span class="pre">add_file_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/utils/_logs.py#L46-L69"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.add_file_handler" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bibclean.</span></span><span class="sig-name descname"><span class="pre">add_file_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/utils/logs.py#L41-L65"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.add_file_handler" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a file handler to the logger.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -243,10 +241,10 @@
 <dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>If not None, encoding used to open the file.</p>
 </dd>
 <dt><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>Sets the verbosity level. The verbosity increases gradually between
-“CRITICAL”, “ERROR”, “WARNING”, “INFO” and “DEBUG”.
-If None is provided, the verbosity is set to “WARNING”.
-If a bool is provided, the verbosity is set to “WARNING” for False and to
-“INFO” for True.</p>
+<code class="docutils literal notranslate"><span class="pre">&quot;CRITICAL&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ERROR&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;WARNING&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;DEBUG&quot;</span></code>.
+If None is provided, the verbosity is set to <code class="docutils literal notranslate"><span class="pre">&quot;WARNING&quot;</span></code>.
+If a bool is provided, the verbosity is set to <code class="docutils literal notranslate"><span class="pre">&quot;WARNING&quot;</span></code> for False and
+to <code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code> for True.</p>
 </dd>
 </dl>
 </dd>
@@ -260,12 +258,12 @@ If a bool is provided, the verbosity is set to “WARNING” for False and to
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="bibclean.add_stream_handler.html">
+          <a class="next-page" href="bibclean.set_log_level.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">bibclean.add_stream_handler</div>
+                <div class="title">bibclean.set_log_level</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
