@@ -4,9 +4,9 @@ from bibtexparser.bibdatabase import BibDatabase
 
 from ._typing import Entry
 from .config import _load_default_config
-from .utils._checks import _check_type, _check_value
+from .utils._checks import check_type, check_value
 from .utils._docs import fill_doc
-from .utils._logs import logger
+from .utils.logs import logger
 
 
 @fill_doc
@@ -29,18 +29,18 @@ def clean_bib_database(
     bib_database : BibDatabase
         BibTex database.
     """
-    _check_type(bib_database, (BibDatabase,), "bib_database")
-    _check_type(exclude, (list, tuple), "exclude")
+    check_type(bib_database, (BibDatabase,), "bib_database")
+    check_type(exclude, (list, tuple), "exclude")
     for elt in exclude:
-        _check_type(elt, (str,))
-        _check_value(elt, bib_database.entries_dict, "exclude")
-    _check_type(keep_fields, (dict, None), "keep_fields")
+        check_type(elt, (str,))
+        check_value(elt, bib_database.entries_dict, "exclude")
+    check_type(keep_fields, (dict, None), "keep_fields")
     if isinstance(keep_fields, dict):
         for key, value in keep_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
+            check_type(key, (str,))
+            check_type(value, (set,))
             for v in value:
-                _check_type(v, (str,))
+                check_type(v, (str,))
     else:
         _, keep_fields = _load_default_config()
 

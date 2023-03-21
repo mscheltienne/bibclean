@@ -6,7 +6,7 @@ from bibtexparser.bibdatabase import BibDatabase
 from ._exception import DuplicateEntry, MissingReqField
 from ._typing import Entry
 from .config import _load_default_config
-from .utils._checks import _check_type, _check_value
+from .utils._checks import check_type, check_value
 from .utils._docs import fill_doc
 
 
@@ -25,18 +25,18 @@ def check_bib_database(
     %(exclude)s
     %(required_fields)s
     """
-    _check_type(bib_database, (BibDatabase,), "bib_database")
-    _check_type(exclude, (list, tuple), "exclude")
+    check_type(bib_database, (BibDatabase,), "bib_database")
+    check_type(exclude, (list, tuple), "exclude")
     for elt in exclude:
-        _check_type(elt, (str,))
-        _check_value(elt, bib_database.entries_dict, "exclude")
-    _check_type(required_fields, (dict, None), "required_fields")
+        check_type(elt, (str,))
+        check_value(elt, bib_database.entries_dict, "exclude")
+    check_type(required_fields, (dict, None), "required_fields")
     if isinstance(required_fields, dict):
         for key, value in required_fields.items():
-            _check_type(key, (str,))
-            _check_type(value, (set,))
+            check_type(key, (str,))
+            check_type(value, (set,))
             for v in value:
-                _check_type(v, (str,))
+                check_type(v, (str,))
     else:
         required_fields, _ = _load_default_config()
 

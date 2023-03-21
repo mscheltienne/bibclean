@@ -140,6 +140,7 @@ omit = [
     '**/__init__.py',
     '**/bibclean/_version.py',
     '**/bibclean/commands/*',
+    '**/bibclean/utils/_fixes.py',
     '**/tests/**',
 ]
 

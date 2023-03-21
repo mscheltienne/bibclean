@@ -4,9 +4,9 @@ from typing import Union
 from bibtexparser import dump, load
 from bibtexparser.bibdatabase import BibDatabase
 
-from .utils._checks import _check_type
+from .utils._checks import check_type
 from .utils._docs import fill_doc
-from .utils._logs import logger
+from .utils.logs import logger
 
 
 @fill_doc
@@ -24,7 +24,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     bib_database : BibDatabase
         BibTex database loaded.
     """
-    _check_type(file, (str, Path), "file")
+    check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
         raise IOError(
@@ -59,15 +59,15 @@ def save_bib(
     overwrite : bool
         If True, an existing file will be overwritten.
     """
-    _check_type(bib_database, (BibDatabase,), "bib_database")
-    _check_type(file, (str, Path), "file")
+    check_type(bib_database, (BibDatabase,), "bib_database")
+    check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
         raise IOError(
             "The provided file extension is not '.bib'. "
             f"'{file.suffix}' is invalid."
         )
-    _check_type(overwrite, (bool,), "overwrite")
+    check_type(overwrite, (bool,), "overwrite")
     if file.exists() and not overwrite:
         raise IOError(
             "The provided file already exist. Set overwrite to True if you "
