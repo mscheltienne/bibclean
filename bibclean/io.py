@@ -6,7 +6,7 @@ from bibtexparser.bibdatabase import BibDatabase
 
 from .utils._checks import check_type
 from .utils._docs import fill_doc
-from .utils._logs import logger
+from .utils.logs import logger
 
 
 @fill_doc

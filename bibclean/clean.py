@@ -6,7 +6,7 @@ from ._typing import Entry
 from .config import _load_default_config
 from .utils._checks import check_type, check_value
 from .utils._docs import fill_doc
-from .utils._logs import logger
+from .utils.logs import logger
 
 
 @fill_doc
