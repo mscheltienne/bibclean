@@ -55,9 +55,7 @@ def clean_bib_database(
     # remove un-wanted fields
     for k, entry in enumerate(bib_database.entries):
         if entry["ID"] in exclude:
-            logger.info(
-                "Entry '%s' is listed for exclusion. Skipping.", entry["ID"]
-            )
+            logger.info("Entry '%s' is listed for exclusion. Skipping.", entry["ID"])
             continue
 
         entry_type = entry["ENTRYTYPE"]
@@ -66,15 +64,11 @@ def clean_bib_database(
 
         # determine the fields to remove
         fields_to_remove = [
-            field
-            for field in set(entry) - keep_fields[entry_type]
-            if field.islower()
+            field for field in set(entry) - keep_fields[entry_type] if field.islower()
         ]
         # logging
         if len(fields_to_remove) == 0:
-            logger.debug(
-                "No field will be removed from entry '%s'.", entry["ID"]
-            )
+            logger.debug("No field will be removed from entry '%s'.", entry["ID"])
         else:
             logger.debug(
                 "The fields %s will be removed from entry '%s'.",
@@ -111,9 +105,7 @@ def _clean_doi_url(entry: Entry) -> bool:
         logger.warning("Entry '%s' is missing a DOI or URL.", entry["ID"])
     elif sum(field) == 1:
         if field[0]:
-            logger.warning(
-                "Entry '%s' has a URL instead of a DOI.", entry["ID"]
-            )
+            logger.warning("Entry '%s' has a URL instead of a DOI.", entry["ID"])
         return False
     elif sum(field) == 2:
         return True

@@ -77,16 +77,12 @@ def test_load_invalid_config():
         load_config(directory / "invalid-missing-tool.toml")
     with pytest.raises(
         RuntimeError,
-        match=re.escape(
-            "invalid. The section(s) 'tool.bibclean' are missing."
-        ),
+        match=re.escape("invalid. The section(s) 'tool.bibclean' are missing."),
     ):
         load_config(directory / "invalid-missing-section.toml")
 
     # invalid keys
-    with pytest.raises(
-        KeyError, match=re.escape("invalid. Unexpected ['author'] key")
-    ):
+    with pytest.raises(KeyError, match=re.escape("invalid. Unexpected ['author'] key")):
         load_config(directory / "invalid-keys-singular.toml")
     with pytest.raises(
         KeyError,

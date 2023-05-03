@@ -77,9 +77,7 @@ def _load_config(
     """Load a configuration from a TOML file."""
     config = load(file)
     if "tool" not in config:
-        raise RuntimeError(
-            "TOML file is invalid. The section 'tool' is missing."
-        )
+        raise RuntimeError("TOML file is invalid. The section 'tool' is missing.")
 
     if "bibclean" not in config["tool"]:
         raise RuntimeError(

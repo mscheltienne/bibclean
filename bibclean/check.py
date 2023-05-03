@@ -40,9 +40,7 @@ def check_bib_database(
     else:
         required_fields, _ = _load_default_config()
 
-    entries = [
-        entry for entry in bib_database.entries if entry["ID"] not in exclude
-    ]
+    entries = [entry for entry in bib_database.entries if entry["ID"] not in exclude]
 
     # check for duplicate entries
     _check_duplicate_entries(entries)
@@ -61,9 +59,7 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         from collections import Counter
 
         duplicates = (
-            f"{cite_key} ({n})"
-            for cite_key, n in Counter(idx).items()
-            if n != 1
+            f"{cite_key} ({n})" for cite_key, n in Counter(idx).items() if n != 1
         )
         raise DuplicateEntry(
             "The BibTex file contains duplicate entries with the same cite "
@@ -81,16 +77,13 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
     # define hash as (title, authors, year)
     hashes = [
-        hash((entry["year"], entry["author"], entry["title"]))
-        for entry in entries
+        hash((entry["year"], entry["author"], entry["title"])) for entry in entries
     ]
     if len(hashes) != len(set(hashes)):
         from collections import Counter
 
         duplicates = list()
-        duplicate_hashes = [
-            hash_ for hash_, n in Counter(hashes).items() if n != 1
-        ]
+        duplicate_hashes = [hash_ for hash_, n in Counter(hashes).items() if n != 1]
         hashes = np.array(hashes)
         for hash_ in duplicate_hashes:
             idx = np.where(hashes == hash_)[0]

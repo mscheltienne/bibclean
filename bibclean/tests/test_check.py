@@ -67,19 +67,11 @@ def test_check_bib_database_invalid_args():
     with pytest.raises(
         TypeError, match="'exclude' must be an instance of list or tuple"
     ):
-        check_bib_database(
-            load_bib(directory / "zotero-articles.bib"), exclude=101
-        )
+        check_bib_database(load_bib(directory / "zotero-articles.bib"), exclude=101)
     with pytest.raises(TypeError, match="Item must be an instance of str"):
-        check_bib_database(
-            load_bib(directory / "zotero-articles.bib"), exclude=[101]
-        )
-    with pytest.raises(
-        ValueError, match="Invalid value for the 'exclude' parameter"
-    ):
-        check_bib_database(
-            load_bib(directory / "zotero-articles.bib"), exclude=["101"]
-        )
+        check_bib_database(load_bib(directory / "zotero-articles.bib"), exclude=[101])
+    with pytest.raises(ValueError, match="Invalid value for the 'exclude' parameter"):
+        check_bib_database(load_bib(directory / "zotero-articles.bib"), exclude=["101"])
     with pytest.raises(
         TypeError,
         match="'required_fields' must be an instance of dict or None",
