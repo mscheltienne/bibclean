@@ -56,8 +56,8 @@ style = [
     'black',
     'codespell',
     'isort',
-    'flake8',
     'pydocstyle[toml]',
+    'ruff',
 ]
 test = [
     'pytest',
@@ -120,6 +120,16 @@ extend_skip_glob = [
     'doc/*',
     'tutorials/*',
 ]
+
+[tool.ruff]
+line-length = 88
+extend-exclude = [
+    "doc",
+    "setup.py",
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.pydocstyle]
 convention = 'numpy'
