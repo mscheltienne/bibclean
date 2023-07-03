@@ -28,7 +28,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
         raise IOError(
-            "The provided file extension is not '.bib'. " f"'{file.suffix}' is invalid."
+            f"The provided file extension is not '.bib'. '{file.suffix}' is invalid."
         )
     if not file.exists():
         raise IOError("The provided file does not exist.")
@@ -63,7 +63,7 @@ def save_bib(
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
         raise IOError(
-            "The provided file extension is not '.bib'. " f"'{file.suffix}' is invalid."
+            f"The provided file extension is not '.bib'. '{file.suffix}' is invalid."
         )
     check_type(overwrite, (bool,), "overwrite")
     if file.exists() and not overwrite:
