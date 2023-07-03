@@ -33,7 +33,7 @@ classifiers = [
     'Intended Audience :: Developers',
 ]
 dependencies = [
-    'bibtexparser',
+    'bibtexparser~=1.0',
     'numpy>=1.21',
     'psutil',
     'toml',

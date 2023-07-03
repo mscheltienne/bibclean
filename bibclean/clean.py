@@ -19,14 +19,14 @@ def clean_bib_database(
 
     Parameters
     ----------
-    bib_database : BibDatabase
+    bib_database : ``BibDatabase``
         BibTex database.
     %(exclude)s
     %(keep_fields)s
 
     Returns
     -------
-    bib_database : BibDatabase
+    bib_database : ``BibDatabase``
         BibTex database.
     """
     check_type(bib_database, (BibDatabase,), "bib_database")

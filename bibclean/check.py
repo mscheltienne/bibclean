@@ -20,7 +20,7 @@ def check_bib_database(
 
     Parameters
     ----------
-    bib_database : BibDatabase
+    bib_database : ``BibDatabase``
         BibTex database.
     %(exclude)s
     %(required_fields)s

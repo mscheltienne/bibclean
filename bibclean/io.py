@@ -21,7 +21,7 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
 
     Returns
     -------
-    bib_database : BibDatabase
+    bib_database : ``BibDatabase``
         BibTex database loaded.
     """
     check_type(file, (str, Path), "file")
@@ -50,7 +50,7 @@ def save_bib(
 
     Parameters
     ----------
-    bib_database : BibDatabase
+    bib_database : ``BibDatabase``
         BibTex database to save.
     file : str | Path
         Path to the ``.bib`` file to save.
