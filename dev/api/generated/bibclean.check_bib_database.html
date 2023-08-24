@@ -1,17 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="bibclean.clean_bib_database" href="bibclean.clean_bib_database.html" /><link rel="prev" title="Check/Clean" href="../clean.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.3 and Furo 2023.08.19 -->
         <title>bibclean.check_bib_database - bibclean</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -226,15 +226,15 @@
         </div>
         <article role="main">
           <section id="bibclean-check-bib-database">
-<h1>bibclean.check_bib_database<a class="headerlink" href="#bibclean-check-bib-database" title="Permalink to this heading">#</a></h1>
+<h1>bibclean.check_bib_database<a class="headerlink" href="#bibclean-check-bib-database" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="bibclean.check_bib_database">
-<span class="sig-prename descclassname"><span class="pre">bibclean.</span></span><span class="sig-name descname"><span class="pre">check_bib_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bib_database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/check.py#L13-L51"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.check_bib_database" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bibclean.</span></span><span class="sig-name descname"><span class="pre">check_bib_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bib_database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="http://github.com/mscheltienne/bibclean/blob/main/bibclean/check.py#L13-L51"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bibclean.check_bib_database" title="Link to this definition">#</a></dt>
 <dd><p>Check a BibTex database.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>bib_database</strong><span class="classifier"><a class="reference external" href="https://bibtexparser.readthedocs.io/en/master/bibtexparser.html#bibtexparser.bibdatabase.BibDatabase" title="(in BibtexParser v1.4.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BibDatabase</span></code></a></span></dt><dd><p>BibTex database.</p>
+<dt><strong>bib_database</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">BibDatabase</span></code></span></dt><dd><p>BibTex database.</p>
 </dd>
 <dt><strong>exclude</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>List of entries to ignore. An entry is specified by its cite key.</p>
 </dd>
@@ -323,12 +323,12 @@ and the required fields as value (<a class="reference external" href="https://do
       
     </aside>
   </div>
-</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/scripts/furo.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/design-tabs.js"></script>
+</div><script src="../../_static/documentation_options.js?v=3b49ffdc"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>
