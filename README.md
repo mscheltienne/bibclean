@@ -5,7 +5,7 @@
 [![build](https://github.com/mscheltienne/bibclean/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/mscheltienne/bibclean/actions/workflows/build.yml)
 [![doc](https://github.com/mscheltienne/bibclean/actions/workflows/doc.yml/badge.svg?branch=main)](https://github.com/mscheltienne/bibclean/actions/workflows/doc.yml)
 [![PyPI version](https://badge.fury.io/py/bibclean.svg)](https://badge.fury.io/py/bibclean)
-[![Downloads](https://pepy.tech/badge/bibclean)](https://pepy.tech/project/bibclean)
+[![Downloads](https://static.pepy.tech/badge/bibclean)](https://pepy.tech/project/bibclean)
 
 # BibClean
 
