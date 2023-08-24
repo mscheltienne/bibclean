@@ -95,7 +95,6 @@ autoclass_content = "class"
 
 # -- intersphinx -------------------------------------------------------------
 intersphinx_mapping = {
-    "bibtexparser": ("https://bibtexparser.readthedocs.io/en/master/", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
     "mne": ("https://mne.tools/stable/", None),
     "numpy": ("https://numpy.org/doc/stable", None),
@@ -119,8 +118,6 @@ numpydoc_attributes_as_param_list = False
 # x-ref
 numpydoc_xref_param_type = True
 numpydoc_xref_aliases = {
-    # BibTex
-    "BibDatabase": "bibtexparser.bibdatabase.BibDatabase",
     # Matplotlib
     "Axes": "matplotlib.axes.Axes",
     "Figure": "matplotlib.figure.Figure",
