@@ -1,6 +1,0 @@
-﻿bibclean.add\_file\_handler
-===========================
-
-.. currentmodule:: bibclean
-
-.. autofunction:: add_file_handler

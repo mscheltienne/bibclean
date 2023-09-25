@@ -1,6 +1,0 @@
-﻿bibclean.io.save\_bib
-=====================
-
-.. currentmodule:: bibclean.io
-
-.. autofunction:: save_bib

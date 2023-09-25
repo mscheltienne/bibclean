@@ -1,6 +1,0 @@
-﻿bibclean.config.load\_config
-============================
-
-.. currentmodule:: bibclean.config
-
-.. autofunction:: load_config

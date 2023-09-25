@@ -4,7 +4,7 @@ File I/O
 .. currentmodule:: bibclean.io
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: ../generated/api
 
     load_bib
     save_bib
