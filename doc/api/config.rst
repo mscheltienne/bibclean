@@ -4,6 +4,6 @@ Configuration
 .. currentmodule:: bibclean.config
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: ../generated/api
 
     load_config
