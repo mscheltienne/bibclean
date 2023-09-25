@@ -34,7 +34,7 @@ classifiers = [
     'Programming Language :: Python :: 3.11',
 ]
 dependencies = [
-    'bibtexparser<=1.4.0',
+    'bibtexparser==1.4.0',
     'numpy>=1.21',
     'psutil',
     'toml',
