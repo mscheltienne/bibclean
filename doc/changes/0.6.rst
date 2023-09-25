@@ -12,25 +12,18 @@
 
 .. include:: ./authors.inc
 
-.. _latest:
-
-Version 0.7
+Version 0.6
 ===========
 
 Enhancements
 ------------
 
-- xxx
+- Improve error checking for integers and paths
 
 Bugs
 ----
 
-- xxx
-
-API and behavior changes
-------------------------
-
-- xxx
+- Pin ``python-bibtexparser`` to version 1.4.0
 
 Authors
 -------
