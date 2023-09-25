@@ -16,10 +16,14 @@ maintainers = [
     {name = 'Mathieu Scheltienne', email = 'mathieu.scheltienne@fcbg.ch'},
 ]
 keywords = [
-    'python',
+    'bibliography',
     'bibtex',
+    'python',
 ]
 classifiers = [
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Natural Language :: English',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: Unix',
     'Operating System :: MacOS',
@@ -28,12 +32,9 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
-    'Natural Language :: English',
-    'License :: OSI Approved :: MIT License',
-    'Intended Audience :: Developers',
 ]
 dependencies = [
-    'bibtexparser~=1.0',
+    'bibtexparser<=1.4.0',
     'numpy>=1.21',
     'psutil',
     'toml',
@@ -96,16 +97,14 @@ exclude = ['bibclean*tests']
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py39']
 include = '\.pyi?$'
 extend-exclude = '''
 (
       __pycache__
     | \.github
     | setup.py
-    | data/
     | doc/
-    | tutorials/
 )
 '''
 
@@ -113,12 +112,10 @@ extend-exclude = '''
 profile = 'black'
 multi_line_output = 3
 line_length = 88
-py_version = 38
+py_version = 39
 extend_skip_glob = [
     'setup.py',
-    'data/*',
-    'doc/*',
-    'tutorials/*',
+    'doc/*^',
 ]
 
 [tool.ruff]
