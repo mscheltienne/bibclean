@@ -14,13 +14,13 @@
 
 .. _latest:
 
-Version 0.6
+Version 0.7
 ===========
 
 Enhancements
 ------------
 
-- Improve error checking for integers and paths
+- xxx
 
 Bugs
 ----
