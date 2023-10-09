@@ -76,7 +76,7 @@ full = [
 
 [project.urls]
 homepage = 'https://github.com/mscheltienne/bibclean'
-documentation = 'https://github.com/mscheltienne/bibclean'
+documentation = 'https://mscheltienne.github.io/bibclean/'
 source = 'https://github.com/mscheltienne/bibclean'
 tracker = 'https://github.com/mscheltienne/bibclean/issues'
 
