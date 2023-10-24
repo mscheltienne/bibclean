@@ -8,7 +8,7 @@ version = '0.7.0.dev0'
 description = 'A simple BibTex file checker and cleaner.'
 readme = 'README.md'
 license = {file = 'LICENSE'}
-requires-python = '>=3.8'
+requires-python = '>=3.9'
 authors = [
     {name = 'Mathieu Scheltienne', email = 'mathieu.scheltienne@fcbg.ch'},
 ]
@@ -28,10 +28,10 @@ classifiers = [
     'Operating System :: Unix',
     'Operating System :: MacOS',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
 ]
 dependencies = [
     'bibtexparser==1.4.0',
@@ -136,9 +136,9 @@ match-dir = '^bibclean.*'
 add_ignore = 'D100,D104,D107'
 
 [tool.pytest.ini_options]
+addopts = '--durations 20 --junit-xml=junit-results.xml -v --color=yes'
+junit_family = 'xunit2'
 minversion = '6.0'
-addopts = '--durations 20 --junit-xml=junit-results.xml --verbose'
-filterwarnings = []
 
 [tool.coverage.run]
 branch = true
