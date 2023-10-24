@@ -11,10 +11,11 @@ from ..config import load_config
 from ..io import load_bib
 
 
-class ReturnCode:
+class ReturnCode:  # noqa: D101
     no_violations_found = 0
     violations_found = 1
-    invalid_options = 2
+    violations_found_unfixable = 2
+    invalid_options = 3
 
 
 def run():
@@ -63,7 +64,7 @@ def _run(file: str, config: Optional[str]):
             keep_fields,
         )
     except (DuplicateEntry, MissingReqField):
-        return ReturnCode.violations_found
+        return ReturnCode.violations_found_unfixable
     except Exception:
         return ReturnCode.invalid_options
 
