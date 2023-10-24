@@ -1,0 +1,12 @@
+-   id: bibclean
+    name: bibclean
+    entry: bibclean-check
+    args: []
+    language: python
+    types: [bib]
+-   id: bibclean-fix
+    name: bibclean-fix
+    entry: bibclean
+    args: [--overwrite]
+    language: python
+    types: [bib]
