@@ -36,6 +36,7 @@ classifiers = [
 dependencies = [
     'bibtexparser==1.4.0',
     'numpy>=1.21',
+    'packaging',
     'psutil',
     'toml',
 ]
