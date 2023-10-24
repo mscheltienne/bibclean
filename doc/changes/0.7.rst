@@ -12,15 +12,13 @@
 
 .. include:: ./authors.inc
 
-Version 0.4
+Version 0.7
 ===========
 
-- Add support for configuration via ``pyproject.toml`` in the sections ``'tool.bibclean.entry_type'``
-- Update the documentation with :ref:`bibtex:bibtex format`, :ref:`cli:command-lines` and :ref:`configuration:configuration`
-- Increase test coverage to ``97%``
-- Fix exit code returned by ``bibclean-check`` when a duplicate is found
-- Replace ``.ini`` configuration file with TOML
-- Separate execution of :func:`bibclean.check_bib_database` and :func:`bibclean.clean_bib_database`
+- Add support for pre-commit hooks
+- Change exit-code from the 2 entry-points
+- Improve codecov configuration
+- Drop support for Python 3.8 and add support for Python 3.12
 
 Authors
 -------

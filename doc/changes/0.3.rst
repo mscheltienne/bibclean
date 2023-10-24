@@ -15,14 +15,7 @@
 Version 0.3
 ===========
 
-Enhancements
-------------
-
 - Add entry-point for Continuous Integration tools (CIs): ``bibclean-check``
-
-Bugs
-----
-
 - Fix packaging of the default configuration
 
 Authors

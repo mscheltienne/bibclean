@@ -5,6 +5,7 @@ Changelog
     :titlesonly:
 
     latest.rst
+    0.7.rst
     0.6.rst
     0.5.rst
     0.4.rst

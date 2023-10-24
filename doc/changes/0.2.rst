@@ -15,9 +15,6 @@
 Version 0.2
 ===========
 
-Enhancements
-------------
-
 - Add a configuration module including a default configuration
 - Non-supported entry types will not raise anymore, instead all the fields are retained and sorted
 - Error messages now explicitly mention the problematic entries
