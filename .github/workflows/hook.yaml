@@ -1,0 +1,87 @@
+name: hook
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  try-repo:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+          python-version: "3.12"
+      - name: Cache and scratch locations
+        run: |
+          echo "PRE_COMMIT_HOME=$RUNNER_TEMP/pre-commit" >> "$GITHUB_ENV"
+          echo "SCRATCH=$(mktemp -d)" >> "$GITHUB_ENV"
+      - run: uv sync -q --no-default-groups --group style
+      - run: uv pip install -q .
+      - name: Scratch repository
+        run: |
+          cd "$SCRATCH"
+          git init -q
+          cp "$GITHUB_WORKSPACE/tests/assets/clean.bib" good.bib
+          cp "$GITHUB_WORKSPACE/tests/assets/malformed.bib" broken.bib
+          git add .
+          git -c user.name=ci -c user.email=ci@example.org commit -qm init
+      - name: bibclean-check must fail on the malformed file
+        run: |
+          cd "$SCRATCH"
+          set +e
+          pre-commit try-repo "$GITHUB_WORKSPACE" bibclean-check --all-files --verbose | tee check.log
+          status=${PIPESTATUS[0]}
+          set -e
+          test "$status" -eq 1
+          grep -q "broken.bib:8:1: syntax-error" check.log
+          grep -q "Found 1 violation (0 fixable)." check.log
+      - name: bibclean-fix leaves both files untouched
+        run: |
+          cd "$SCRATCH"
+          set +e
+          pre-commit try-repo "$GITHUB_WORKSPACE" bibclean-fix --all-files --verbose | tee fix.log
+          status=${PIPESTATUS[0]}
+          set -e
+          test "$status" -eq 1
+          git diff --exit-code -- good.bib broken.bib
+          grep -q "broken.bib:8:1: syntax-error" fix.log
+      - name: Version inside the hook environment
+        run: |
+          expected=$(bibclean --version)
+          exe=$(python - <<'PY'
+          import os
+          import pathlib
+
+          home = pathlib.Path(os.environ["PRE_COMMIT_HOME"])
+          names = ("Scripts/bibclean.exe", "bin/bibclean")
+          print(
+              next(
+                  str(path)
+                  for env in home.glob("repo*/py_env-*")
+                  for name in names
+                  if (path := env / name).exists()
+              )
+          )
+          PY
+          )
+          actual=$("$exe" --version)
+          echo "expected: $expected"
+          echo "actual:   $actual"
+          test "$expected" = "$actual"
