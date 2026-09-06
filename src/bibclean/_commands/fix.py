@@ -1,103 +1,63 @@
-import argparse
+from __future__ import annotations
 
-from bibtexparser import dumps
+import sys
+from pathlib import Path
 
-from .. import check_bib_database, clean_bib_database
-from .._exception import DuplicateEntry, MissingReqField
-from ..config import load_config
-from ..io import load_bib, save_bib
+import click
+
+from bibclean._exception import DuplicateEntry, MissingReqField
+from bibclean.check import check_bib_database
+from bibclean.clean import clean_bib_database
+from bibclean.config import load_config
+from bibclean.io import load_bib, save_bib
 
 
 class ReturnCode:  # noqa: D101
     no_violations_found = 0
-    violations_fixed = 1
     violations_found_unfixable = 2
     invalid_options = 3
     could_not_save = 4
 
 
-def run():
-    """Run bibclean() command."""
-    parser = argparse.ArgumentParser(
-        prog=f"{__package__.split('.')[0]}", description="cleans a .bib file."
-    )
-    parser.add_argument(
-        "bib",
-        type=str,
-        metavar="path",
-        help="path to the .bib file to clean. If an output is not provided, "
-        "this file is overwritten.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        metavar="path",
-        help="path to the output .bib file.",
-        default=None,
-    )
-    parser.add_argument(
-        "-e",
-        "--encoding",
-        type=str,
-        metavar="str",
-        help="encoding of the .bib file.",
-        default="utf-8",
-    )
-    parser.add_argument(
-        "--overwrite",
-        help="overwrite the file provided in --output if it exists.",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        type=str,
-        metavar="path",
-        help="path to the TOML configuration.",
-        default=None,
-    )
-    parser.add_argument(
-        "--exit-non-zero-on-fix",
-        help="exit with a non-zero status code if the .bib file was changed.",
-        action="store_true",
-    )
-    args = parser.parse_args()
+@click.command(name="fix")
+@click.argument("file", type=click.Path(path_type=Path))
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Path to the TOML configuration.",
+)
+@click.option(
+    "--encoding",
+    type=str,
+    default="utf-8",
+    show_default=True,
+    help="Encoding of the .bib file.",
+)
+def run(file: Path, config: Path | None, encoding: str) -> None:
+    """Check and clean a .bib file in place."""
+    sys.exit(_run(file, config, encoding))
 
+
+def _run(file: str | Path, config: str | Path | None, encoding: str = "utf-8") -> int:
+    """Run the fix and return an exit code."""
     try:
-        # load
-        bib_database = load_bib(args.bib, encoding=args.encoding)
-
-        # determine configuration and clean
-        if args.config is None:
+        bib_database = load_bib(file, encoding=encoding)
+        if config is None:
             required_fields = None
             keep_fields = None
-            exclude = list()
+            exclude = []
         else:
-            required_fields, keep_fields, exclude = load_config(args.config)
+            required_fields, keep_fields, exclude = load_config(config)
         check_bib_database(bib_database, exclude, required_fields)
-        bib_database_clean = clean_bib_database(bib_database, exclude, keep_fields)
+        bib_database = clean_bib_database(bib_database, exclude, keep_fields)
     except (DuplicateEntry, MissingReqField):
         return ReturnCode.violations_found_unfixable
     except Exception:
         return ReturnCode.invalid_options
-
-    original = dumps(bib_database)
-    cleaned = dumps(bib_database_clean)
-    if args.exit_non_zero_on_fix:
-        exit_code = (
-            ReturnCode.no_violations_found
-            if original == cleaned
-            else ReturnCode.violations_fixed
-        )
-    else:
-        exit_code = ReturnCode.no_violations_found
-
-    # save
     try:
-        output = args.bib if args.output is None else args.output
-        overwrite = True if args.output is None else args.overwrite
-        save_bib(bib_database, output, encoding=args.encoding, overwrite=overwrite)
+        save_bib(bib_database, file, encoding=encoding, overwrite=True)
     except Exception:
-        exit_code = ReturnCode.could_not_save
-    return exit_code
+        return ReturnCode.could_not_save
+    return ReturnCode.no_violations_found

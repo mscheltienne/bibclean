@@ -1,18 +1,26 @@
-import argparse
+from __future__ import annotations
 
-from .. import sys_info
+import click
+
+from bibclean.utils.config import sys_info
 
 
-def run():
+@click.command(name="sys-info")
+@click.option(
+    "--extra",
+    help="Display information for optional dependencies.",
+    is_flag=True,
+)
+@click.option(
+    "--developer",
+    help="Display information for developer dependencies.",
+    is_flag=True,
+)
+@click.option(
+    "--package",
+    help="The package to display information about.",
+    type=str,
+)
+def run(extra: bool, developer: bool, package: str | None) -> None:
     """Run sys_info() command."""
-    parser = argparse.ArgumentParser(
-        prog=f"{__package__.split('.')[0]}-sys_info", description="sys_info"
-    )
-    parser.add_argument(
-        "--developer",
-        help="display information for optional dependencies",
-        action="store_true",
-    )
-    args = parser.parse_args()
-
-    sys_info(developer=args.developer)
+    sys_info(extra=extra, developer=developer, package=package)
