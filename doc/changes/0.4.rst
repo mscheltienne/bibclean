@@ -16,7 +16,7 @@ Version 0.4
 ===========
 
 - Add support for configuration via ``pyproject.toml`` in the sections ``'tool.bibclean.entry_type'``
-- Update the documentation with :ref:`bibtex:bibtex format`, :ref:`cli:command-lines` and :ref:`configuration:configuration`
+- Update the documentation with :ref:`bibtex:bibtex format`, :ref:`cli:command-line` and :ref:`configuration:configuration`
 - Increase test coverage to ``97%``
 - Fix exit code returned by ``bibclean-check`` when a duplicate is found
 - Replace ``.ini`` configuration file with TOML
