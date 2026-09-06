@@ -1,161 +1,172 @@
 [build-system]
-requires = ['setuptools >= 64.0.0']
 build-backend = 'setuptools.build_meta'
+requires = ['setuptools >= 76.0.0', 'setuptools_scm>=10.2.1']
 
-[project]
-name = 'bibclean'
-version = '0.9.0.dev0'
-description = 'A simple BibTex file checker and cleaner.'
-readme = 'README.md'
-license = {file = 'LICENSE'}
-requires-python = '>=3.9'
-authors = [
-    {name = 'Mathieu Scheltienne', email = 'mathieu.scheltienne@fcbg.ch'},
-]
-maintainers = [
-    {name = 'Mathieu Scheltienne', email = 'mathieu.scheltienne@fcbg.ch'},
-]
-keywords = [
-    'bibliography',
-    'bibtex',
-    'python',
-]
-classifiers = [
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Natural Language :: English',
-    'Operating System :: Microsoft :: Windows',
-    'Operating System :: Unix',
-    'Operating System :: MacOS',
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
-]
-dependencies = [
-    'bibtexparser==1.4.0',
-    'numpy>=1.21',
-    'packaging',
-    'psutil',
-    'toml',
-]
-
-[project.optional-dependencies]
-build = [
-    'build',
-    'twine',
-]
+[dependency-groups]
 doc = [
-    'furo',
-    'numpydoc',
-    'sphinx',
-    'sphinx-copybutton',
-    'sphinx-design',
-    'sphinx-issues',
+  'furo',
+  'intersphinx_registry',
+  'numpydoc',
+  'sphinx-copybutton',
+  'sphinx-design',
+  'sphinx-issues',
+  'sphinx>=9.0',
+]
+ide = [
+  'ipykernel',
+  'ipython',
 ]
 style = [
-    'black',
-    'codespell',
-    'isort',
-    'pydocstyle[toml]',
-    'ruff',
+  'codespell[toml]>=2.4.3',
+  'pre-commit',
+  'ruff>=0.16.5',
+  'toml-sort',
+  'yamllint',
 ]
 test = [
-    'pytest',
-    'pytest-cov',
-]
-all = [
-    'bibclean[style]',
-    'bibclean[doc]',
-    'bibclean[test]',
-    'bibclean[build]',
-]
-full = [
-    'bibclean[all]',
+  'psutil',
+  'pytest-cov',
+  'pytest-randomly',
+  'pytest-timeout',
+  'pytest>=9.1.1',
 ]
 
+[project]
+authors = [
+  {email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne'},
+]
+classifiers = [
+  'Intended Audience :: Developers',
+  'Natural Language :: English',
+  'Operating System :: MacOS',
+  'Operating System :: Microsoft :: Windows',
+  'Operating System :: Unix',
+  'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
+  'Programming Language :: Python :: 3.14',
+]
+dependencies = [
+  'bibtexparser>=1.4.0,<2',
+  'click',
+  'packaging',
+]
+description = 'A simple BibTeX file checker and cleaner.'
+dynamic = ["version"]
+keywords = [
+  'bibliography',
+  'bibtex',
+  'python',
+]
+license = "MIT"
+license-files = ["LICENSE"]
+maintainers = [
+  {email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne'},
+]
+name = 'bibclean'
+readme = 'README.md'
+requires-python = '>=3.11'
+
+[project.scripts]
+bibclean = 'bibclean._commands.main:run'
+
 [project.urls]
-homepage = 'https://github.com/mscheltienne/bibclean'
 documentation = 'https://mscheltienne.github.io/bibclean/'
+homepage = 'https://github.com/mscheltienne/bibclean'
 source = 'https://github.com/mscheltienne/bibclean'
 tracker = 'https://github.com/mscheltienne/bibclean/issues'
 
-[project.scripts]
-bibclean-sys_info = 'bibclean.commands.sys_info:run'
-bibclean = 'bibclean.commands.bibclean:run'
-bibclean-check = 'bibclean.commands.bibclean_check:run'
+[tool.codespell]
+check-filenames = true
+check-hidden = true
+ignore-words = '.codespellignore'
+skip = 'build,.git,.mypy_cache,.pytest_cache,.venv'
 
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ['bibclean*']
-exclude = ['bibclean*tests']
-
-[tool.setuptools.package-data]
-"bibclean.config" = ["*.toml"]
-
-[tool.black]
-line-length = 88
-target-version = ['py39']
-include = '\.pyi?$'
-extend-exclude = '''
-(
-      __pycache__
-    | \.github
-    | setup.py
-    | doc/
-)
-'''
-
-[tool.isort]
-profile = 'black'
-multi_line_output = 3
-line_length = 88
-py_version = 39
-extend_skip_glob = [
-    'setup.py',
-    'doc/*^',
+[tool.coverage.report]
+exclude_lines = [
+  'if __name__ == .__main__.:',
+  'if TYPE_CHECKING:',
+  'pragma: no cover',
 ]
-
-[tool.ruff]
-line-length = 88
-extend-exclude = [
-    "doc",
-    "setup.py",
-]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]
-
-[tool.pydocstyle]
-convention = 'numpy'
-ignore-decorators = '(copy_doc|property|.*setter|.*getter|pyqtSlot|Slot)'
-match = '^(?!setup|__init__|test_).*\.py'
-match-dir = '^bibclean.*'
-add_ignore = 'D100,D104,D107'
-
-[tool.pytest.ini_options]
-addopts = '--durations 20 --junit-xml=junit-results.xml -v --color=yes'
-junit_family = 'xunit2'
-minversion = '6.0'
+precision = 2
 
 [tool.coverage.run]
 branch = true
 cover_pylib = false
 omit = [
-    '**/__init__.py',
-    '**/bibclean/_version.py',
-    '**/bibclean/commands/*',
-    '**/bibclean/utils/_fixes.py',
-    '**/tests/**',
+  '**/__init__.py',
+  '**/bibclean/_version.py',
+  '**/bibclean/utils/_fixes.py',
 ]
 
-[tool.coverage.report]
-exclude_lines = [
-    'pragma: no cover',
-    'if __name__ == .__main__.:',
-    'if TYPE_CHECKING:',
+[tool.pytest.ini_options]
+addopts = ['--color=yes', '--cov-report=', '--durations=20', '--junit-xml=junit-results.xml', '--strict-config', '--tb=short', '-ra', '-v']
+filterwarnings = [
+  'error',
+  # bibtexparser 1.4 builds its pyparsing grammar at parse time; pyparsing >= 3.1 turns
+  # its diagnostics into warnings when the filters escalate them. Both are upstream
+  # noise, not bibclean bugs, and disappear with bibtexparser in the redesign step.
+  'ignore::pyparsing.warnings.PyparsingDeprecationWarning',
+  'ignore::pyparsing.warnings.PyparsingDiagnosticWarning',
 ]
-precision = 2
+junit_family = 'xunit2'
+minversion = '8.0'
+
+[tool.ruff]
+extend-exclude = []
+line-length = 88
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+
+[tool.ruff.lint]
+ignore = []
+logger-objects = ["bibclean.utils.logs.logger"]
+select = ['A', 'B', 'C4', 'D', 'E', 'F', 'G', 'I', 'LOG', 'NPY', 'PERF', 'PIE', 'PT', 'T20', 'TID', 'UP', 'W']
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+'*' = [
+  'B904',  # 'Within an except clause, raise exceptions with raise ... from ...'
+  'D100',  # 'Missing docstring in public module'
+  'D104',  # 'Missing docstring in public package'
+  'D107',  # 'Missing docstring in __init__'
+]
+'__init__.py' = ['F401', 'I002']
+
+[tool.ruff.lint.pydocstyle]
+convention = 'numpy'
+ignore-decorators = ["bibclean.utils._docs.copy_doc"]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.package-data]
+"bibclean.config" = ["*.toml"]
+
+[tool.setuptools.packages.find]
+include = ['bibclean*']
+where = ['src']
+
+[tool.setuptools_scm]
+version_file = "src/bibclean/_version.py"
+version_scheme = "release-branch-semver"
+
+[tool.setuptools_scm.scm.git]
+pre_parse = "fetch_on_shallow"
+
+[tool.tomlsort]
+all = true
+ignore_case = true
+spaces_before_inline_comment = 2
+trailing_comma_inline_array = true
+
+[tool.uv]
+default-groups = "all"
