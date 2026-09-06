@@ -9,14 +9,14 @@ from importlib.util import find_spec
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from packaging.requirements import Requirement
-
 from bibclean.utils._checks import check_type
 from bibclean.utils._imports import import_optional_dependency
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import IO
+
+    from packaging.requirements import Requirement
 
 
 def sys_info(
@@ -42,6 +42,8 @@ def sys_info(
         The package to display information about. If None, display information about the
         current package.
     """
+    from packaging.requirements import Requirement
+
     check_type(developer, (bool,), "developer")
     check_type(package, (str, None), "package")
 
