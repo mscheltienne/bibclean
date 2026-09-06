@@ -14,23 +14,37 @@
 
 .. _latest:
 
-Version 0.9
+Version 1.0
 ===========
+
+.. warning::
+
+    This release is API-breaking. The pre-commit hook ``bibclean-fix`` no longer accepts
+    ``--exit-non-zero-on-fix``: remove the ``args`` line from your
+    ``.pre-commit-config.yaml`` after ``pre-commit autoupdate``. The hook ``bibclean``
+    is renamed ``bibclean-check``.
 
 Enhancements
 ------------
 
-- xxx
-
-Bugs
-----
-
-- xxx
+- New unified command-line interface ``bibclean`` with the sub-commands ``check``,
+  ``fix`` and ``sys-info``, built with ``click``.
+- Two pre-commit hooks, ``bibclean-check`` and ``bibclean-fix``, running on the
+  ``pre-commit``, ``pre-merge-commit``, ``pre-push`` and ``manual`` stages.
+- Fewer runtime dependencies: ``numpy``, ``psutil`` and ``toml`` are no longer required
+  (``psutil`` is optional and only used by ``bibclean sys-info``).
 
 API and behavior changes
 ------------------------
 
-- xxx
+- The console scripts ``bibclean-check`` and ``bibclean-sys_info`` are removed; use
+  ``bibclean check`` and ``bibclean sys-info``.
+- ``bibclean FILE`` becomes ``bibclean fix FILE``. The options ``-o/--output``,
+  ``--overwrite`` and ``--exit-non-zero-on-fix`` are removed; the file is always cleaned
+  in place.
+- The minimum supported Python version is 3.11.
+- The package is now versioned from git tags (``setuptools_scm``) and uses a ``src``
+  layout.
 
 Authors
 -------
