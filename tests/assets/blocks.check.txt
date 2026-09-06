@@ -1,0 +1,2 @@
+blocks.bib: file is not formatted, run `bibclean fix` [*]
+Found 1 violation (1 fixable).
