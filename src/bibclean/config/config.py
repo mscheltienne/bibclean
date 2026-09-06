@@ -1,15 +1,12 @@
+from __future__ import annotations
+
+import tomllib
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Union
-
-from toml import load
-
-from ..utils._docs import fill_doc
 
 
-@fill_doc
 def load_config(
-    file: Union[str, Path]
-) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]], List[str]]:
+    file: str | Path,
+) -> tuple[dict[str, set[str]], dict[str, set[str]], list[str]]:
     """Load the ``bibclean`` configuration form a TOML file.
 
     The loaded configuration is merged with the
@@ -24,18 +21,23 @@ def load_config(
 
     Returns
     -------
-    %(required_fields)s
-    %(keep_fields)s
-    %(exclude)s
+    required_fields : dict
+        Required fields for each entry type. The dictionary is defined with the
+        entry-type as key (`str`) and the required fields as value (`set` of `str`).
+    keep_fields : dict
+        Fields to keep for each entry type. The dictionary is defined with the
+        entry-type as key (`str`) and the fields to keep as value (`set` of `str`).
+    exclude : list of str
+        List of entries to ignore. An entry is specified by its cite key.
     """
     required_fields_def, keep_fields_def = _load_default_config()
     required_fields, keep_fields, exclude, exclude_type = _load_config(file)
 
     # merge both
-    for key, value in required_fields_def.items():
+    for key in required_fields_def:
         if key not in required_fields:
             required_fields[key] = required_fields_def[key]
-    for key, value in keep_fields_def.items():
+    for key in keep_fields_def:
         if key not in keep_fields:
             keep_fields[key] = keep_fields_def[key]
 
@@ -72,10 +74,11 @@ def load_config(
 
 
 def _load_config(
-    file: Union[str, Path]
-) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]], List[str], List[str]]:
+    file: str | Path,
+) -> tuple[dict[str, set[str]], dict[str, set[str]], list[str], list[str]]:
     """Load a configuration from a TOML file."""
-    config = load(file)
+    with open(file, "rb") as fid:
+        config = tomllib.load(fid)
     if "tool" not in config:
         raise RuntimeError("TOML file is invalid. The section 'tool' is missing.")
 
@@ -86,10 +89,10 @@ def _load_config(
 
     config = config["tool"]["bibclean"]
 
-    required_fields = dict()
-    keep_fields = dict()
-    exclude = list()
-    exclude_type = list()
+    required_fields = {}
+    keep_fields = {}
+    exclude = []
+    exclude_type = []
     for key in config:
         if key == "exclude":
             exclude = config[key]
@@ -142,7 +145,7 @@ def _load_config(
     return required_fields, keep_fields, exclude, exclude_type
 
 
-def _load_default_config() -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+def _load_default_config() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """Load the default config from 'default.toml'."""
     required_fields, keep_fields, _, _ = _load_config(
         Path(__file__).parent / "default.toml"

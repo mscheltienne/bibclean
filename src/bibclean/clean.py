@@ -1,19 +1,21 @@
-from typing import Dict, List, Optional, Set
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from bibtexparser.bibdatabase import BibDatabase
 
-from ._typing import Entry
-from .config import _load_default_config
-from .utils._checks import check_type, check_value
-from .utils._docs import fill_doc
-from .utils.logs import logger
+from bibclean.config import _load_default_config
+from bibclean.utils._checks import check_type, check_value
+from bibclean.utils.logs import logger
+
+if TYPE_CHECKING:
+    from bibclean._typing import Entry
 
 
-@fill_doc
 def clean_bib_database(
     bib_database: BibDatabase,
-    exclude: List[str] = [],
-    keep_fields: Optional[Dict[str, Set[str]]] = None,
+    exclude: list[str] | tuple[str, ...] = (),
+    keep_fields: dict[str, set[str]] | None = None,
 ) -> BibDatabase:
     """Check and clean a BibTex database.
 
@@ -21,8 +23,12 @@ def clean_bib_database(
     ----------
     bib_database : ``BibDatabase``
         BibTex database.
-    %(exclude)s
-    %(keep_fields)s
+    exclude : list of str
+        List of entries to ignore. An entry is specified by its cite key.
+    keep_fields : dict
+        Fields to keep for each entry type. If None, a default configuration is
+        loaded. The dictionary is defined with the entry-type as key (`str`) and
+        the required fields as value (`set` of `str`).
 
     Returns
     -------
@@ -43,10 +49,6 @@ def clean_bib_database(
                 check_type(v, (str,))
     else:
         _, keep_fields = _load_default_config()
-
-    # reset entries dictionary
-    logger.debug("Resetting the entry dictionary.")
-    bib_database._entries_dict = {}
 
     # add URL and DOI to the fields to keep, they will be handled later
     for entry_type in keep_fields:
@@ -84,10 +86,6 @@ def clean_bib_database(
         if need_cleaning:
             del bib_database.entries[k]["url"]
 
-    # make entries dictionary
-    logger.debug("Remaking the entry dictionary.")
-    bib_database._make_entries_dict()
-
     # remove comments
     bib_database.comments = []
 
@@ -109,3 +107,4 @@ def _clean_doi_url(entry: Entry) -> bool:
         return False
     elif sum(field) == 2:
         return True
+    return False

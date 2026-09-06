@@ -1,20 +1,22 @@
-from typing import Dict, List, Optional, Set
+from __future__ import annotations
 
-import numpy as np
+from collections import Counter
+from typing import TYPE_CHECKING
+
 from bibtexparser.bibdatabase import BibDatabase
 
-from ._exception import DuplicateEntry, MissingReqField
-from ._typing import Entry
-from .config import _load_default_config
-from .utils._checks import check_type, check_value
-from .utils._docs import fill_doc
+from bibclean._exception import DuplicateEntry, MissingReqField
+from bibclean.config import _load_default_config
+from bibclean.utils._checks import check_type, check_value
+
+if TYPE_CHECKING:
+    from bibclean._typing import Entry
 
 
-@fill_doc
 def check_bib_database(
     bib_database: BibDatabase,
-    exclude: List[str] = [],
-    required_fields: Optional[Dict[str, Set[str]]] = None,
+    exclude: list[str] | tuple[str, ...] = (),
+    required_fields: dict[str, set[str]] | None = None,
 ) -> None:
     """Check a BibTex database.
 
@@ -22,8 +24,12 @@ def check_bib_database(
     ----------
     bib_database : ``BibDatabase``
         BibTex database.
-    %(exclude)s
-    %(required_fields)s
+    exclude : list of str
+        List of entries to ignore. An entry is specified by its cite key.
+    required_fields : dict
+        Required fields for each entry type. If None, a default configuration
+        is loaded. The dictionary is defined with the entry-type as key (`str`)
+        and the required fields as value (`set` of `str`).
     """
     check_type(bib_database, (BibDatabase,), "bib_database")
     check_type(exclude, (list, tuple), "exclude")
@@ -51,13 +57,11 @@ def check_bib_database(
     )
 
 
-def _check_duplicate_entries(entries: List[Entry]) -> None:
+def _check_duplicate_entries(entries: list[Entry]) -> None:
     """Check for duplicate entries."""
     # check for duplicate entries with the same cite key
     idx = [entry["ID"] for entry in entries]
     if len(idx) != len(set(idx)):
-        from collections import Counter
-
         duplicates = (
             f"{cite_key} ({n})" for cite_key, n in Counter(idx).items() if n != 1
         )
@@ -80,13 +84,10 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
         hash((entry["year"], entry["author"], entry["title"])) for entry in entries
     ]
     if len(hashes) != len(set(hashes)):
-        from collections import Counter
-
-        duplicates = list()
+        duplicates = []
         duplicate_hashes = [hash_ for hash_, n in Counter(hashes).items() if n != 1]
-        hashes = np.array(hashes)
         for hash_ in duplicate_hashes:
-            idx = np.where(hashes == hash_)[0]
+            idx = [k for k, h in enumerate(hashes) if h == hash_]
             duplicates.append(f"({', '.join(entries[k]['ID'] for k in idx)})")
         raise DuplicateEntry(
             "The BibTex file contains duplicate entries with different cite "
@@ -95,8 +96,8 @@ def _check_duplicate_entries(entries: List[Entry]) -> None:
 
 
 def _check_minimum_fields(
-    entries: List[Entry],
-    required_fields: Dict[str, Set[str]],
+    entries: list[Entry],
+    required_fields: dict[str, set[str]],
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:

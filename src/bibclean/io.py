@@ -1,23 +1,24 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Union
 
 from bibtexparser import dump, load
 from bibtexparser.bibdatabase import BibDatabase
 
-from .utils._checks import check_type
-from .utils._docs import fill_doc
-from .utils.logs import logger
+from bibclean.utils._checks import check_type
+from bibclean.utils.logs import logger
 
 
-@fill_doc
-def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
+def load_bib(file: str | Path, encoding: str = "utf-8") -> BibDatabase:
     """Load a BibTex file.
 
     Parameters
     ----------
     file : str | Path
         Path to the ``.bib`` file to load.
-    %(encoding)s
+    encoding : str
+        Encoding used to read the file. The provided encoding is forwarded to
+        :func:`open`.
 
     Returns
     -------
@@ -27,22 +28,21 @@ def load_bib(file: Union[str, Path], encoding: str = "utf-8") -> BibDatabase:
     check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
-        raise IOError(
+        raise OSError(
             f"The provided file extension is not '.bib'. '{file.suffix}' is invalid."
         )
     if not file.exists():
-        raise IOError("The provided file does not exist.")
+        raise OSError("The provided file does not exist.")
 
     logger.info("Loading file %s", file)
-    with open(file, "r", encoding=encoding) as bibtex_file:
+    with open(file, encoding=encoding) as bibtex_file:
         bib_database = load(bibtex_file)
     return bib_database
 
 
-@fill_doc
 def save_bib(
     bib_database: BibDatabase,
-    file: Union[str, Path],
+    file: str | Path,
     encoding: str = "utf-8",
     overwrite: bool = False,
 ) -> None:
@@ -54,7 +54,9 @@ def save_bib(
         BibTex database to save.
     file : str | Path
         Path to the ``.bib`` file to save.
-    %(encoding)s
+    encoding : str
+        Encoding used to write the file. The provided encoding is forwarded to
+        :func:`open`.
     overwrite : bool
         If True, an existing file will be overwritten.
     """
@@ -62,12 +64,12 @@ def save_bib(
     check_type(file, (str, Path), "file")
     file = Path(file) if isinstance(file, str) else file
     if file.suffix != ".bib":
-        raise IOError(
+        raise OSError(
             f"The provided file extension is not '.bib'. '{file.suffix}' is invalid."
         )
     check_type(overwrite, (bool,), "overwrite")
     if file.exists() and not overwrite:
-        raise IOError(
+        raise OSError(
             "The provided file already exist. Set overwrite to True if you "
             "want to overwrite the file."
         )

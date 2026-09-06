@@ -1,5 +1,6 @@
-from ._version import __version__  # noqa: F401
-from .check import check_bib_database  # noqa: F401
-from .clean import clean_bib_database  # noqa: F401
-from .utils.config import sys_info  # noqa: F401
-from .utils.logs import add_file_handler, logger, set_log_level  # noqa: F401
+from bibclean import utils
+from bibclean._version import __version__
+from bibclean.check import check_bib_database
+from bibclean.clean import clean_bib_database
+from bibclean.utils.config import sys_info
+from bibclean.utils.logs import add_file_handler, set_log_level

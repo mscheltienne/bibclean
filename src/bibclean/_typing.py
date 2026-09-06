@@ -1,3 +1,3 @@
-from typing import Dict
+from __future__ import annotations
 
-Entry = Dict[str, str]
+Entry = dict[str, str]
