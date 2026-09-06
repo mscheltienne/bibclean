@@ -1,17 +1,18 @@
 """Utility functions for checking types and values. Inspired from MNE."""
 
+from __future__ import annotations
+
 import logging
 import operator
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
-import numpy as np
+if TYPE_CHECKING:
+    from typing import Any
 
-from ._docs import fill_doc
 
-
-def _ensure_int(item: Any, item_name: Optional[str] = None) -> int:
+def ensure_int(item: Any, item_name: str | None = None) -> int:
     """Ensure a variable is an integer.
 
     Parameters
@@ -20,6 +21,11 @@ def _ensure_int(item: Any, item_name: Optional[str] = None) -> int:
         Item to check.
     item_name : str | None
         Name of the item to show inside the error message.
+
+    Returns
+    -------
+    item : int
+        Item validated and converted to a Python integer.
 
     Raises
     ------
@@ -34,9 +40,10 @@ def _ensure_int(item: Any, item_name: Optional[str] = None) -> int:
         if isinstance(item, bool):
             raise TypeError
         item = int(operator.index(item))
-    except TypeError:
-        item_name = "Item" if item_name is None else "'%s'" % item_name
-        raise TypeError(f"{item_name} must be an integer, got {type(item)} instead.")
+    except TypeError as exc:
+        item_name = "Item" if item_name is None else f"'{item_name}'"
+        exc.add_note(f"{item_name} must be an integer, got {type(item)} instead.")
+        raise
 
     return item
 
@@ -45,7 +52,7 @@ class _IntLike:
     @classmethod
     def __instancecheck__(cls, other: Any) -> bool:
         try:
-            _ensure_int(other)
+            ensure_int(other)
         except TypeError:
             return False
         else:
@@ -59,14 +66,13 @@ class _Callable:
 
 
 _types = {
-    "numeric": (np.floating, float, _IntLike()),
     "path-like": (str, Path, os.PathLike),
-    "int": (_IntLike(),),
+    "int-like": (_IntLike(),),
     "callable": (_Callable(),),
 }
 
 
-def check_type(item: Any, types: tuple, item_name: Optional[str] = None) -> None:
+def check_type(item: Any, types: tuple, item_name: str | None = None) -> None:
     """Check that item is an instance of types.
 
     Parameters
@@ -75,8 +81,7 @@ def check_type(item: Any, types: tuple, item_name: Optional[str] = None) -> None
         Item to check.
     types : tuple of types | tuple of str
         Types to be checked against.
-        If str, must be one of:
-            ('int', 'str', 'numeric', 'path-like', 'callable')
+        If str, must be one of ('int-like', 'path-like', 'callable').
     item_name : str | None
         Name of the item to show inside the error message.
 
@@ -113,18 +118,17 @@ def check_type(item: Any, types: tuple, item_name: Optional[str] = None) -> None
         else:
             type_name[-1] = "or " + type_name[-1]
             type_name = ", ".join(type_name)
-        item_name = "Item" if item_name is None else "'%s'" % item_name
+        item_name = "Item" if item_name is None else f"'{item_name}'"
         raise TypeError(
-            f"{item_name} must be an instance of {type_name}, "
-            f"got {type(item)} instead."
+            f"{item_name} must be an instance of {type_name}, got {type(item)} instead."
         )
 
 
 def check_value(
     item: Any,
-    allowed_values: tuple,
-    item_name: Optional[str] = None,
-    extra: Optional[str] = None,
+    allowed_values: tuple | dict[Any, Any],
+    item_name: str | None = None,
+    extra: str | None = None,
 ) -> None:
     """Check the value of a parameter against a list of valid options.
 
@@ -132,13 +136,12 @@ def check_value(
     ----------
     item : object
         Item to check.
-    allowed_values : tuple of objects
-        Allowed values to be checked against.
+    allowed_values : tuple of objects | dict of objects
+        Allowed values to be checked against. If a dictionary, checks against the keys.
     item_name : str | None
         Name of the item to show inside the error message.
     extra : str | None
-        Extra string to append to the invalid value sentence, e.g.
-        "when using ico mode".
+        Extra string to append to the invalid value sentence, e.g. "when using DC mode".
 
     Raises
     ------
@@ -146,7 +149,7 @@ def check_value(
         When the value of the item is not one of the valid options.
     """
     if item not in allowed_values:
-        item_name = "" if item_name is None else " '%s'" % item_name
+        item_name = "" if item_name is None else f" '{item_name}'"
         extra = "" if extra is None else " " + extra
         msg = (
             "Invalid value for the{item_name} parameter{extra}. "
@@ -154,11 +157,11 @@ def check_value(
         )
         allowed_values = tuple(allowed_values)  # e.g., if a dict was given
         if len(allowed_values) == 1:
-            options = "The only allowed value is %s" % repr(allowed_values[0])
+            options = f"The only allowed value is {repr(allowed_values[0])}"
         elif len(allowed_values) == 2:
-            options = "Allowed values are %s and %s" % (
-                repr(allowed_values[0]),
-                repr(allowed_values[1]),
+            options = (
+                f"Allowed values are {repr(allowed_values[0])} "
+                f"and {repr(allowed_values[1])}"
             )
         else:
             options = "Allowed values are "
@@ -169,28 +172,32 @@ def check_value(
         )
 
 
-@fill_doc
-def check_verbose(verbose: Any) -> int:
-    """Check that the value of verbose is valid.
+def ensure_verbose(verbose: Any) -> int:
+    """Ensure that the value of verbose is valid.
 
     Parameters
     ----------
-    %(verbose)s
+    verbose : int | str | bool | None
+        Sets the verbosity level. The verbosity increases gradually between
+        ``"CRITICAL"``, ``"ERROR"``, ``"WARNING"``, ``"INFO"`` and ``"DEBUG"``. If
+        ``None`` is provided, the verbosity is set to ``"WARNING"``. If a bool is
+        provided, the verbosity is set to ``"WARNING"`` for ``False`` and to ``"INFO"``
+        for ``True``.
 
     Returns
     -------
     verbose : int
         The verbosity level as an integer.
     """
-    logging_types = dict(
-        DEBUG=logging.DEBUG,
-        INFO=logging.INFO,
-        WARNING=logging.WARNING,
-        ERROR=logging.ERROR,
-        CRITICAL=logging.CRITICAL,
-    )
+    logging_types = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
 
-    check_type(verbose, (bool, str, "int", None), item_name="verbose")
+    check_type(verbose, (bool, str, "int-like", None), item_name="verbose")
 
     if verbose is None:
         verbose = logging.WARNING
@@ -204,11 +211,11 @@ def check_verbose(verbose: Any) -> int:
         else:
             verbose = logging.WARNING
     elif isinstance(verbose, int):
-        verbose = _ensure_int(verbose)
+        verbose = ensure_int(verbose)
         if verbose <= 0:
             raise ValueError(
-                "Argument 'verbose' can not be a negative integer, "
-                f"{verbose} is invalid."
+                f"Argument 'verbose' can not be a negative integer, {verbose} is "
+                "invalid."
             )
 
     return verbose
@@ -231,16 +238,16 @@ def ensure_path(item: Any, must_exist: bool) -> Path:
     """
     try:
         item = Path(item)
-    except TypeError:
+    except TypeError as exc:
         try:
             str_ = f"'{str(item)}' "
         except Exception:
             str_ = ""
-        raise TypeError(
-            f"The provided path {str_}is invalid and can not be converted. "
-            "Please provide a str, an os.PathLike or a pathlib.Path object, "
-            f"not {type(item)}."
+        exc.add_note(
+            f"The provided path {str_}is invalid and can not be converted. Please "
+            f"provide a str, an os.PathLike or a pathlib.Path object, not {type(item)}."
         )
+        raise
     if must_exist and not item.exists():
         raise FileNotFoundError(f"The provided path '{str(item)}' does not exist.")
     return item

@@ -1,41 +1,44 @@
-"""Test _checks.py"""
+from __future__ import annotations
 
 import logging
 from pathlib import Path
 
 import pytest
 
-from .._checks import _ensure_int, check_type, check_value, check_verbose, ensure_path
+from bibclean.utils._checks import (
+    check_type,
+    check_value,
+    ensure_int,
+    ensure_path,
+    ensure_verbose,
+)
 
 
-def test_ensure_int():
-    """Test _ensure_int checker."""
+def test_ensure_int() -> None:
+    """Test ensure_int checker."""
     # valids
-    assert _ensure_int(101) == 101
+    assert ensure_int(101) == 101
 
     # invalids
     with pytest.raises(TypeError, match="Item must be an int"):
-        _ensure_int(101.0)
+        ensure_int(101.0)
     with pytest.raises(TypeError, match="Item must be an int"):
-        _ensure_int(True)
+        ensure_int(True)
     with pytest.raises(TypeError, match="Item must be an int"):
-        _ensure_int([101])
+        ensure_int([101])
 
 
-def test_check_type():
+def test_check_type() -> None:
     """Test check_type checker."""
     # valids
-    check_type(101, ("int",))
-    check_type(101, ("int", str))
+    check_type(101, ("int-like",))
+    check_type(101, ("int-like", str))
     check_type("101.fif", ("path-like",))
 
-    def foo():
+    def foo() -> None:
         pass
 
     check_type(foo, ("callable",))
-
-    check_type(101, ("numeric",))
-    check_type(101.0, ("numeric",))
 
     # invalids
     with pytest.raises(TypeError, match="Item must be an instance of"):
@@ -44,7 +47,7 @@ def test_check_type():
         check_type(101, (float,), "number")
 
 
-def test_check_value():
+def test_check_value() -> None:
     """Test check_value checker."""
     # valids
     check_value(5, (5,))
@@ -59,26 +62,26 @@ def test_check_value():
         check_value(5, [1, 2, 3, 4], "number")
 
 
-def test_check_verbose():
-    """Test check_verbose checker."""
+def test_ensure_verbose() -> None:
+    """Test ensure_verbose checker."""
     # valids
-    assert check_verbose(12) == 12
-    assert check_verbose("INFO") == logging.INFO
-    assert check_verbose("DEBUG") == logging.DEBUG
-    assert check_verbose(True) == logging.INFO
-    assert check_verbose(False) == logging.WARNING
-    assert check_verbose(None) == logging.WARNING
+    assert ensure_verbose(12) == 12
+    assert ensure_verbose("INFO") == logging.INFO
+    assert ensure_verbose("DEBUG") == logging.DEBUG
+    assert ensure_verbose(True) == logging.INFO
+    assert ensure_verbose(False) == logging.WARNING
+    assert ensure_verbose(None) == logging.WARNING
 
     # invalids
     with pytest.raises(TypeError, match="must be an instance of"):
-        check_verbose(("INFO",))
+        ensure_verbose(("INFO",))
     with pytest.raises(ValueError, match="Invalid value"):
-        check_verbose("101")
+        ensure_verbose("101")
     with pytest.raises(ValueError, match="negative integer, -101 is invalid."):
-        check_verbose(-101)
+        ensure_verbose(-101)
 
 
-def test_ensure_path():
+def test_ensure_path() -> None:
     """Test ensure_path checker."""
     # valids
     cwd = Path.cwd()
@@ -101,7 +104,7 @@ def test_ensure_path():
         ensure_path(101, must_exist=False)
 
     class Foo:
-        def __str__(self):
+        def __str__(self) -> None:
             pass
 
     with pytest.raises(TypeError, match="path is invalid"):

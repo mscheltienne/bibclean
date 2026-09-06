@@ -1,15 +1,15 @@
-"""Test _imports.py"""
+from __future__ import annotations
 
 import pytest
 
-from .._imports import import_optional_dependency
+from bibclean.utils._imports import import_optional_dependency
 
 
-def test_import_optional_dependency():
+def test_import_optional_dependency() -> None:
     """Test the import of optional dependencies."""
     # Test import of present package
-    numpy = import_optional_dependency("numpy")
-    assert isinstance(numpy.__version__, str)
+    bibtexparser = import_optional_dependency("bibtexparser")
+    assert isinstance(bibtexparser.__version__, str)
 
     # Test import of absent package
     with pytest.raises(ImportError, match="Missing optional dependency"):
