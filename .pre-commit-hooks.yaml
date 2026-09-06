@@ -1,12 +1,20 @@
--   id: bibclean
-    name: bibclean
-    entry: bibclean-check
-    args: []
-    language: python
-    types: [bib]
--   id: bibclean-fix
-    name: bibclean-fix
-    entry: bibclean
-    args: [--overwrite]
-    language: python
-    types: [bib]
+- id: bibclean-check
+  name: bibclean-check
+  description: Check BibTeX files with bibclean (lint and format check).
+  entry: bibclean check
+  language: python
+  types: [bib]
+  args: []
+  require_serial: true
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
+  minimum_pre_commit_version: '3.2.0'
+- id: bibclean-fix
+  name: bibclean-fix
+  description: Fix and format BibTeX files with bibclean.
+  entry: bibclean fix
+  language: python
+  types: [bib]
+  args: []
+  require_serial: true
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
+  minimum_pre_commit_version: '3.2.0'
