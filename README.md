@@ -10,7 +10,7 @@
 A linter and formatter for BibTeX files, available as a command-line tool and as
 pre-commit hooks. It rewrites a `.bib` file into a canonical style and reports what
 it cannot rewrite, so that a bibliography stays readable in review and builds
-without surprises with pybtex and sphinxcontrib-bibtex. Comments, `@string` macros,
+without surprises with `pybtex` and `sphinxcontrib-bibtex`. Comments, `@string` macros,
 `@preamble` blocks and unknown entry types are preserved, and a block that cannot
 be parsed is kept verbatim and reported.
 
@@ -19,6 +19,15 @@ pip install bibclean
 bibclean check doc/references.bib   # report violations, never write
 bibclean fix doc/references.bib     # rewrite it in place
 ```
+
+Or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uvx bibclean check doc/references.bib   # report violations, never write
+uvx bibclean fix doc/references.bib     # rewrite it in place
+```
+
+Example output:
 
 ```
 doc/references.bib:14:3: strip-field field 'abstract' is not kept for @article [*]
