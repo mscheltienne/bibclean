@@ -136,7 +136,6 @@ required-imports = ["from __future__ import annotations"]
   'D107',  # 'Missing docstring in __init__'
 ]
 '__init__.py' = ['F401', 'I002']
-'tests/*' = ['D']
 
 [tool.ruff.lint.pydocstyle]
 convention = 'numpy'
