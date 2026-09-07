@@ -96,8 +96,7 @@ def _check_duplicate_entries(entries: list[Entry]) -> None:
 
 
 def _check_minimum_fields(
-    entries: list[Entry],
-    required_fields: dict[str, set[str]],
+    entries: list[Entry], required_fields: dict[str, set[str]]
 ) -> None:
     """Check that each entry has the minimum required fields."""
     for entry in entries:

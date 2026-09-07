@@ -3,7 +3,7 @@ from __future__ import annotations
 import platform
 import sys
 import tomllib
-from functools import lru_cache, partial
+from functools import partial
 from importlib.metadata import PackageNotFoundError, metadata, requires, version
 from importlib.util import find_spec
 from pathlib import Path
@@ -151,25 +151,8 @@ def _list_dependencies_info(
         if len(dep.specifier) != 0:
             output += f" ({str(dep.specifier)})"
         output += ":"
-        output = output.ljust(ljust) + version_
-
-        # handle special dependencies with backends, C dep, ..
-        if dep.name in ("matplotlib", "seaborn") and version_ != "Not found.":
-            try:
-                from matplotlib import pyplot as plt
-
-                backend = plt.get_backend()
-            except Exception:
-                backend = "Not found"
-
-            output += f" (backend: {backend})"
-        if dep.name == "pyvista":
-            version_, renderer = _get_gpu_info()
-            if version_ is None:
-                output += " (OpenGL unavailable)"
-            else:
-                output += f" (OpenGL {version_} via {renderer})"
-        out(output + "\n")
+        output = output.ljust(ljust) + version_ + "\n"
+        out(output)
 
     if len(not_found) != 0:
         not_found = [
@@ -201,15 +184,3 @@ def _find_distribution_name(module_package: str) -> str:
         except PackageNotFoundError:
             continue
     return module_package
-
-
-@lru_cache(maxsize=1)
-def _get_gpu_info() -> tuple[str | None, str | None]:
-    """Get the GPU information."""
-    try:
-        from pyvista import GPUInfo
-
-        gi = GPUInfo()
-        return gi.version, gi.renderer
-    except Exception:
-        return None, None
