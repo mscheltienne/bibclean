@@ -1,0 +1,6 @@
+﻿bibclean.set\_log\_level
+========================
+
+.. currentmodule:: bibclean
+
+.. autofunction:: set_log_level
