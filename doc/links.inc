@@ -33,4 +33,4 @@
 
 .. bibclean
 
-.. _default config: https://github.com/mscheltienne/bibclean/blob/main/bibclean/config/default.toml
+.. _default config: https://github.com/mscheltienne/bibclean/blob/main/src/bibclean/config/default.toml

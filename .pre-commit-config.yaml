@@ -1,0 +1,38 @@
+repos:
+    - repo: https://github.com/astral-sh/uv-pre-commit
+      rev: 0.12.10
+      hooks:
+          - id: uv-lock
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.16.6
+      hooks:
+          - id: ruff
+            name: ruff linter
+            args: [--fix, --show-fixes]
+          - id: ruff-format
+            name: ruff formatter
+
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.4.3
+      hooks:
+          - id: codespell
+            additional_dependencies: [tomli]
+
+    - repo: https://github.com/pappasam/toml-sort
+      rev: v0.24.4
+      hooks:
+          - id: toml-sort-fix
+            files: pyproject.toml
+
+    - repo: https://github.com/adrienverge/yamllint
+      rev: v1.38.0
+      hooks:
+          - id: yamllint
+            args: [--strict, -c, .yamllint.yaml]
+            files: (.github/|.codecov.yaml|.pre-commit-config.yaml|.pre-commit-hooks.yaml|.yamllint.yaml)
+
+    - repo: https://github.com/pre-commit/pre-commit
+      rev: v4.6.2
+      hooks:
+          - id: validate_manifest

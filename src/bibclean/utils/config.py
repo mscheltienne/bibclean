@@ -1,0 +1,186 @@
+from __future__ import annotations
+
+import platform
+import sys
+import tomllib
+from functools import partial
+from importlib.metadata import PackageNotFoundError, metadata, requires, version
+from importlib.util import find_spec
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from packaging.requirements import Requirement
+
+from bibclean.utils._checks import check_type
+from bibclean.utils._imports import import_optional_dependency
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import IO
+
+
+def sys_info(
+    fid: IO | None = None,
+    *,
+    extra: bool = False,
+    developer: bool = False,
+    package: str | None = None,
+) -> None:
+    """Print the system information for debugging.
+
+    Parameters
+    ----------
+    fid : file-like | None
+        The file to write to, passed to :func:`print`. Can be None to use
+        :data:`sys.stdout`.
+    extra : bool
+        If True, display information about optional dependencies.
+    developer : bool
+        If True, display information about optional dependencies. Only available for
+        the package installed in editable mode.
+    package : str | None
+        The package to display information about. If None, display information about the
+        current package.
+    """
+    check_type(developer, (bool,), "developer")
+    check_type(package, (str, None), "package")
+
+    ljust = 26
+    out = partial(print, end="", file=fid)
+    if package is None:
+        package = _find_distribution_name(__package__)
+    if "-" in package:
+        package = package.replace("-", "_")
+
+    # OS information - requires python 3.8 or above
+    out("Platform:".ljust(ljust) + platform.platform() + "\n")
+    # python information
+    out("Python:".ljust(ljust) + sys.version.replace("\n", " ") + "\n")
+    out("Executable:".ljust(ljust) + sys.executable + "\n")
+    # CPU information
+    out("CPU:".ljust(ljust) + platform.processor() + "\n")
+    psutil = import_optional_dependency("psutil", raise_error=False)
+    if psutil is not None:
+        out("Physical cores:".ljust(ljust) + str(psutil.cpu_count(False)) + "\n")
+        out("Logical cores:".ljust(ljust) + str(psutil.cpu_count(True)) + "\n")
+        # memory information
+        out("RAM:".ljust(ljust))
+        out(f"{psutil.virtual_memory().total / float(2**30):0.1f} GB\n")
+        out("SWAP:".ljust(ljust))
+        out(f"{psutil.swap_memory().total / float(2**30):0.1f} GB\n")
+    # package information
+    out(f"{package}:".ljust(ljust) + version(package) + "\n")
+
+    # dependencies
+    out("\nCore dependencies\n")
+    requirements = requires(package)
+    if requirements is None:
+        raise RuntimeError(
+            f"The set of requirements for {package} could not be retrieved."
+        )
+    dependencies = [Requirement(elt) for elt in requirements]
+    core_dependencies = [dep for dep in dependencies if "extra" not in str(dep.marker)]
+    _list_dependencies_info(out, ljust, package, core_dependencies)
+
+    if extra:
+        extras = metadata(package).get_all("Provides-Extra")
+        if extras is not None:
+            for key in sorted([elt for elt in extras if elt not in ("all", "full")]):
+                extra_dependencies = [
+                    dep
+                    for dep in dependencies
+                    if all(elt in str(dep.marker) for elt in ("extra", key))
+                ]
+                if len(extra_dependencies) == 0:
+                    continue
+                out(f"\nOptional '{key}' dependencies\n")
+                _list_dependencies_info(out, ljust, package, extra_dependencies)
+
+    if developer:
+        # following PEP 735, dependency-groups are intentionally omitted from metadata,
+        # thus we need to parse the pyproject.toml file directly.
+        origin = Path(find_spec(package).origin)
+        for folder in origin.parents[1:3]:  # support 'src' or 'flat' layout structure
+            if (folder / "pyproject.toml").exists():
+                pyproject = folder / "pyproject.toml"
+                break
+        else:
+            raise RuntimeError(
+                f"The pyproject.toml file for the package {package} could not be "
+                "found. To retrieve developer dependencies, please install the package "
+                "from source in an editable install, e.g. using 'uv sync'."
+            )
+
+        with open(pyproject, "rb") as fid:
+            pyproject_data = tomllib.load(fid)
+        dependency_groups = pyproject_data.get("dependency-groups", {})
+        for key in sorted(dependency_groups):
+            # Skip include-group references (dicts), only parse string dependencies
+            dependencies = [
+                Requirement(dep)
+                for dep in dependency_groups[key]
+                if isinstance(dep, str)
+            ]
+            if len(dependencies) == 0:
+                continue
+            out(f"\nDeveloper '{key}' dependencies\n")
+            _list_dependencies_info(out, ljust, package, dependencies)
+
+
+def _list_dependencies_info(
+    out: Callable, ljust: int, package: str, dependencies: list[Requirement]
+) -> None:
+    """List dependencies names and versions."""
+    unicode = sys.stdout.encoding.lower().startswith("utf")
+    if unicode:
+        ljust += 1
+
+    not_found: list[Requirement] = []
+    for dep in dependencies:
+        if dep.name == package:
+            continue
+        try:
+            version_ = version(dep.name)
+        except Exception:
+            not_found.append(dep)
+            continue
+
+        # build the output string step by step
+        output = f"✔︎ {dep.name}" if unicode else dep.name
+        # handle version specifiers
+        if len(dep.specifier) != 0:
+            output += f" ({str(dep.specifier)})"
+        output += ":"
+        output = output.ljust(ljust) + version_ + "\n"
+        out(output)
+
+    if len(not_found) != 0:
+        not_found = [
+            f"{dep.name} ({str(dep.specifier)})"
+            if len(dep.specifier) != 0
+            else dep.name
+            for dep in not_found
+        ]
+        if unicode:
+            out(f"✘ Not installed: {', '.join(not_found)}\n")
+        else:
+            out(f"Not installed: {', '.join(not_found)}\n")
+
+
+def _find_distribution_name(module_package: str) -> str:
+    """Find the distribution name from a module's ``__package__``.
+
+    Tries progressively shorter prefixes until finding one with valid metadata.
+    Handles both regular packages (e.g., ``template.utils`` -> ``template``) and
+    namespace packages (e.g., ``sphinxcontrib.pydantic.utils`` ->
+    ``sphinxcontrib.pydantic``).
+    """
+    parts = module_package.split(".")
+    for i in range(len(parts), 0, -1):
+        candidate = ".".join(parts[:i])
+        try:
+            version(candidate)
+            return candidate
+        except PackageNotFoundError:
+            continue
+    return module_package
