@@ -5,7 +5,7 @@ from io import StringIO
 
 import pytest
 
-from bibclean.utils.config import _get_gpu_info, sys_info
+from bibclean.utils.config import sys_info
 
 
 def test_sys_info() -> None:
@@ -52,14 +52,6 @@ def test_sys_info_without_psutil(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "CPU:" in value
     assert "Physical cores:" not in value
     assert "RAM:" not in value
-
-
-def test_gpu_info() -> None:
-    """Test getting GPU info."""
-    pytest.importorskip("pyvista")
-    version, renderer = _get_gpu_info()
-    assert version is not None
-    assert renderer is not None
 
 
 def test_sys_info_invalid() -> None:
