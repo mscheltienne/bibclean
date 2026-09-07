@@ -48,16 +48,18 @@ classifiers = [
   'Programming Language :: Python :: 3.14',
 ]
 dependencies = [
-  'bibtexparser>=1.4.0,<2',
-  'click',
+  'click>=8.2',
   'packaging',
 ]
-description = 'A simple BibTeX file checker and cleaner.'
+description = 'A linter and formatter for BibTeX files.'
 dynamic = ["version"]
 keywords = [
   'bibliography',
   'bibtex',
-  'python',
+  'formatter',
+  'linter',
+  'pre-commit',
+  'sphinx',
 ]
 license = "MIT"
 license-files = ["LICENSE"]
@@ -81,7 +83,7 @@ tracker = 'https://github.com/mscheltienne/bibclean/issues'
 check-filenames = true
 check-hidden = true
 ignore-words = '.codespellignore'
-skip = 'build,.git,.mypy_cache,.pytest_cache,.venv'
+skip = 'build,.git,.mypy_cache,.pytest_cache,.venv,tests/assets,uv.lock'
 
 [tool.coverage.report]
 exclude_lines = [
@@ -102,16 +104,10 @@ omit = [
 
 [tool.pytest.ini_options]
 addopts = ['--color=yes', '--cov-report=', '--durations=20', '--junit-xml=junit-results.xml', '--strict-config', '--tb=short', '-ra', '-v']
-filterwarnings = [
-  'error',
-  # bibtexparser 1.4 builds its pyparsing grammar at parse time; pyparsing >= 3.1 turns
-  # its diagnostics into warnings when the filters escalate them. Both are upstream
-  # noise, not bibclean bugs, and disappear with bibtexparser in the redesign step.
-  'ignore::pyparsing.warnings.PyparsingDeprecationWarning',
-  'ignore::pyparsing.warnings.PyparsingDiagnosticWarning',
-]
+filterwarnings = ['error']
 junit_family = 'xunit2'
 minversion = '8.0'
+timeout = 60
 
 [tool.ruff]
 extend-exclude = []
@@ -147,9 +143,6 @@ ignore-decorators = ["bibclean.utils._docs.copy_doc"]
 
 [tool.setuptools]
 include-package-data = false
-
-[tool.setuptools.package-data]
-"bibclean.config" = ["*.toml"]
 
 [tool.setuptools.packages.find]
 include = ['bibclean*']

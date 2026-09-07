@@ -1,9 +1,0 @@
-[tool.bibclean]
-exclude = []
-exclude_type = ['article', 'book']
-
-[tool.bibclean.test]
-required = [
-    'author',
-    'year',
-]

@@ -1,0 +1,8 @@
+pybtex-compat.bib:1:1: required-field @article 'no_journal_2021' is missing required field 'journal'
+pybtex-compat.bib:9:3: doi-prefix field 'doi' has a URL prefix, expected the bare identifier [*]
+pybtex-compat.bib:11:3: month-format month 'September' should be the macro 'sep' [*]
+pybtex-compat.bib:12:3: pages-range page range '181–197' should use '--' [*]
+pybtex-compat.bib:22:3: pages-range page range '4101-4105' should use '--' [*]
+pybtex-compat.bib:23:3: unescaped-percent unescaped '%' in field 'title', pybtex drops the rest of the value [*]
+pybtex-compat.bib:24:3: empty-field field 'volume' is empty [*]
+Found 7 violations (6 fixable).

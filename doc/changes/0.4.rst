@@ -20,7 +20,7 @@ Version 0.4
 - Increase test coverage to ``97%``
 - Fix exit code returned by ``bibclean-check`` when a duplicate is found
 - Replace ``.ini`` configuration file with TOML
-- Separate execution of :func:`bibclean.check_bib_database` and :func:`bibclean.clean_bib_database`
+- Separate execution of ``check_bib_database()`` and ``clean_bib_database()``
 
 Authors
 -------

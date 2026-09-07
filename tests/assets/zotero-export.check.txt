@@ -1,0 +1,8 @@
+zotero-export.bib:5:2: strip-field field 'issn' is not kept for @article [*]
+zotero-export.bib:6:2: url-with-doi field 'url' is redundant with 'doi' [*]
+zotero-export.bib:8:2: strip-field field 'abstract' is not kept for @article [*]
+zotero-export.bib:10:2: strip-field field 'language' is not kept for @article [*]
+zotero-export.bib:11:2: strip-field field 'urldate' is not kept for @article [*]
+zotero-export.bib:17:2: strip-field field 'file' is not kept for @article [*]
+zotero-export.bib: file is not formatted, run `bibclean fix` [*]
+Found 7 violations (7 fixable).
