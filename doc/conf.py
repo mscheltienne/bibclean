@@ -8,13 +8,72 @@ from __future__ import annotations
 import inspect
 from datetime import date
 from importlib import import_module
+from pathlib import Path
 
 from intersphinx_registry import get_intersphinx_mapping
 from sphinx.util import logging as sphinx_logging
 
 import bibclean
+from bibclean._defaults import TYPES
+from bibclean._rules import RULES
 
 _logger = sphinx_logging.getLogger(__name__)
+
+# -- generated pages -------------------------------------------------------------------
+# 'rules.inc' and 'defaults.inc' are written at build time from the rule registry and
+# from the shipped default tables.
+
+_GENERATED = Path(__file__).parent / "generated"
+
+
+def _names(names: tuple[str, ...]) -> str:
+    """Render field names as a comma-separated list of inline literals."""
+    return ", ".join(f"``{name}``" for name in names) if names else "—"
+
+
+def _write_rules() -> None:
+    """Write one section per rule to 'generated/rules.inc'."""
+    lines: list[str] = []
+    for item in RULES:
+        title = f"``{item.name}``"
+        lines += [
+            f".. _rule-{item.name}:",
+            "",
+            title,
+            "-" * len(title),
+            "",
+            f"Fix: {item.fixable}. Scope: {item.scope}.",
+            "",
+            item.doc,
+            "",
+        ]
+    _GENERATED.mkdir(exist_ok=True)
+    (_GENERATED / "rules.inc").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_defaults() -> None:
+    """Write the default per-type tables to 'generated/defaults.inc'."""
+    lines = [
+        ".. list-table::",
+        "   :header-rows: 1",
+        "   :widths: 15 35 50",
+        "",
+        "   * - Type",
+        "     - ``required``",
+        "     - ``keep`` (in addition to ``required``)",
+    ]
+    for name, (required, keep) in TYPES.items():
+        lines += [
+            f"   * - ``{name}``",
+            f"     - {_names(required)}",
+            f"     - {_names(keep)}",
+        ]
+    _GENERATED.mkdir(exist_ok=True)
+    (_GENERATED / "defaults.inc").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+_write_rules()
+_write_defaults()
 
 # -- project information ---------------------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

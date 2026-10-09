@@ -20,17 +20,16 @@
 .. _MIT license: https://opensource.org/licenses/MIT
 
 
-.. sphinxcontrib-bibtex
+.. tools
 
+.. _latexcodec: https://latexcodec.readthedocs.io/en/latest/
+.. _pre-commit: https://pre-commit.com
+.. _pybtex: https://pybtex.org
 .. _sphinxcontrib-bibtex: https://sphinxcontrib-bibtex.readthedocs.io/en/latest/
+.. _uv: https://docs.astral.sh/uv/
 
 
 .. bibtex
 
 .. _bibtex format: https://www.bibtex.com/g/bibtex-format/
 .. _bibtex website: https://www.bibtex.com
-
-
-.. bibclean
-
-.. _default config: https://github.com/mscheltienne/bibclean/blob/main/src/bibclean/config/default.toml

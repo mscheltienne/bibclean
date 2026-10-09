@@ -1,0 +1,2 @@
+malformed.bib:8:1: syntax-error entry 'broken_entry' could not be parsed: expected ',' or '}' after field 'title' at line 14, column 1
+Found 1 violation (0 fixable).

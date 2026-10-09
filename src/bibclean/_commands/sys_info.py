@@ -16,11 +16,6 @@ from bibclean.utils.config import sys_info
     help="Display information for developer dependencies.",
     is_flag=True,
 )
-@click.option(
-    "--package",
-    help="The package to display information about.",
-    type=str,
-)
-def run(extra: bool, developer: bool, package: str | None) -> None:
-    """Run sys_info() command."""
-    sys_info(extra=extra, developer=developer, package=package)
+def run(extra: bool, developer: bool) -> None:
+    """Print the platform, Python and dependency versions."""
+    sys_info(extra=extra, developer=developer)

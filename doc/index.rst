@@ -1,33 +1,46 @@
 .. include:: ./links.inc
 
-**BibClean**
+**bibclean**
 ============
 
 .. toctree::
    :hidden:
 
-   bibtex.rst
-   cli.rst
+   format.rst
+   rules.rst
    configuration.rst
-   api/index
+   cli.rst
+   bibtex.rst
    changes/index
 
-``bibclean`` is a simple auto-formatter for BibTeX files. It was designed to
-clean ``.bib`` files provided to sphinx documentation build using
-`sphinxcontrib-bibtex`_.
+``bibclean`` is a linter and formatter for BibTeX files. It rewrites a ``.bib``
+file into a canonical style and reports what it cannot rewrite, so that a
+bibliography stays readable in review and builds without surprises with `pybtex`_
+and `sphinxcontrib-bibtex`_.
+
+- one canonical style, described in :doc:`format`;
+- thirteen rules, described in :doc:`rules`;
+- configuration discovered from ``pyproject.toml``, ``bibclean.toml`` or
+  ``.bibclean.toml``, described in :doc:`configuration`;
+- comments, ``@string`` macros, ``@preamble`` blocks and unknown entry types are
+  preserved, and a block that cannot be parsed is kept verbatim and reported.
 
 Install
 -------
 
-BibClean is available on `Pypi <project pypi_>`_.
-
 .. tab-set::
 
-    .. tab-item:: Pypi
+    .. tab-item:: pip
 
         .. code-block:: bash
 
             pip install bibclean
+
+    .. tab-item:: uv
+
+        .. code-block:: bash
+
+            uv tool install bibclean
 
     .. tab-item:: Source
 
@@ -35,57 +48,48 @@ BibClean is available on `Pypi <project pypi_>`_.
 
             pip install git+https://github.com/mscheltienne/bibclean
 
-Usage
------
+Quick start
+-----------
 
-BibClean is a single command-line tool, ``bibclean``, with two sub-commands:
-:ref:`bibclean fix <cli:bibclean fix>` (auto-format) and
-:ref:`bibclean check <cli:bibclean check>` (check in CIs). Both accept ``-c`` or
-``--config`` to overwrite the :ref:`default TOML configuration <configuration:default>`
-with a different :ref:`TOML configuration <configuration:configuration>`, e.g.
-``pyproject.toml``.
+``bibclean check`` reports violations without touching the files, ``bibclean fix``
+rewrites them in place. Both accept any number of files.
 
-.. tab-set::
+.. code-block:: bash
 
-    .. tab-item:: bibclean fix
+    bibclean check doc/*.bib
+    bibclean fix doc/references.bib
 
-        ``bibclean fix`` processes a single file in place. See
-        :ref:`here <cli:bibclean fix>` for additional information.
+.. code-block:: text
 
-        .. code-block:: bash
+    doc/references.bib:14:3: strip-field field 'abstract' is not kept for @article [*]
+    doc/references.bib:27:1: duplicate-key cite key 'smith2020' is already defined as 'Smith2020' at line 3
+    doc/references.bib: file is not formatted, run `bibclean fix` [*]
+    Found 3 violations (2 fixable).
 
-            # clean the file references.bib in-place
-            bibclean fix references.bib
-            # clean the file references.bib with the configuration in pyproject.toml
-            bibclean fix references.bib -c pyproject.toml
+The lines marked ``[*]`` are the ones ``bibclean fix`` resolves. See :doc:`cli`
+for the options, the exit codes and the output format.
 
-    .. tab-item:: bibclean check
+pre-commit
+----------
 
-        ``bibclean check`` exits with the exit-code ``0`` if the file is already
-        processed, with the exit-code ``1`` if violations have been found and with the
-        exit-code ``2`` if unfixable violations have been found. See
-        :ref:`here <cli:bibclean check>` for additional information.
+Two `pre-commit`_ hooks are available: ``bibclean-check`` reports and never writes,
+``bibclean-fix`` rewrites and exits with a non-zero code when it did.
 
-        .. code-block:: bash
+.. code-block:: yaml
 
-            # check if the file references.bib is already processed
-            bibclean check references.bib
-            # same, with the configuration in pyproject.toml
-            bibclean check references.bib -c pyproject.toml
+    repos:
+      - repo: https://github.com/mscheltienne/bibclean
+        rev: 1.0.0
+        hooks:
+          - id: bibclean-fix
 
-    .. tab-item:: pre-commit
+Changelog
+---------
 
-        .. code-block:: yaml
-
-            repos:
-              - repo: https://github.com/mscheltienne/bibclean
-                rev: 1.0.0
-                hooks:
-                  - id: bibclean-fix
-                    files: doc/references.bib
+The list of changes of each release is in the :doc:`changes/index`.
 
 License
 -------
 
-BibClean is licensed under the `MIT license`_.
-A full copy of the license can be found `on GitHub <project license_>`_.
+``bibclean`` is licensed under the `MIT license`_. A full copy of the license can
+be found `on GitHub <project license_>`_.

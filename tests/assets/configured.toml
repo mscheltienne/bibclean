@@ -1,0 +1,10 @@
+[tool.bibclean]
+indent = "tab"
+sort-fields = ["author", "title", "journal", "year"]
+month = "name"
+strip-fields = false
+exclude = ["ignored_entry"]
+ignore = ["url-with-doi"]
+
+[tool.bibclean.article]
+required = ["author", "title", "year", "doi"]

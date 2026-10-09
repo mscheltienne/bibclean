@@ -2,51 +2,72 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibtexparser import dumps
-from click.testing import CliRunner
-
-from bibclean._commands.fix import ReturnCode, _run, run
-from bibclean.io import load_bib
+from bibclean._commands.fix import run
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from pathlib import Path
 
+    from click.testing import CliRunner
 
-def test_run(assets: Path, bib_copy: Callable[[str], Path]) -> None:
-    """Test the exit code returned by _run and the in-place cleaning."""
-    file = bib_copy("zotero-articles.bib")
-    assert _run(file, None) == ReturnCode.no_violations_found
-    assert dumps(load_bib(file)) == dumps(load_bib(assets / "zotero-clean.bib"))
-    # already clean file is idempotent
-    before = file.read_text(encoding="utf-8")
-    assert _run(file, None) == ReturnCode.no_violations_found
-    assert file.read_text(encoding="utf-8") == before
-    # unfixable violations leave the file untouched
-    file = bib_copy("zotero-duplicates.bib")
-    before = file.read_text(encoding="utf-8")
-    assert _run(file, None) == ReturnCode.violations_found_unfixable
-    assert file.read_text(encoding="utf-8") == before
-    # excluded duplicates are accepted
-    assert (
-        _run(file, assets / "zotero-duplicates.toml") == ReturnCode.no_violations_found
-    )
-    # invalid options
-    assert _run(file, "101.toml") == ReturnCode.invalid_options
-    assert _run(assets / "101.bib", None) == ReturnCode.invalid_options
+CLEAN = "@misc{k,\n  title = {A}\n}\n"
+DIRTY = "@Misc{k, Title = {A}}\n"
 
 
-def test_cli(assets: Path, bib_copy: Callable[[str], Path]) -> None:
-    """Test the click command."""
-    runner = CliRunner()
-    file = bib_copy("zotero-articles.bib")
-    result = runner.invoke(run, [str(file)])
-    assert result.exit_code == ReturnCode.no_violations_found
-    assert dumps(load_bib(file)) == dumps(load_bib(assets / "zotero-clean.bib"))
-    result = runner.invoke(run, [str(file), "--encoding", "utf-8"])
-    assert result.exit_code == ReturnCode.no_violations_found
-    result = runner.invoke(run, [str(file), "-c", "101.toml"])
-    assert result.exit_code == ReturnCode.invalid_options
+def _write(directory: Path, name: str, text: str) -> Path:
+    path = directory / name
+    path.write_text(text, encoding="utf-8", newline="\n")
+    return path
+
+
+def test_help(runner: CliRunner) -> None:
+    """Test that the fixer documents --diff on top of the shared options."""
     result = runner.invoke(run, ["--help"])
     assert result.exit_code == 0
-    assert "--encoding" in result.output
+    assert "--diff" in result.stdout
+    for option in (
+        "--config",
+        "--isolated",
+        "--ignore",
+        "--encoding",
+        "--verbose",
+        "--quiet",
+    ):
+        assert option in result.stdout
+
+
+def test_exit_code_zero(tmp_path: Path, runner: CliRunner) -> None:
+    """Test the exit code when nothing is written."""
+    path = _write(tmp_path, "a.bib", CLEAN)
+    assert runner.invoke(run, ["--isolated", str(path)]).exit_code == 0
+
+
+def test_exit_code_one(tmp_path: Path, runner: CliRunner) -> None:
+    """Test the exit code when a file is written."""
+    path = _write(tmp_path, "a.bib", DIRTY)
+    assert runner.invoke(run, ["--isolated", str(path)]).exit_code == 1
+    assert path.read_text(encoding="utf-8") == CLEAN
+
+
+def test_exit_code_two(tmp_path: Path, runner: CliRunner) -> None:
+    """Test the exit code of a file that cannot be read."""
+    assert runner.invoke(run, ["--isolated", str(tmp_path / "a.bib")]).exit_code == 2
+
+
+def test_diff_does_not_write(tmp_path: Path, runner: CliRunner) -> None:
+    """Test that --diff reports the change without applying it."""
+    path = _write(tmp_path, "a.bib", DIRTY)
+    result = runner.invoke(run, ["--isolated", "--diff", str(path)])
+    assert result.exit_code == 1
+    assert path.read_text(encoding="utf-8") == DIRTY
+    assert "would write 1 file" in result.stdout
+
+
+def test_encoding_round_trip(tmp_path: Path, runner: CliRunner) -> None:
+    """Test that the file is rewritten with the requested encoding."""
+    path = tmp_path / "a.bib"
+    path.write_bytes("@Misc{k, Title = {é}}\n".encode("latin-1"))
+    assert (
+        runner.invoke(run, ["--isolated", "--encoding", "latin-1", str(path)]).exit_code
+        == 1
+    )
+    assert path.read_bytes() == "@misc{k,\n  title = {é}\n}\n".encode("latin-1")

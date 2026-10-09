@@ -1,0 +1,6 @@
+duplicates.bib:9:1: duplicate-key cite key 'smith2020' is already defined as 'Smith2020' at line 1 [*]
+duplicates.bib:17:1: duplicate-doi entry shares DOI '10.1000/things' with 'Smith2020' at line 1
+duplicates.bib:19:3: doi-prefix field 'doi' has a URL prefix, expected the bare identifier [*]
+duplicates.bib:29:3: duplicate-field field 'title' is defined twice with the same value [*]
+duplicates.bib: file is not formatted, run `bibclean fix` [*]
+Found 5 violations (4 fixable).

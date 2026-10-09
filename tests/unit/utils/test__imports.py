@@ -8,8 +8,8 @@ from bibclean.utils._imports import import_optional_dependency
 def test_import_optional_dependency() -> None:
     """Test the import of optional dependencies."""
     # Test import of present package
-    bibtexparser = import_optional_dependency("bibtexparser")
-    assert isinstance(bibtexparser.__version__, str)
+    click = import_optional_dependency("click")
+    assert click.__name__ == "click"
 
     # Test import of absent package
     with pytest.raises(ImportError, match="Missing optional dependency"):

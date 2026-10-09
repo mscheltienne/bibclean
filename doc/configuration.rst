@@ -3,212 +3,133 @@
 Configuration
 =============
 
-``bibclean`` commands can be configured in a TOML file, usually the
-``pyproject.toml`` file. The configuration is defined in sections heading
-with ``tool.bibclean`` and defines for each
-:ref:`entry-type <bibtex:entry-type>`:
+``bibclean`` runs without any configuration. Every option below changes either the
+canonical style or the rules, and lives in a TOML table.
 
-- under ``required``, which :ref:`fields <bibtex:fields>` are required when
-  checking a BibTex with :func:`~bibclean.check_bib_database`.
-- under ``keep``, which :ref:`fields <bibtex:fields>` are kept when cleaning a
-  BibTex with :func:`~bibclean.clean_bib_database`.
+Discovery
+---------
 
-Default
+For each input file, ``bibclean`` walks up from the directory of that file to the
+root of the filesystem and stops at the first directory holding one of:
+
+1. ``.bibclean.toml``
+2. ``bibclean.toml``
+3. ``pyproject.toml`` containing a ``[tool.bibclean]`` table
+
+A dedicated file wins over ``pyproject.toml`` in the same directory. The result is
+cached per directory, so a batch of files in one folder walks the tree once, and
+two files in different projects each use their own configuration.
+
+In ``pyproject.toml`` the table must be ``[tool.bibclean]``. In a dedicated file,
+and in a file passed to ``--config``, the keys may be written either under
+``[tool.bibclean]`` or at the top level.
+
+.. code-block:: toml
+
+    # bibclean.toml
+    indent = 4
+    exclude = ["ignored_entry"]
+
+``-c, --config PATH`` replaces the discovered file for every input, and
+``--isolated`` ignores every file and runs with the defaults. The two are mutually
+exclusive. ``--ignore`` adds rule names to whichever configuration applies,
+including the defaults.
+
+An unknown key, a value of the wrong type and an unknown rule name in ``ignore``
+are errors: the run stops with exit code 2 and a message naming the key, with a
+suggestion when a known key is close enough.
+
+Options
 -------
-
-The default configuration of ``bibclean`` can be found
-`here <default config_>`_.
 
 .. code-block:: toml
 
     [tool.bibclean]
-    exclude = []
+    # formatting
+    indent = 2                   # a positive integer, or "tab"
+    align-values = false
+    trailing-comma = false
+    sort-entries = true
+    sort-fields = true           # true | false | ["author", "title", "year"]
+    month = "abbreviation"       # "abbreviation" | "name" | "number" | "preserve"
 
-    [tool.bibclean.article]
-    required = [
-        'author',
-        'journal',
-        'title',
-        'year',
-    ]
-    keep = [
-        'author',
-        'journal',
-        'month',
-        'number',
-        'pages',
-        'title',
-        'volume',
-        'year',
-    ]
+    # linting
+    ignore = []                  # rule names disabled everywhere
+    exclude = []                 # cite keys exempt from the rules
+    exclude-types = []           # entry types exempt from the rules
+    strip-fields = true          # master switch of the strip-field rule
 
-    [tool.bibclean.book]
-    required = [
-        'author',
-        'publisher',
-        'title',
-        'year',
-    ]
-    keep = [
-        'author',
-        'publisher',
-        'title',
-        'year',
-    ]
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 50
 
-Each :ref:`entry-type <bibtex:entry-type>` is defined in its own section. The
-configuration of an :ref:`entry-type <bibtex:entry-type>` is complete only when
-both ``required`` and ``keep`` are defined for this
-:ref:`entry-type <bibtex:entry-type>`.
+   * - Key
+     - Type and default
+     - Meaning
+   * - ``indent``
+     - integer or ``"tab"``, ``2``
+     - Indentation of the field lines of an entry.
+   * - ``align-values``
+     - boolean, ``false``
+     - Pad the field names so that the ``=`` signs align inside an entry.
+   * - ``trailing-comma``
+     - boolean, ``false``
+     - Emit a comma after the last field of an entry.
+   * - ``sort-entries``
+     - boolean, ``true``
+     - Sort the entries by cite key, case-insensitively and stably.
+   * - ``sort-fields``
+     - boolean or array of strings, ``true``
+     - ``true`` sorts the fields alphabetically, ``false`` preserves their order,
+       an array places those names first, in that order, and sorts the rest
+       alphabetically.
+   * - ``month``
+     - string, ``"abbreviation"``
+     - Target form of the ``month`` field: the macro ``feb``, the name
+       ``{February}``, the number ``{2}``, or ``"preserve"`` to disable the
+       :ref:`rule-month-format` rule.
+   * - ``ignore``
+     - array of strings, ``[]``
+     - Names of the rules that never run. See :doc:`rules`.
+   * - ``exclude``
+     - array of strings, ``[]``
+     - Cite keys exempt from every rule, compared exactly as written. Excluded
+       entries are still formatted, and still count as the first occurrence for
+       :ref:`rule-duplicate-key` and :ref:`rule-duplicate-doi`.
+   * - ``exclude-types``
+     - array of strings, ``[]``
+     - Entry types exempt from every rule, compared in lower case. Excluded
+       entries are still formatted.
+   * - ``strip-fields``
+     - boolean, ``true``
+     - Master switch of the :ref:`rule-strip-field` rule.
 
-``bibclean`` will only process the :ref:`entry-types <bibtex:entry-type>` that
-are defined in the loaded configuration. The loaded configuration is either the
-default configuration, or a merge between the user-defined and the default
-configuration.
+Per entry type
+--------------
 
-Example
--------
-
-``exclude`` defines the :ref:`cite-key <bibtex:cite-key>` ignored and
-``exclude_type`` defines the :ref:`entry-type <bibtex:entry-type>` ignored.
-``required`` defines the :ref:`fields <bibtex:fields>` that any entry of a
-given type should have. ``keep`` defines the :ref:`fields <bibtex:fields>` that
-are kept when auto-formating entries of a given type. For all parameters, the
-TOML configuration uses an array of strings.
-
-Consider the following BibTex file with an entry for ``numpy`` and an entry for
-``scipy``:
-
-.. code-block:: bibtex
-
-    @article{virtanen_scipy_2020,
-    	title = {{SciPy} 1.0: fundamental algorithms for scientific computing in {Python}},
-    	volume = {17},
-    	issn = {1548-7091, 1548-7105},
-    	shorttitle = {{SciPy} 1.0},
-    	url = {http://www.nature.com/articles/s41592-019-0686-2},
-    	doi = {10.1038/s41592-019-0686-2},
-    	number = {3},
-    	urldate = {2022-10-12},
-    	journal = {Nature Methods},
-    	author = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and Haberland, Matt and Reddy, Tyler and Cournapeau, David and Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and Bright, Jonathan and van der Walt, Stéfan J. and Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and Kern, Robert and Larson, Eric and Carey, C J and Polat, İlhan and Feng, Yu and Moore, Eric W. and VanderPlas, Jake and Laxalde, Denis and Perktold, Josef and Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and Harris, Charles R. and Archibald, Anne M. and Ribeiro, Antônio H. and Pedregosa, Fabian and van Mulbregt, Paul and {SciPy 1.0 Contributors} and Vijaykumar, Aditya and Bardelli, Alessandro Pietro and Rothberg, Alex and Hilboll, Andreas and Kloeckner, Andreas and Scopatz, Anthony and Lee, Antony and Rokem, Ariel and Woods, C. Nathan and Fulton, Chad and Masson, Charles and Häggström, Christian and Fitzgerald, Clark and Nicholson, David A. and Hagen, David R. and Pasechnik, Dmitrii V. and Olivetti, Emanuele and Martin, Eric and Wieser, Eric and Silva, Fabrice and Lenders, Felix and Wilhelm, Florian and Young, G. and Price, Gavin A. and Ingold, Gert-Ludwig and Allen, Gregory E. and Lee, Gregory R. and Audren, Hervé and Probst, Irvin and Dietrich, Jörg P. and Silterra, Jacob and Webber, James T and Slavič, Janko and Nothman, Joel and Buchner, Johannes and Kulick, Johannes and Schönberger, Johannes L. and de Miranda Cardoso, José Vinícius and Reimer, Joscha and Harrington, Joseph and Rodríguez, Juan Luis Cano and Nunez-Iglesias, Juan and Kuczynski, Justin and Tritz, Kevin and Thoma, Martin and Newville, Matthew and Kümmerer, Matthias and Bolingbroke, Maximilian and Tartre, Michael and Pak, Mikhail and Smith, Nathaniel J. and Nowaczyk, Nikolai and Shebanov, Nikolay and Pavlyk, Oleksandr and Brodtkorb, Per A. and Lee, Perry and McGibbon, Robert T. and Feldbauer, Roman and Lewis, Sam and Tygier, Sam and Sievert, Scott and Vigna, Sebastiano and Peterson, Stefan and More, Surhud and Pudlik, Tadeusz and Oshima, Takuya and Pingel, Thomas J. and Robitaille, Thomas P. and Spura, Thomas and Jones, Thouis R. and Cera, Tim and Leslie, Tim and Zito, Tiziano and Krauss, Tom and Upadhyay, Utkarsh and Halchenko, Yaroslav O. and Vázquez-Baeza, Yoshiki},
-    	month = mar,
-    	year = {2020},
-    	pages = {261--272},
-    	file = {Virtanen et al. - 2020 - SciPy 1.0 fundamental algorithms for scientific c.pdf:C\:\\Users\\Mathieu\\Zotero\\storage\\5ST4PLCB\\Virtanen et al. - 2020 - SciPy 1.0 fundamental algorithms for scientific c.pdf:application/pdf},
-    }
-
-    @article{harris_array_2020,
-    	title = {Array programming with {NumPy}},
-    	volume = {585},
-    	issn = {0028-0836, 1476-4687},
-    	url = {https://www.nature.com/articles/s41586-020-2649-2},
-    	doi = {10.1038/s41586-020-2649-2},
-    	number = {7825},
-    	urldate = {2022-10-12},
-    	journal = {Nature},
-    	author = {Harris, Charles R. and Millman, K. Jarrod and van der Walt, Stéfan J. and Gommers, Ralf and Virtanen, Pauli and Cournapeau, David and Wieser, Eric and Taylor, Julian and Berg, Sebastian and Smith, Nathaniel J. and Kern, Robert and Picus, Matti and Hoyer, Stephan and van Kerkwijk, Marten H. and Brett, Matthew and Haldane, Allan and del Río, Jaime Fernández and Wiebe, Mark and Peterson, Pearu and Gérard-Marchant, Pierre and Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and Abbasi, Hameer and Gohlke, Christoph and Oliphant, Travis E.},
-    	month = sep,
-    	year = {2020},
-    	pages = {357--362},
-    	file = {Harris et al. - 2020 - Array programming with NumPy.pdf:C\:\\Users\\Mathieu\\Zotero\\storage\\5H7ZM23G\\Harris et al. - 2020 - Array programming with NumPy.pdf:application/pdf},
-    }
-
-Exclude an entry
-~~~~~~~~~~~~~~~~
-
-To ignore processing of the entry for ``scipy``, the following TOML
-configuration is required:
-
-.. code-block:: toml
-
-    [tool.bibclean]
-    exclude = ['virtanen_scipy_2020']
-
-.. note::
-
-    Note that excluded entries will still have their fields sorted
-    alphabetically and will still be positioned in an alphabetical order
-    in the cleaned BibTex file.
-
-The processing of the BibTex file above with the configuration above results
-in:
-
-.. code-block:: bibtex
-
-    @article{harris_array_2020,
-     author = {Harris, Charles R. and Millman, K. Jarrod and van der Walt, Stéfan J. and Gommers, Ralf and Virtanen, Pauli and Cournapeau, David and Wieser, Eric and Taylor, Julian and Berg, Sebastian and Smith, Nathaniel J. and Kern, Robert and Picus, Matti and Hoyer, Stephan and van Kerkwijk, Marten H. and Brett, Matthew and Haldane, Allan and del Río, Jaime Fernández and Wiebe, Mark and Peterson, Pearu and Gérard-Marchant, Pierre and Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and Abbasi, Hameer and Gohlke, Christoph and Oliphant, Travis E.},
-     doi = {10.1038/s41586-020-2649-2},
-     journal = {Nature},
-     month = {September},
-     number = {7825},
-     pages = {357--362},
-     title = {Array programming with {NumPy}},
-     volume = {585},
-     year = {2020}
-    }
-
-    @article{virtanen_scipy_2020,
-     author = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and Haberland, Matt and Reddy, Tyler and Cournapeau, David and Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and Bright, Jonathan and van der Walt, Stéfan J. and Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and Kern, Robert and Larson, Eric and Carey, C J and Polat, İlhan and Feng, Yu and Moore, Eric W. and VanderPlas, Jake and Laxalde, Denis and Perktold, Josef and Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and Harris, Charles R. and Archibald, Anne M. and Ribeiro, Antônio H. and Pedregosa, Fabian and van Mulbregt, Paul and {SciPy 1.0 Contributors} and Vijaykumar, Aditya and Bardelli, Alessandro Pietro and Rothberg, Alex and Hilboll, Andreas and Kloeckner, Andreas and Scopatz, Anthony and Lee, Antony and Rokem, Ariel and Woods, C. Nathan and Fulton, Chad and Masson, Charles and Häggström, Christian and Fitzgerald, Clark and Nicholson, David A. and Hagen, David R. and Pasechnik, Dmitrii V. and Olivetti, Emanuele and Martin, Eric and Wieser, Eric and Silva, Fabrice and Lenders, Felix and Wilhelm, Florian and Young, G. and Price, Gavin A. and Ingold, Gert-Ludwig and Allen, Gregory E. and Lee, Gregory R. and Audren, Hervé and Probst, Irvin and Dietrich, Jörg P. and Silterra, Jacob and Webber, James T and Slavič, Janko and Nothman, Joel and Buchner, Johannes and Kulick, Johannes and Schönberger, Johannes L. and de Miranda Cardoso, José Vinícius and Reimer, Joscha and Harrington, Joseph and Rodríguez, Juan Luis Cano and Nunez-Iglesias, Juan and Kuczynski, Justin and Tritz, Kevin and Thoma, Martin and Newville, Matthew and Kümmerer, Matthias and Bolingbroke, Maximilian and Tartre, Michael and Pak, Mikhail and Smith, Nathaniel J. and Nowaczyk, Nikolai and Shebanov, Nikolay and Pavlyk, Oleksandr and Brodtkorb, Per A. and Lee, Perry and McGibbon, Robert T. and Feldbauer, Roman and Lewis, Sam and Tygier, Sam and Sievert, Scott and Vigna, Sebastiano and Peterson, Stefan and More, Surhud and Pudlik, Tadeusz and Oshima, Takuya and Pingel, Thomas J. and Robitaille, Thomas P. and Spura, Thomas and Jones, Thouis R. and Cera, Tim and Leslie, Tim and Zito, Tiziano and Krauss, Tom and Upadhyay, Utkarsh and Halchenko, Yaroslav O. and Vázquez-Baeza, Yoshiki},
-     doi = {10.1038/s41592-019-0686-2},
-     file = {Virtanen et al. - 2020 - SciPy 1.0 fundamental algorithms for scientific c.pdf:C\:\\Users\\Mathieu\\Zotero\\storage\\5ST4PLCB\\Virtanen et al. - 2020 - SciPy 1.0 fundamental algorithms for scientific c.pdf:application/pdf},
-     issn = {1548-7091, 1548-7105},
-     journal = {Nature Methods},
-     month = {March},
-     number = {3},
-     pages = {261--272},
-     shorttitle = {{SciPy} 1.0},
-     title = {{SciPy} 1.0: fundamental algorithms for scientific computing in {Python}},
-     url = {http://www.nature.com/articles/s41592-019-0686-2},
-     urldate = {2022-10-12},
-     volume = {17},
-     year = {2020}
-    }
-
-Set fields to keep
-~~~~~~~~~~~~~~~~~~
-
-To set different fields to keep for ``article`` entries, the following TOML
-configuration is required:
+Each entry type has a table listing the fields it requires and the fields it
+keeps.
 
 .. code-block:: toml
 
     [tool.bibclean.article]
-    keep = [
-        'author',
-        'title',
-        'year',
-    ]
+    required = ["author", "journal", "title", "year"]
+    keep = ["doi", "month", "number", "pages", "url", "volume"]
 
-The processing of the BibTex file above with the configuration above results
-in:
+``required`` drives :ref:`rule-required-field`. A name written with a bar, such as
+``"author|editor"``, is satisfied when at least one of the alternatives is
+present, and is reported as written when none is.
 
-.. code-block:: bibtex
+``keep`` drives :ref:`rule-strip-field`. The effective list always contains the
+required names on top of the names listed, and ``doi`` and ``url`` are never
+stripped, so a citation keeps its link.
 
-    @article{harris_array_2020,
-     author = {Harris, Charles R. and Millman, K. Jarrod and van der Walt, Stéfan J. and Gommers, Ralf and Virtanen, Pauli and Cournapeau, David and Wieser, Eric and Taylor, Julian and Berg, Sebastian and Smith, Nathaniel J. and Kern, Robert and Picus, Matti and Hoyer, Stephan and van Kerkwijk, Marten H. and Brett, Matthew and Haldane, Allan and del Río, Jaime Fernández and Wiebe, Mark and Peterson, Pearu and Gérard-Marchant, Pierre and Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and Abbasi, Hameer and Gohlke, Christoph and Oliphant, Travis E.},
-     doi = {10.1038/s41586-020-2649-2},
-     title = {Array programming with {NumPy}},
-     year = {2020}
-    }
+The shipped tables below are the base. A user table overrides ``required`` and
+``keep`` independently: a key left out keeps its default. A type that has no
+shipped table and no ``keep`` is never stripped; one with no ``required`` has no
+required field. Type names and field names are compared in lower case.
 
-    @article{virtanen_scipy_2020,
-     author = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and Haberland, Matt and Reddy, Tyler and Cournapeau, David and Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and Bright, Jonathan and van der Walt, Stéfan J. and Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and Kern, Robert and Larson, Eric and Carey, C J and Polat, İlhan and Feng, Yu and Moore, Eric W. and VanderPlas, Jake and Laxalde, Denis and Perktold, Josef and Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and Harris, Charles R. and Archibald, Anne M. and Ribeiro, Antônio H. and Pedregosa, Fabian and van Mulbregt, Paul and {SciPy 1.0 Contributors} and Vijaykumar, Aditya and Bardelli, Alessandro Pietro and Rothberg, Alex and Hilboll, Andreas and Kloeckner, Andreas and Scopatz, Anthony and Lee, Antony and Rokem, Ariel and Woods, C. Nathan and Fulton, Chad and Masson, Charles and Häggström, Christian and Fitzgerald, Clark and Nicholson, David A. and Hagen, David R. and Pasechnik, Dmitrii V. and Olivetti, Emanuele and Martin, Eric and Wieser, Eric and Silva, Fabrice and Lenders, Felix and Wilhelm, Florian and Young, G. and Price, Gavin A. and Ingold, Gert-Ludwig and Allen, Gregory E. and Lee, Gregory R. and Audren, Hervé and Probst, Irvin and Dietrich, Jörg P. and Silterra, Jacob and Webber, James T and Slavič, Janko and Nothman, Joel and Buchner, Johannes and Kulick, Johannes and Schönberger, Johannes L. and de Miranda Cardoso, José Vinícius and Reimer, Joscha and Harrington, Joseph and Rodríguez, Juan Luis Cano and Nunez-Iglesias, Juan and Kuczynski, Justin and Tritz, Kevin and Thoma, Martin and Newville, Matthew and Kümmerer, Matthias and Bolingbroke, Maximilian and Tartre, Michael and Pak, Mikhail and Smith, Nathaniel J. and Nowaczyk, Nikolai and Shebanov, Nikolay and Pavlyk, Oleksandr and Brodtkorb, Per A. and Lee, Perry and McGibbon, Robert T. and Feldbauer, Roman and Lewis, Sam and Tygier, Sam and Sievert, Scott and Vigna, Sebastiano and Peterson, Stefan and More, Surhud and Pudlik, Tadeusz and Oshima, Takuya and Pingel, Thomas J. and Robitaille, Thomas P. and Spura, Thomas and Jones, Thouis R. and Cera, Tim and Leslie, Tim and Zito, Tiziano and Krauss, Tom and Upadhyay, Utkarsh and Halchenko, Yaroslav O. and Vázquez-Baeza, Yoshiki},
-     doi = {10.1038/s41592-019-0686-2},
-     title = {{SciPy} 1.0: fundamental algorithms for scientific computing in {Python}},
-     year = {2020}
-    }
+Default tables
+--------------
 
-.. note::
-
-    Note that ``doi`` is preserved. ``bibclean`` was designed with
-    `sphinxcontrib-bibtex`_ in mind where a DOI (preferred) or a URL yields
-    a cross-reference link in the build documentation. Thus, ``bibclean`` will
-    always keep at least one of those 2 fields if it is present.
-
-Enhancement
------------
-
-Please contact the developers on `GitHub <project github_>`_ to propose
-modifications to the :ref:`default TOML configuration <configuration:default>`.
-At term, it should include a sensible default for most entry-types.
+.. include:: generated/defaults.inc

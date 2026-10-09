@@ -24,7 +24,6 @@ def test_sys_info() -> None:
     else:
         assert all(line in value for line in hardware)
 
-    assert "bibtexparser" in value
     assert "click" in value
     assert "packaging" in value
 
@@ -65,15 +64,15 @@ def test_sys_info_invalid() -> None:
 def test_sys_info_other_package() -> None:
     """Test getting information on another package."""
     out = StringIO()
-    sys_info(fid=out, package="bibtexparser")
+    sys_info(fid=out, package="pytest")
     value = out.getvalue()
     out.close()
-    assert "bibtexparser" in value
+    assert "pluggy" in value
 
 
 def test_sys_info_other_package_dev() -> None:
     """Test getting developer information on another package."""
     out = StringIO()
     with pytest.raises(RuntimeError, match="from source in an editable install"):
-        sys_info(fid=out, package="bibtexparser", developer=True)
+        sys_info(fid=out, package="pytest", developer=True)
     out.close()
