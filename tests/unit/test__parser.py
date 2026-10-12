@@ -189,6 +189,11 @@ def test_entry_without_fields() -> None:
             "expected ',' or '}' after cite key 'k'",
             Position(1, 12),
         ),
+        (
+            "@article{k\xa0x}\n",
+            "expected ',' or '}' after cite key 'k'",
+            Position(1, 11),
+        ),
         ("@article{k, = {x}}\n", "expected a field name", Position(1, 13)),
         (
             "@article{k, title {x}}\n",

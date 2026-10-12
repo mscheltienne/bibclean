@@ -270,7 +270,7 @@ def test_crlf_and_bom_are_rewritten(
 ) -> None:
     """Test that a file with CRLF endings and a BOM is rewritten without them."""
     path = tmp_path / "a.bib"
-    path.write_bytes("﻿@misc{k,\r\n  title = {A}\r\n}\r\n".encode())
+    path.write_bytes("\N{BYTE ORDER MARK}@misc{k,\r\n  title = {A}\r\n}\r\n".encode())
     options = ["--isolated", "--encoding", encoding, str(path)]
     result = runner.invoke(run, ["check", *options])
     assert result.exit_code == 1

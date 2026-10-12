@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 _WHITESPACE_RUN = re.compile(r"[ \t\n\r\f\v]+")
 _BLANK_LINES = re.compile(r"\n(?:[ \t\r\f\v]*\n)+")
 # whitespace and the zero width no-break space, which a byte order mark decodes to
-_BLANK = " \t\n\r\f\v﻿"
+_BLANK = " \t\n\r\f\v\N{BYTE ORDER MARK}"
 
 
 @dataclass(slots=True)

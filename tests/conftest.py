@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+from concurrent.futures import ThreadPoolExecutor, wait
+from http.client import HTTPException
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 import pytest
 from click.testing import CliRunner
 
 from bibclean.utils.logs import logger
+from tests.helpers import corpus_manifest
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -17,6 +23,64 @@ def pytest_configure(config: pytest.Config) -> None:
 def assets() -> Path:
     """Path to the test assets directory."""
     return Path(__file__).parent / "assets"
+
+
+def _download(url: str, digest: str, path: Path) -> Path | None:
+    """Download one corpus file unless a valid copy is cached.
+
+    Parameters
+    ----------
+    url : str
+        URL of the file.
+    digest : str
+        Expected SHA-256 digest of the file.
+    path : Path
+        Location of the cached copy.
+
+    Returns
+    -------
+    Path | None
+        The cached copy, None when the file cannot be downloaded or does not match
+        its digest.
+    """
+    if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest:
+        return path
+    try:
+        with urlopen(url, timeout=10) as response:
+            data = response.read()
+    except HTTPError as error:
+        error.close()
+        return None
+    except (OSError, HTTPException):
+        return None
+    if hashlib.sha256(data).hexdigest() != digest:
+        return None
+    path.write_bytes(data)
+    return path
+
+
+@pytest.fixture(scope="session")
+def corpus(pytestconfig: pytest.Config) -> dict[str, Path | None]:
+    """Download the external corpus into the pytest cache.
+
+    Files are cached by digest across runs. The download stops after 40 seconds, below
+    the test timeout, and the files missing by then are None.
+
+    Returns
+    -------
+    dict
+        Maps the name of every file of :func:`tests.helpers.corpus_manifest` to its
+        cached copy, or to None when it is not available.
+    """
+    cache = pytestconfig.cache.mkdir("corpus")
+    pool = ThreadPoolExecutor(16)
+    futures = {
+        name: pool.submit(_download, url, digest, cache / digest)
+        for name, (url, digest) in corpus_manifest().items()
+    }
+    done, _ = wait(futures.values(), timeout=40)
+    pool.shutdown(wait=False, cancel_futures=True)
+    return {name: f.result() if f in done else None for name, f in futures.items()}
 
 
 @pytest.fixture

@@ -113,7 +113,9 @@ class _Scanner:
         source = self.source
         end = len(source)
         start = self.pos
-        while self.pos < end and source[self.pos] not in _NOT_CITE_KEY:
+        while self.pos < end and not (
+            source[self.pos] in _NOT_CITE_KEY or source[self.pos].isspace()
+        ):
             self.pos += 1
         return source[start : self.pos]
 

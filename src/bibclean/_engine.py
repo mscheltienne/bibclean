@@ -81,7 +81,7 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     UnicodeDecodeError
         If the content cannot be decoded with the encoding.
     """
-    text = data.decode(encoding).lstrip("﻿")
+    text = data.decode(encoding).lstrip("\N{BYTE ORDER MARK}")
     if codecs.lookup(encoding).name == "utf-8-sig":
         encoding = "utf-8"
     blocks = parse(text.replace("\r\n", "\n").replace("\r", "\n"))
