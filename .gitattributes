@@ -1,0 +1,2 @@
+# golden files are compared byte for byte, keep their line feeds on every platform
+tests/assets/** text eol=lf
