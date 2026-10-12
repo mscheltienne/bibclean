@@ -4,7 +4,7 @@ import platform
 import sys
 import tomllib
 from functools import partial
-from importlib.metadata import metadata, requires, version
+from importlib.metadata import requires, version
 from importlib.util import find_spec
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -16,9 +16,7 @@ if TYPE_CHECKING:
     from packaging.requirements import Requirement
 
 
-def sys_info(
-    fid: IO | None = None, *, extra: bool = False, developer: bool = False
-) -> None:
+def sys_info(fid: IO | None = None, *, developer: bool = False) -> None:
     """Print the system information for debugging.
 
     Parameters
@@ -26,8 +24,6 @@ def sys_info(
     fid : file-like | None
         The file to write to, passed to :func:`print`. Can be None to use
         :data:`sys.stdout`.
-    extra : bool
-        If True, display information about optional dependencies.
     developer : bool
         If True, display information about developer dependencies, read from the
         ``pyproject.toml`` of ``bibclean`` installed from source.
@@ -64,22 +60,7 @@ def sys_info(
 
     out("\nCore dependencies\n")
     dependencies = [Requirement(elt) for elt in requires(package) or ()]
-    core_dependencies = [dep for dep in dependencies if "extra" not in str(dep.marker)]
-    _list_dependencies_info(out, ljust, package, core_dependencies)
-
-    if extra:
-        extras = metadata(package).get_all("Provides-Extra")
-        if extras is not None:
-            for key in sorted([elt for elt in extras if elt not in ("all", "full")]):
-                extra_dependencies = [
-                    dep
-                    for dep in dependencies
-                    if all(elt in str(dep.marker) for elt in ("extra", key))
-                ]
-                if len(extra_dependencies) == 0:
-                    continue
-                out(f"\nOptional '{key}' dependencies\n")
-                _list_dependencies_info(out, ljust, package, extra_dependencies)
+    _list_dependencies_info(out, ljust, package, dependencies)
 
     if developer:
         # PEP 735 dependency groups are not part of the metadata.

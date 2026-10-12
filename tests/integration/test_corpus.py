@@ -16,7 +16,6 @@ from __future__ import annotations
 import io
 from typing import TYPE_CHECKING
 
-import pybtex.errors
 import pytest
 from pybtex.database.input.bibtex import Parser
 
@@ -31,7 +30,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 NAMES = sorted(corpus_manifest())
-pybtex.errors.set_strict_mode(True)
 
 
 def _read(corpus: dict[str, Path | None], name: str) -> tuple[bytes, str]:

@@ -86,7 +86,6 @@ def test_delimiters() -> None:
     kinds = [block for block in blocks if not isinstance(block, Junk)]
     entry, string, preamble = kinds
     assert isinstance(entry, Entry)
-    assert entry.delimiter == "("
     assert entry.fields[0].value.parts[0].text == "1"
     assert isinstance(string, StringDef)
     assert string.value.parts[0].kind == "quoted"
@@ -111,7 +110,6 @@ def test_values() -> None:
     assert len(blocks) == 2
     entry = blocks[0]
     assert isinstance(entry, Entry)
-    assert entry.trailing_comma is True
     values = {field.key: field.value for field in entry.fields}
     assert values["f"].parts[0].text == "50% of me@example.org @misc{x}"
     assert values["g"].parts[0].text == "50% of me@example.org"
@@ -130,9 +128,7 @@ def test_entry_without_fields() -> None:
     assert isinstance(plain, Entry)
     assert isinstance(comma, Entry)
     assert plain.fields == []
-    assert plain.trailing_comma is False
     assert comma.fields == []
-    assert comma.trailing_comma is True
 
 
 @pytest.mark.parametrize(
@@ -191,6 +187,11 @@ def test_entry_without_fields() -> None:
             "expected ',' or '}' after field 'title'",
             Position(1, 28),
         ),
+        (
+            '@article{k, month = jan"x"}\n',
+            "expected ',' or '}' after field 'month'",
+            Position(1, 24),
+        ),
     ],
 )
 def test_errors(source: str, reason: str, error: Position) -> None:
@@ -199,7 +200,6 @@ def test_errors(source: str, reason: str, error: Position) -> None:
     malformed = blocks[0]
     assert isinstance(malformed, Malformed)
     assert reason in malformed.message
-    assert malformed.error == error
     assert f"at line {error.line}, column {error.column}" in malformed.message
     assert "".join(block.raw for block in blocks) == source
 

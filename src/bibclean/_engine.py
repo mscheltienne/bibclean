@@ -63,9 +63,9 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     data : bytes
         Content of the file.
     encoding : str
-        Encoding used to decode the content and encode the output. The output never
-        starts with a byte order mark: leading ``U+FEFF`` characters are dropped from
-        the input and ``'utf-8-sig'`` encodes as ``'utf-8'``.
+        Encoding used to decode the content and encode the output. A UTF-8 output
+        never starts with a byte order mark: leading ``U+FEFF`` characters are dropped
+        from the input and ``'utf-8-sig'`` encodes as ``'utf-8'``.
     config : Config
         Effective configuration of the file.
 
@@ -85,10 +85,11 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     if codecs.lookup(encoding).name == "utf-8-sig":
         encoding = "utf-8"
     blocks = parse(text.replace("\r\n", "\n").replace("\r", "\n"))
-    formatted = format_blocks(blocks, config.format)
+    malformed = any(isinstance(block, Malformed) for block in blocks)
+    formatted = None if malformed else format_blocks(blocks, config.format)
     context = Context(blocks=blocks, config=config)
     diagnostics = lint(context)
-    if any(isinstance(block, Malformed) for block in blocks):
+    if malformed:
         diagnostics = [replace(item, fixable=False) for item in diagnostics]
         output = None
     else:

@@ -17,7 +17,7 @@ def author_format(ctx: Context) -> list[Diagnostic]:
     """Report a name with more than two commas in an ``author`` or ``editor`` field.
 
     The value is split into names on the word ``and`` surrounded by whitespace, in
-    any case, and a name is reported when it holds more than two commas, both
+    any case, and a name is reported when it holds more than two commas, all
     outside braces. A comma-separated list of authors is the usual cause. A value
     made of a macro or of a concatenation is not inspected.
 

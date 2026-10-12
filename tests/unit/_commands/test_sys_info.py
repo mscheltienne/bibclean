@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from click.testing import CliRunner
 
 
-@pytest.mark.parametrize("flag", [None, "--extra", "--developer"])
+@pytest.mark.parametrize("flag", [None, "--developer"])
 def test_sys_info(runner: CliRunner, flag: str | None) -> None:
     """Test the system information entry-point."""
     result = runner.invoke(run, [] if flag is None else [flag])

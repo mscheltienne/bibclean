@@ -102,11 +102,13 @@ def test_batch_mixed_results(tmp_path: Path, runner: CliRunner) -> None:
 
 
 def test_repeated_file_is_processed_once(tmp_path: Path, runner: CliRunner) -> None:
-    """Test that the same path given twice yields one set of diagnostics."""
+    """Test that the same file named twice yields one set of diagnostics."""
     path = write(tmp_path / "a.bib", DIRTY)
-    result = runner.invoke(run, ["check", "--isolated", str(path), str(path)])
+    other = str(tmp_path / "." / "a.bib")
+    result = runner.invoke(run, ["check", "--isolated", str(path), other, str(path)])
     assert result.exit_code == 1
     assert result.stdout.count("file is not formatted") == 1
+    assert result.stdout.startswith(f"{path}: ")
 
 
 def test_fix_writes_and_exits_one(tmp_path: Path, runner: CliRunner) -> None:
@@ -139,7 +141,7 @@ def test_fix_diff_writes_nothing(tmp_path: Path, runner: CliRunner) -> None:
     assert path.read_text(encoding="utf-8") == DIRTY
     assert f"--- a/{path}" in result.stdout
     assert f"+++ b/{path}" in result.stdout
-    assert result.stdout.endswith("Fixed 1 violation, would write 1 file.\n")
+    assert result.stdout.endswith("Would fix 1 violation, would write 1 file.\n")
 
 
 def test_fix_reports_unfixable(tmp_path: Path, runner: CliRunner) -> None:

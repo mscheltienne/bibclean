@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from bibclean._model import Block, Entry, Junk, Malformed, Preamble, StringDef
+from bibclean._model import Block, Entry, Junk, Preamble, StringDef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -136,8 +136,6 @@ def render_block(block: Block, options: FormatOptions) -> str:
         return "@string{" + block.key + " = " + value + "}"
     if isinstance(block, Preamble):
         return "@preamble{" + render_value(block.value) + "}"
-    if isinstance(block, Malformed):
-        return block.raw.rstrip()
     return _BLANK_LINES.sub("\n\n", block.raw.strip(_BLANK))
 
 
@@ -147,16 +145,16 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     Parameters
     ----------
     blocks : sequence of Block
-        Blocks to render, in source order.
+        Blocks to render, in source order, none of them malformed.
     options : FormatOptions
         Formatting options.
 
     Returns
     -------
     str
-        The canonical text: strings and preambles in source order, entries, then
-        malformed blocks in source order, one blank line between units and exactly
-        one final newline. An input without any block renders as the empty string.
+        The canonical text: strings and preambles in source order, then entries,
+        one blank line between units and exactly one final newline. An input
+        without any block renders as the empty string.
     """
     units = _order_units(_group_units(blocks), options)
     if not units:
@@ -238,7 +236,7 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
 
 
 def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
-    """Order units: strings and preambles, entries, malformed blocks, trailing prose.
+    """Order units: strings and preambles, entries, trailing prose.
 
     Parameters
     ----------
@@ -250,25 +248,31 @@ def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
     Returns
     -------
     list of _Unit
-        The ordered units. Only the entries are sorted, by cite key without case;
+        The ordered units. Only the entries are sorted, by cite key without case,
+        every crossref target after the entries that are not, as BibTeX requires;
         the other groups keep their source order.
     """
     header: list[_Unit] = []
     entries: list[_Unit] = []
-    malformed: list[_Unit] = []
     trailing: list[_Unit] = []
     for unit in units:
         if unit.block is None:
             trailing.append(unit)
-        elif isinstance(unit.block, Preamble | StringDef):
-            header.append(unit)
         elif isinstance(unit.block, Entry):
             entries.append(unit)
         else:
-            malformed.append(unit)
+            header.append(unit)
     if options.sort_entries:
-        entries.sort(key=lambda unit: unit.block.key.lower())
-    return [*header, *entries, *malformed, *trailing]
+        targets = {
+            field.value.parts[0].text.strip().lower()
+            for unit in entries
+            for field in unit.block.fields
+            if field.key.lower() == "crossref" and len(field.value.parts) == 1
+        }
+        entries.sort(
+            key=lambda unit: (unit.block.key.lower() in targets, unit.block.key.lower())
+        )
+    return [*header, *entries, *trailing]
 
 
 def _render_unit(unit: _Unit, options: FormatOptions) -> str:

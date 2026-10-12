@@ -21,11 +21,15 @@ def test_detection() -> None:
     [
         ("{a\\\\%b}", "{a\\\\\\%b}"),
         ('jan # "50%"', "jan # {50\\%}"),
+        (
+            "{\\url{http://x/a%20b} 50% \\href{http://y/%41}{5%}}",
+            "{\\url{http://x/a%20b} 50\\% \\href{http://y/%41}{5\\%}}",
+        ),
     ],
-    ids=["escaped-backslash", "quoted-part"],
+    ids=["escaped-backslash", "quoted-part", "url-arguments"],
 )
 def test_escape(value: str, escaped: str) -> None:
-    """Test a percent behind an escaped backslash and in a quoted part."""
+    """Test a percent behind an escaped backslash, in a quoted part and near URLs."""
     rows, output = apply_rule(NAME, "@article{k, title = " + value + "}\n")
     assert len(rows) == 1
     assert escaped in output

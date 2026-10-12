@@ -16,7 +16,7 @@ from bibclean._model import (
 )
 
 WHITESPACE = " \t\n\r\f\v"
-_NOT_IDENTIFIER = frozenset(WHITESPACE + "#%'(),={}")
+_NOT_IDENTIFIER = frozenset(WHITESPACE + "\"#%'(),={}")
 _NOT_CITE_KEY = frozenset(WHITESPACE + ",{}()")
 
 
@@ -213,7 +213,7 @@ class _Scanner:
             elif kind == "preamble":
                 block = self._scan_preamble(at, closing)
             else:
-                block = self._scan_entry(at, kind_text, opening, closing)
+                block = self._scan_entry(at, kind_text, closing)
         except _ParseError as error:
             if self._key is not None:
                 what = f"entry '{self._key}'"
@@ -230,7 +230,6 @@ class _Scanner:
                     f"{what} could not be parsed: {error} "
                     f"at line {position.line}, column {position.column}"
                 ),
-                error=position,
             )
             return malformed, end
         return block, self.pos
@@ -302,7 +301,7 @@ class _Scanner:
             value=value,
         )
 
-    def _scan_entry(self, at: int, kind_text: str, opening: str, closing: str) -> Entry:
+    def _scan_entry(self, at: int, kind_text: str, closing: str) -> Entry:
         """Consume the body of an entry, after its opening delimiter.
 
         Parameters
@@ -311,8 +310,6 @@ class _Scanner:
             Offset of the ``'@'`` starting the block.
         kind_text : str
             Entry type, as written.
-        opening : str
-            Delimiter opening the block, ``'{'`` or ``'('``.
         closing : str
             Delimiter closing the block, ``'}'`` or ``')'``.
 
@@ -334,7 +331,6 @@ class _Scanner:
         self._key = key
         self._skip_ws()
         fields: list[Field] = []
-        trailing_comma = False
         char = self._peek()
         if char == closing:
             self.pos += 1
@@ -343,7 +339,6 @@ class _Scanner:
             while True:
                 self._skip_ws()
                 if self._peek() == closing:
-                    trailing_comma = True
                     self.pos += 1
                     break
                 field_start = self.pos
@@ -381,8 +376,6 @@ class _Scanner:
             entry_type=kind_text,
             key=key,
             fields=fields,
-            delimiter=opening,
-            trailing_comma=trailing_comma,
         )
 
     def _scan_value(self, what: str) -> Value:

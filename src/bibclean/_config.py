@@ -276,7 +276,7 @@ def find_config(directory: Path) -> Path | None:
     Raises
     ------
     ConfigError
-        If a candidate ``pyproject.toml`` is not valid TOML.
+        If a candidate ``pyproject.toml`` cannot be read or is not valid TOML.
     """
     directory = directory.resolve()
     for parent in [directory, *directory.parents]:

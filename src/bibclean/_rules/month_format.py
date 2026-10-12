@@ -48,7 +48,8 @@ def month_format(ctx: Context) -> list[Diagnostic]:
     following the ``month`` option. Recognised are the twelve macros, the English
     names, the three-letter abbreviations with or without a trailing period, in any
     case, and the numbers 1 to 12 with or without a leading zero. Any other value is
-    reported and left untouched.
+    reported and left untouched, except a concatenation such as ``jan # {~15}``,
+    which is not inspected.
 
     .. code-block:: bibtex
 
@@ -74,10 +75,12 @@ def month_format(ctx: Context) -> list[Diagnostic]:
             continue
         for field in _fields_named(entry, "month"):
             parts = field.value.parts
+            if len(parts) > 1:
+                continue
             text = parts[0].text
             if parts[0].kind != "bare":
                 text = collapse_whitespace(text).strip()
-            number = _NUMBERS.get(text.lower()) if len(parts) == 1 else None
+            number = _NUMBERS.get(text.lower())
             written = render_value(field.value)
             if number is None:
                 message = f"unrecognised month '{written}'"

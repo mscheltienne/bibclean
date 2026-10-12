@@ -146,17 +146,11 @@ class Entry(Block):
         Cite key as written in the source.
     fields : list of Field
         Fields of the entry, in source order.
-    delimiter : str
-        Opening delimiter, ``'{'`` or ``'('``.
-    trailing_comma : bool
-        True when a comma precedes the closing delimiter.
     """
 
     entry_type: str
     key: str
     fields: list[Field]
-    delimiter: Literal["{", "("]
-    trailing_comma: bool
 
 
 @dataclass(slots=True)
@@ -167,12 +161,9 @@ class Malformed(Block):
     ----------
     message : str
         Full description of the failure.
-    error : Position
-        Position at which parsing failed.
     """
 
     message: str
-    error: Position
 
 
 def entry_type(entry: Entry) -> str:

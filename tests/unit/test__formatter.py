@@ -79,12 +79,6 @@ def test_string_value_keeps_outer_whitespace() -> None:
     assert render_block(block, DEFAULTS) == "@string{stoc = { Symposium on Theory }}"
 
 
-def test_render_malformed() -> None:
-    """Test that a malformed block is emitted verbatim without trailing space."""
-    blocks = parse("@misc{k, a = {b\n")
-    assert render_block(blocks[0], DEFAULTS) == "@misc{k, a = {b"
-
-
 def test_render_entry() -> None:
     """Test the entry head, the body lines and the closing delimiter."""
     entry = _first_entry("@Article{Key,\n  Year = 2020,\n  author = {A}\n}")
@@ -153,12 +147,15 @@ def test_sort_entries() -> None:
     ]
 
 
-def test_malformed_after_entries() -> None:
-    """Test that malformed blocks follow the sorted entries, in source order."""
-    source = "@misc{y, a = {1\n@misc{b, a = {2}}\n@misc{x, a = {1\n@misc{a, a = {3}}\n"
+def test_sort_entries_crossref_targets_last() -> None:
+    """Test that the entries a crossref points to follow every other entry."""
+    source = (
+        "@proceedings{Proc, title = {P}}\n@misc{z, crossref = {proc}}\n"
+        "@book{a, title = {B}}\n@misc{b, crossref = {A}}\n"
+    )
     ordered = format_blocks(parse(source), DEFAULTS)
     heads = [line for line in ordered.splitlines() if line.startswith("@")]
-    assert heads == ["@misc{a,", "@misc{b,", "@misc{y, a = {1", "@misc{x, a = {1"]
+    assert heads == ["@misc{b,", "@misc{z,", "@book{a,", "@proceedings{Proc,"]
 
 
 def test_block_order() -> None:

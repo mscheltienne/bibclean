@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from bibclean._rules._base import Diagnostic, rule
@@ -8,6 +9,8 @@ if TYPE_CHECKING:
     from bibclean._rules._base import Context
 
 _EXEMPT = frozenset({"doi", "file", "url"})
+# the argument of \url and the first argument of \href, captured to survive a split
+_URL = re.compile(r"(\\(?:url|href)\{[^{}]*\})")
 
 
 @rule(name="unescaped-percent", fixable="yes", scope="value")
@@ -16,7 +19,9 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
 
     Every unescaped ``%`` of the value becomes ``\%``, and one finding is
     emitted per field whatever the number of occurrences. The fields ``url``,
-    ``doi`` and ``file`` are exempt, where a ``%`` is legitimate URL encoding.
+    ``doi`` and ``file`` are exempt, where a ``%`` is legitimate URL encoding, and
+    so are the argument of ``\url`` and the first argument of ``\href`` in any
+    other field.
 
     .. code-block:: bibtex
 
@@ -61,6 +66,26 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
 
 
 def _escape(text: str) -> str:
+    r"""Prefix every unescaped percent sign outside a URL argument with a backslash.
+
+    Parameters
+    ----------
+    text : str
+        Text to escape.
+
+    Returns
+    -------
+    str
+        The text, every ``%`` preceded by an even number of backslashes escaped,
+        except inside the argument of ``\url`` and the first argument of ``\href``.
+    """
+    spans = _URL.split(text)
+    return "".join(
+        span if index % 2 else _escape_plain(span) for index, span in enumerate(spans)
+    )
+
+
+def _escape_plain(text: str) -> str:
     """Prefix every unescaped percent sign with a backslash.
 
     Parameters

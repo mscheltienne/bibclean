@@ -40,7 +40,7 @@ def common_options(f: Callable) -> Callable:
             "-q",
             "--quiet",
             is_flag=True,
-            help="Print the summary line only.",
+            help="Print only the summary line, not the violations.",
         ),
         click.option(
             "--encoding",
@@ -97,7 +97,8 @@ def execute(
     Parameters
     ----------
     files : tuple of str
-        Files to process, as typed on the command line.
+        Files to process, as typed on the command line. A file named twice is
+        processed once, under its first spelling.
     mode : str
         ``'check'`` to report only, ``'fix'`` to rewrite the files.
     config : Path | None
@@ -109,7 +110,7 @@ def execute(
     encoding : str
         Encoding used to decode and encode the files.
     quiet : bool
-        Print the summary line only.
+        Print only the summary line, not the violations.
     diff : bool
         Print the unified diff of what ``fix`` would write and write nothing.
 
@@ -141,7 +142,10 @@ def execute(
     errors = 0
     written = 0
     fixable = 0
-    for file in dict.fromkeys(files):
+    unique: dict[Path, str] = {}
+    for file in files:
+        unique.setdefault(Path(file).resolve(), file)
+    for file in unique.values():
         try:
             configuration = override or load_config(
                 find_config(Path(file).resolve().parent),
@@ -189,10 +193,10 @@ def execute(
         summary = f"Found {pluralize(len(lines), 'violation')} ({fixable} fixable)."
         failed = bool(lines)
     else:
-        verb = "would write" if diff else "wrote"
+        fixed, wrote = ("Would fix", "would write") if diff else ("Fixed", "wrote")
         summary = (
-            f"Fixed {pluralize(fixable, 'violation')}, "
-            f"{verb} {pluralize(written, 'file')}."
+            f"{fixed} {pluralize(fixable, 'violation')}, "
+            f"{wrote} {pluralize(written, 'file')}."
         )
         failed = bool(written or lines)
     color = use_color(sys.stdout)

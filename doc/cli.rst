@@ -11,7 +11,7 @@ them lists its arguments.
     bibclean --version
     bibclean check    [OPTIONS] FILES...
     bibclean fix      [OPTIONS] FILES...
-    bibclean sys-info [--extra] [--developer]
+    bibclean sys-info [--developer]
 
 bibclean check
 --------------
@@ -68,7 +68,7 @@ Options
    * - ``--encoding NAME``
      - Encoding used to read and write the files, ``utf-8`` by default.
    * - ``-q, --quiet``
-     - Print the summary line only.
+     - Print only the summary line, not the violations.
    * - ``--diff``
      - ``fix`` only: print the changes instead of applying them.
 
@@ -114,8 +114,10 @@ the ``@`` that opens the entry. A line without a position is about the file as a
 whole. The trailing ``[*]`` marks a violation that ``bibclean fix`` resolves.
 
 ``bibclean fix`` prints the same lines for the violations it could not resolve,
-followed by ``Fixed N violations, wrote M files.`` (``would write`` with
-``--diff``). Paths are printed exactly as they were typed on the command line.
+followed by ``Fixed N violations, wrote M files.``, or ``Would fix N violations,
+would write M files.`` with ``--diff``. Paths are printed exactly as they were
+typed on the command line; a file named twice is processed once, under its first
+spelling.
 
 Nothing is printed when there is nothing to report. Errors go to the error stream.
 The output is coloured on a terminal, unless ``NO_COLOR`` is set or ``TERM`` is
@@ -125,8 +127,8 @@ bibclean sys-info
 -----------------
 
 ``bibclean sys-info`` prints the platform, the Python and the dependency versions,
-for bug reports. ``--extra`` adds the optional dependencies and ``--developer``
-the development dependency groups, the latter only for an editable install.
+for bug reports. ``--developer`` adds the development dependency groups, only for
+an editable install.
 
 pre-commit
 ----------

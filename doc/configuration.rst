@@ -80,7 +80,8 @@ Options
      - Emit a comma after the last field of an entry.
    * - ``sort-entries``
      - boolean, ``true``
-     - Sort the entries by cite key, case-insensitively and stably.
+     - Sort the entries by cite key, case-insensitively and stably, the entries
+       named by a ``crossref`` field last, as BibTeX requires.
    * - ``sort-fields``
      - boolean or array of strings, ``true``
      - ``true`` sorts the fields alphabetically, ``false`` preserves their order,

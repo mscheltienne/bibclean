@@ -111,7 +111,7 @@ The style
      - fixed
    * - Delimiters
      - ``@article(K, )``
-     - ``@article{K, }``
+     - braces
      - fixed
    * - Unparsable block
      - ``@article{K, title = {A}``
@@ -154,8 +154,10 @@ Blocks are grouped into units before they are ordered: a unit is one block
 together with the comments and free text written directly above it, so an
 annotation travels with the entry it describes. Units are then emitted as macro
 definitions and preambles, in the order of the source since a preamble may use a
-macro defined above it, and finally entries, sorted by cite key. Inside free text,
-every run of blank lines is reduced to one.
+macro defined above it, and finally entries, sorted by cite key. An entry named by
+the ``crossref`` field of another entry is placed after every entry that is not, as
+BibTeX requires; cite keys are compared case-insensitively. Inside free text, every
+run of blank lines is reduced to one.
 
 Reading conventions
 -------------------
@@ -189,5 +191,5 @@ Encoding and line endings
 Files are read and written as UTF-8 unless ``--encoding`` says otherwise. The
 output always uses line feeds and ends with exactly one newline, and never starts
 with a UTF-8 byte order mark, even with ``--encoding utf-8-sig``. A file with
-carriage returns or a byte order mark is therefore reported as not formatted, and
-rewritten once.
+carriage returns, or a UTF-8 file with a byte order mark, is therefore reported as
+not formatted, and rewritten once.

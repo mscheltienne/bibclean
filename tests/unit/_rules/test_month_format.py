@@ -26,7 +26,6 @@ SOURCE = "@article{k,\n  month = {September}\n}\n"
         ("{Sept}", None),
         ("{September.}", None),
         ("{Sept-Oct}", None),
-        ('a # "b"', None),
     ],
 )
 def test_recognised_forms(text: str, expected: str | None) -> None:
@@ -83,7 +82,9 @@ def test_unrecognised() -> None:
     assert "month = {Sept-Oct}" in output
 
 
-def test_unrecognised_concatenation() -> None:
-    """Test that a concatenated value is reported as written."""
-    rows, _ = apply_rule(NAME, '@article{k,\n  month = jan # "-" # feb\n}\n')
-    assert rows == [(2, 3, "unrecognised month 'jan # {-} # feb'", False)]
+@pytest.mark.parametrize("value", ["jan # {~15}", 'jan # "-" # feb'])
+def test_concatenation_skipped(value: str) -> None:
+    """Test that a concatenated value is not inspected."""
+    rows, output = apply_rule(NAME, "@article{k, month = " + value + "}\n")
+    assert rows == []
+    assert "month = jan # {" in output
