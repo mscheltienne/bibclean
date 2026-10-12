@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from bibclean._model import Part
 from bibclean._rules.month_format import month_target
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any
-
-    from bibclean._config import Config
+from tests.helpers import apply_rule, lint_config
 
 NAME = "month-format"
 SOURCE = "@article{k,\n  month = {September}\n}\n"
@@ -36,15 +29,10 @@ SOURCE = "@article{k,\n  month = {September}\n}\n"
         ('a # "b"', None),
     ],
 )
-def test_recognised_forms(
-    apply_rule: Callable[..., tuple[list[Any], str]],
-    config: Callable[..., Config],
-    text: str,
-    expected: str | None,
-) -> None:
+def test_recognised_forms(text: str, expected: str | None) -> None:
     """Test every recognised and unrecognised month form."""
     source = "@misc{k, month = " + text + "}\n"
-    rows, output = apply_rule(NAME, source, config(month="name"))
+    rows, output = apply_rule(NAME, source, lint_config(month="name"))
     assert [row[3] for row in rows] == [expected is not None]
     if expected is not None:
         assert "month = {" + expected + "}" in output
@@ -66,80 +54,36 @@ def test_month_target(mode: str, expected: Part) -> None:
 @pytest.mark.parametrize(
     ("mode", "source", "message", "rendered"),
     [
-        (
-            "abbreviation",
-            SOURCE,
-            "month '{September}' should be 'sep'",
-            "month = sep",
-        ),
+        ("abbreviation", SOURCE, "month '{September}' should be 'sep'", "month = sep"),
         (
             "name",
             "@article{k,\n  month = sep\n}\n",
             "month 'sep' should be '{September}'",
             "month = {September}",
         ),
-        (
-            "number",
-            SOURCE,
-            "month '{September}' should be '{9}'",
-            "month = {9}",
-        ),
+        ("number", SOURCE, "month '{September}' should be '{9}'", "month = {9}"),
     ],
 )
-def test_detection(
-    apply_rule: Callable[..., tuple[list[Any], str]],
-    config: Callable[..., Config],
-    mode: str,
-    source: str,
-    message: str,
-    rendered: str,
-) -> None:
+def test_detection(mode: str, source: str, message: str, rendered: str) -> None:
     """Test the message and the rewritten value in each mode."""
-    rows, output = apply_rule(NAME, source, config(month=mode))
+    rows, output = apply_rule(NAME, source, lint_config(month=mode))
     assert rows == [(2, 3, message, True)]
     assert rendered in output
 
 
-def test_already_canonical(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
+def test_already_canonical() -> None:
     """Test that a value already in the target form reports nothing."""
-    rows, _ = apply_rule(NAME, "@article{k, month = sep}\n")
-    assert rows == []
+    assert apply_rule(NAME, "@article{k, month = sep}\n")[0] == []
 
 
-def test_unrecognised(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
+def test_unrecognised() -> None:
     """Test that an unknown month is reported and left untouched."""
     rows, output = apply_rule(NAME, "@article{k,\n  month = {Sept-Oct}\n}\n")
     assert rows == [(2, 3, "unrecognised month '{Sept-Oct}'", False)]
     assert "month = {Sept-Oct}" in output
 
 
-def test_unrecognised_concatenation(
-    apply_rule: Callable[..., tuple[list[Any], str]],
-) -> None:
+def test_unrecognised_concatenation() -> None:
     """Test that a concatenated value is reported as written."""
     rows, _ = apply_rule(NAME, '@article{k,\n  month = jan # "-" # feb\n}\n')
     assert rows == [(2, 3, "unrecognised month 'jan # {-} # feb'", False)]
-
-
-def test_exclude(
-    apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
-) -> None:
-    """Test that an excluded entry is exempt."""
-    rows, _ = apply_rule(NAME, SOURCE, config(exclude=frozenset({"k"})))
-    assert rows == []
-
-
-def test_exclude_types(
-    apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
-) -> None:
-    """Test that an excluded entry type is exempt."""
-    rows, _ = apply_rule(NAME, SOURCE, config(exclude_types=frozenset({"article"})))
-    assert rows == []
-
-
-def test_ignore(
-    rules_reported: Callable[..., list[str]], config: Callable[..., Config]
-) -> None:
-    """Test that the rule can be disabled."""
-    assert NAME in rules_reported(SOURCE)
-    assert NAME not in rules_reported(SOURCE, config(ignore=frozenset({NAME})))

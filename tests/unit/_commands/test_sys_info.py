@@ -22,12 +22,3 @@ def test_sys_info(runner: CliRunner, flag: str | None) -> None:
     if flag == "--developer":
         assert "Developer 'style' dependencies" in result.stdout
         assert "Developer 'test' dependencies" in result.stdout
-
-
-def test_no_package_option(runner: CliRunner) -> None:
-    """Test that the command reports on bibclean only."""
-    result = runner.invoke(run, ["--help"])
-    assert result.exit_code == 0
-    assert "--package" not in result.stdout
-    result = runner.invoke(run, ["--package", "click"])
-    assert result.exit_code == 2

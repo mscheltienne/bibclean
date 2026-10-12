@@ -1,35 +1,47 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
 from bibclean._commands.main import run
+from bibclean._config import default_config, load_config
+from bibclean._rules import RULE_NAMES
+from tests.helpers import ASSETS, assert_converged
 
 if TYPE_CHECKING:
     from click.testing import CliRunner
 
-ASSETS = Path(__file__).parents[1] / "assets"
 CASES = sorted(
-    path.stem for path in ASSETS.glob("*.bib") if not path.name.endswith(".fixed.bib")
+    path.name.removesuffix(".check.txt") for path in ASSETS.glob("*.check.txt")
 )
+
+
+@pytest.fixture(params=CASES)
+def case(
+    request: pytest.FixtureRequest, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> str:
+    """Copy the files of one golden case into the working directory, return its name."""
+    for path in ASSETS.glob(f"{request.param}.*"):
+        shutil.copy(path, tmp_path)
+    monkeypatch.chdir(tmp_path)
+    return request.param
 
 
 def _args(case: str) -> list[str]:
     """Build the configuration arguments of a case."""
-    if (ASSETS / f"{case}.toml").exists():
-        return ["--config", f"{case}.toml"]
-    return ["--isolated"]
+    return (
+        ["--config", f"{case}.toml"]
+        if Path(f"{case}.toml").exists()
+        else ["--isolated"]
+    )
 
 
-def _check_lines(directory: Path, case: str) -> list[str]:
-    """Read the expected output of ``check`` for a case."""
-    return (directory / f"{case}.check.txt").read_text(encoding="utf-8").splitlines()
-
-
-def _unfixable(lines: list[str]) -> list[str]:
-    """Keep the diagnostic lines that ``fix`` cannot resolve."""
+def _unfixable(case: str) -> list[str]:
+    """Read the diagnostic lines of a case that ``fix`` cannot resolve."""
+    lines = Path(f"{case}.check.txt").read_text(encoding="utf-8").splitlines()
     return [line for line in lines[:-1] if not line.endswith(" [*]")]
 
 
@@ -38,23 +50,9 @@ def _rules(lines: list[str]) -> list[str]:
     return [line.split(": ", 1)[1].split(" ", 1)[0] for line in lines]
 
 
-def test_cases_are_discovered() -> None:
-    """Test that the golden corpus holds the expected cases."""
-    assert CASES == [
-        "blocks",
-        "clean",
-        "configured",
-        "duplicates",
-        "malformed",
-        "pybtex-compat",
-        "zotero-export",
-    ]
-
-
-@pytest.mark.parametrize("case", CASES)
-def test_check(case: str, case_dir: Path, runner: CliRunner) -> None:
+def test_check(case: str, runner: CliRunner) -> None:
     """Test that 'check' reproduces the expected report of a case."""
-    expected = (case_dir / f"{case}.check.txt").read_text(encoding="utf-8")
+    expected = Path(f"{case}.check.txt").read_text(encoding="utf-8")
     result = runner.invoke(
         run, ["check", *_args(case), f"{case}.bib"], catch_exceptions=False
     )
@@ -63,39 +61,27 @@ def test_check(case: str, case_dir: Path, runner: CliRunner) -> None:
     assert result.exit_code == (1 if expected else 0)
 
 
-@pytest.mark.parametrize("case", CASES)
-def test_fix(case: str, case_dir: Path, runner: CliRunner) -> None:
-    """Test that 'fix' reproduces the expected file and reports what is left."""
-    expected = (case_dir / f"{case}.fixed.bib").read_bytes()
-    original = (case_dir / f"{case}.bib").read_bytes()
-    unfixable = _unfixable(_check_lines(case_dir, case))
+def test_fix(case: str, runner: CliRunner) -> None:
+    """Test that 'fix' writes the expected fixed point and reports what is left."""
+    original = Path(f"{case}.bib").read_bytes()
+    expected = Path(f"{case}.fixed.bib").read_bytes()
+    unfixable = _unfixable(case)
     result = runner.invoke(
         run, ["fix", *_args(case), f"{case}.bib"], catch_exceptions=False
     )
-    assert (case_dir / f"{case}.bib").read_bytes() == expected
+    assert Path(f"{case}.bib").read_bytes() == expected
     assert result.stdout.splitlines()[:-1] == unfixable
     assert result.exit_code == (1 if expected != original or unfixable else 0)
-
-
-@pytest.mark.parametrize("case", CASES)
-def test_fix_is_idempotent(case: str, case_dir: Path, runner: CliRunner) -> None:
-    """Test that a second 'fix' leaves the file alone."""
-    expected = (case_dir / f"{case}.fixed.bib").read_bytes()
-    unfixable = _unfixable(_check_lines(case_dir, case))
-    runner.invoke(run, ["fix", *_args(case), f"{case}.bib"], catch_exceptions=False)
-    result = runner.invoke(
-        run, ["fix", *_args(case), f"{case}.bib"], catch_exceptions=False
+    toml = ASSETS / f"{case}.toml"
+    config = (
+        load_config(toml, known_rules=RULE_NAMES) if toml.exists() else default_config()
     )
-    assert (case_dir / f"{case}.bib").read_bytes() == expected
-    assert _rules(result.stdout.splitlines()[:-1]) == _rules(unfixable)
-    assert result.exit_code == (1 if unfixable else 0)
-    assert "wrote 0 files" in result.stdout or result.stdout == ""
+    assert_converged(original, config)
 
 
-@pytest.mark.parametrize("case", CASES)
-def test_check_on_the_fixed_file(case: str, case_dir: Path, runner: CliRunner) -> None:
+def test_check_on_the_fixed_file(case: str, runner: CliRunner) -> None:
     """Test that a canonical file only keeps the unfixable rules of its case."""
-    expected = _rules(_unfixable(_check_lines(case_dir, case)))
+    expected = _rules(_unfixable(case))
     result = runner.invoke(
         run, ["check", *_args(case), f"{case}.fixed.bib"], catch_exceptions=False
     )

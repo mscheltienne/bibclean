@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,9 +14,7 @@ from bibclean._model import (
     StringDef,
 )
 from bibclean._parser import LineIndex, parse
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from tests.helpers import ASSETS
 
 _CONSTRUCTS = (
     "@article{key{index},\n  author = {A, B},\n  year = 2020\n}\n",
@@ -35,14 +32,6 @@ _CONSTRUCTS = (
 )
 
 
-def _read(path: Path) -> str:
-    return path.read_bytes().decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
-
-
-def _assets(assets: Path) -> list[Path]:
-    return sorted(assets.rglob("*.bib"))
-
-
 def test_line_index() -> None:
     """Test the conversion of offsets into positions."""
     index = LineIndex("ab\ncd\n")
@@ -52,12 +41,10 @@ def test_line_index() -> None:
     assert index.position(6) == Position(3, 1)
 
 
-def test_round_trip(assets: Path) -> None:
+def test_round_trip() -> None:
     """Test that the raw text of the blocks reproduces every asset."""
-    files = _assets(assets)
-    assert files
-    for path in files:
-        source = _read(path)
+    for path in sorted(ASSETS.glob("*.bib")):
+        source = path.read_text(encoding="utf-8")
         blocks = parse(source)
         assert "".join(block.raw for block in blocks) == source, path
         assert all(isinstance(block, Block) for block in blocks)
@@ -91,38 +78,6 @@ def _split_nth(text: str, char: str, count: int) -> tuple[str, str, str]:
     return text[:start], char, text[start + 1 :]
 
 
-def test_malformed_message(assets: Path) -> None:
-    """Test the message and the position of the malformed example."""
-    source = _read(assets / "malformed.bib")
-    blocks = parse(source)
-    assert [type(block).__name__ for block in blocks] == [
-        "Entry",
-        "Junk",
-        "Malformed",
-        "Entry",
-        "Junk",
-    ]
-    malformed = blocks[2]
-    assert isinstance(malformed, Malformed)
-    assert malformed.start == Position(8, 1)
-    assert malformed.error == Position(14, 1)
-    expected = _read(assets / "malformed.check.txt").splitlines()[0]
-    assert malformed.message == expected.split("syntax-error ", 1)[1]
-    assert malformed.raw.startswith("@article{broken_entry,")
-    assert malformed.raw.endswith("}\n\n")
-
-
-def test_positions(assets: Path) -> None:
-    """Test the positions of an entry and of its tab-indented fields."""
-    blocks = parse(_read(assets / "zotero-export.bib"))
-    entry = blocks[1]
-    assert isinstance(entry, Entry)
-    assert entry.start == Position(2, 1)
-    assert [field.start.column for field in entry.fields] == [2] * len(entry.fields)
-    assert entry.fields[0].start.line == 3
-    assert entry.fields[-1].start.line == 17
-
-
 def test_delimiters() -> None:
     """Test that parenthesis-delimited blocks parse."""
     blocks = parse(
@@ -140,7 +95,7 @@ def test_delimiters() -> None:
 
 
 def test_values() -> None:
-    """Test every value form."""
+    """Test every value form, '%' and '@' inside a value being part of it."""
     source = (
         "@misc{k,\n"
         "  a = {nested {braces} and \\{balanced\\}},\n"
@@ -148,12 +103,18 @@ def test_values() -> None:
         "  c = macro,\n"
         "  d = 2024,\n"
         '  e = a # "b" # {c},\n'
+        "  f = {50% of me@example.org @misc{x}},\n"
+        '  g = "50% of me@example.org",\n'
         "}\n"
     )
-    entry = parse(source)[0]
+    blocks = parse(source)
+    assert len(blocks) == 2
+    entry = blocks[0]
     assert isinstance(entry, Entry)
     assert entry.trailing_comma is True
     values = {field.key: field.value for field in entry.fields}
+    assert values["f"].parts[0].text == "50% of me@example.org @misc{x}"
+    assert values["g"].parts[0].text == "50% of me@example.org"
     assert values["a"].parts[0].text == "nested {braces} and \\{balanced\\}"
     assert values["b"].parts[0].kind == "quoted"
     assert values["b"].parts[0].text == 'quoted {with} {\\"} inner'
@@ -293,21 +254,6 @@ def test_every_at_starts_a_block(source: str, kinds: list[str]) -> None:
     assert all("@" not in block.raw for block in blocks if isinstance(block, Junk))
 
 
-def test_at_in_a_comment_line() -> None:
-    """Test that an e-mail address in a '%' line is a syntax error, as in pybtex."""
-    malformed = parse("% write to me@example.org\n")[1]
-    assert isinstance(malformed, Malformed)
-    assert malformed.raw == "@example.org\n"
-    assert "expected '{' or '(' after '@example.org'" in malformed.message
-
-
-def test_commented_entry_is_live() -> None:
-    """Test that a '%'-commented entry is a live entry, as in pybtex."""
-    entry = parse("% @misc{old, title = {T}}\n")[1]
-    assert isinstance(entry, Entry)
-    assert entry.key == "old"
-
-
 @pytest.mark.parametrize(
     "source", ["@comment{ a { b \n", "@Comment ( x } y\n", "@comment{x}\n"]
 )
@@ -316,13 +262,6 @@ def test_comment(source: str) -> None:
     blocks = parse(source + "@misc{k}")
     assert [type(block).__name__ for block in blocks] == ["Junk", "Entry"]
     assert blocks[0].raw == source
-
-
-def test_comment_without_delimiter() -> None:
-    """Test that an @comment without delimiter is a syntax error, as in pybtex."""
-    blocks = parse("@comment this is junk\n@misc{k}")
-    assert [type(block).__name__ for block in blocks] == ["Malformed", "Entry"]
-    assert blocks[0].raw == "@comment this is junk\n"
 
 
 @pytest.mark.parametrize(

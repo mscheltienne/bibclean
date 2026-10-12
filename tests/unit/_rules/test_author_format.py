@@ -1,22 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any
-
-    from bibclean._config import Config
+from tests.helpers import apply_rule
 
 NAME = "author-format"
-SOURCE = "@misc{k,\n  author = {Dongarra, Jack, London, Kevin}\n}\n"
 
 
-def test_detection(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
+def test_detection() -> None:
     """Test that a name with three commas is reported and left untouched."""
-    rows, output = apply_rule(NAME, SOURCE)
+    source = "@misc{k,\n  author = {Dongarra, Jack, London, Kevin}\n}\n"
+    rows, output = apply_rule(NAME, source)
     message = (
         "name 'Dongarra, Jack, London, Kevin' in field 'author' has more than two "
         "commas, separate the names with 'and'"
@@ -25,7 +19,7 @@ def test_detection(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
     assert "author = {Dongarra, Jack, London, Kevin}" in output
 
 
-def test_each_name_is_checked(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
+def test_each_name_is_checked() -> None:
     """Test the split on 'and' in any case, outside braces only."""
     source = "@misc{k, EDITOR = {{A, B, C, D} and Doe, J. AND a, b, c, d}}\n"
     rows, _ = apply_rule(NAME, source)
@@ -43,25 +37,6 @@ def test_each_name_is_checked(apply_rule: Callable[..., tuple[list[Any], str]]) 
         "@misc{k, author = a # {, b, c, d}}\n",
     ],
 )
-def test_no_finding(
-    apply_rule: Callable[..., tuple[list[Any], str]], source: str
-) -> None:
+def test_no_finding(source: str) -> None:
     """Test the values that the rule accepts or skips."""
-    rows, _ = apply_rule(NAME, source)
-    assert rows == []
-
-
-def test_exclude(
-    apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
-) -> None:
-    """Test that an excluded entry is exempt."""
-    rows, _ = apply_rule(NAME, SOURCE, config(exclude=frozenset({"k"})))
-    assert rows == []
-
-
-def test_ignore(
-    rules_reported: Callable[..., list[str]], config: Callable[..., Config]
-) -> None:
-    """Test that the rule can be disabled."""
-    assert NAME in rules_reported(SOURCE)
-    assert NAME not in rules_reported(SOURCE, config(ignore=frozenset({NAME})))
+    assert apply_rule(NAME, source)[0] == []

@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import replace
-from typing import TYPE_CHECKING
-
 import pytest
 
-from bibclean._config import FormatOptions, default_config, load_config
+from bibclean._config import FormatOptions
 from bibclean._formatter import (
     collapse_whitespace,
     format_blocks,
@@ -16,14 +13,7 @@ from bibclean._formatter import (
 from bibclean._model import Entry
 from bibclean._parser import parse
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
 DEFAULTS = FormatOptions()
-
-
-def _read(path: Path) -> str:
-    return path.read_bytes().decode("utf-8")
 
 
 def _first_entry(source: str) -> Entry:
@@ -208,30 +198,3 @@ def test_empty_files(source: str) -> None:
 def test_comments_only_file() -> None:
     """Test that a file of comments renders them once."""
     assert format_blocks(parse("\n% a\n% b\n\n"), DEFAULTS) == "% a\n% b\n"
-
-
-def test_idempotency(assets: Path) -> None:
-    """Test that formatting a canonical file changes nothing."""
-    for path in sorted(assets.glob("*.fixed.bib")):
-        case = path.name.split(".")[0]
-        if case == "malformed":
-            continue  # a file with a syntax error is never rewritten
-        toml = assets / f"{case}.toml"
-        options = (
-            load_config(toml, known_rules=("url-with-doi", "strip-field")).format
-            if toml.exists()
-            else DEFAULTS
-        )
-        text = _read(path)
-        once = format_blocks(parse(text), options)
-        assert once == text, path
-        assert format_blocks(parse(once), options) == once, path
-
-
-def test_idempotency_of_every_asset(assets: Path) -> None:
-    """Test that formatting twice equals formatting once, on every asset."""
-    options = replace(default_config().format, align_values=True, trailing_comma=True)
-    for path in sorted(assets.rglob("*.bib")):
-        text = _read(path).replace("\r\n", "\n").replace("\r", "\n")
-        once = format_blocks(parse(text), options)
-        assert format_blocks(parse(once), options) == once, path

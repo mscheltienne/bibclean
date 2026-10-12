@@ -13,17 +13,12 @@ from bibclean._config import (
     parse_config,
 )
 from bibclean._defaults import TYPES
+from tests.helpers import write
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 RULES = ("doi-prefix", "duplicate-key", "url-with-doi")
-
-
-def _write(path: Path, text: str) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8", newline="\n")
-    return path
 
 
 def test_default_config() -> None:
@@ -188,7 +183,7 @@ def test_exclude_types_keeps_the_tables() -> None:
 
 def test_load_config_top_level(tmp_path: Path) -> None:
     """Test a dedicated file using top-level keys."""
-    path = _write(tmp_path / "bibclean.toml", 'indent = 4\n[Book]\nkeep = ["note"]\n')
+    path = write(tmp_path / "bibclean.toml", 'indent = 4\n[Book]\nkeep = ["note"]\n')
     config = load_config(path, known_rules=RULES)
     assert config.format.indent == 4
     assert "note" in config.lint.types["book"].keep
@@ -197,14 +192,14 @@ def test_load_config_top_level(tmp_path: Path) -> None:
 
 def test_load_config_tool_table_in_dedicated_file(tmp_path: Path) -> None:
     """Test that a dedicated file cannot use a [tool.bibclean] table."""
-    path = _write(tmp_path / "bibclean.toml", "[tool.bibclean]\nindent = 4\n")
+    path = write(tmp_path / "bibclean.toml", "[tool.bibclean]\nindent = 4\n")
     with pytest.raises(ConfigError, match=re.escape("[tool] tables are read from")):
         load_config(path, known_rules=RULES)
 
 
 def test_load_config_extra_ignore(tmp_path: Path) -> None:
     """Test that extra rule names are added to the ignore set."""
-    path = _write(tmp_path / "bibclean.toml", 'ignore = ["doi-prefix"]\n')
+    path = write(tmp_path / "bibclean.toml", 'ignore = ["doi-prefix"]\n')
     config = load_config(path, known_rules=RULES, extra_ignore=("duplicate-key",))
     assert config.lint.ignore == frozenset({"doi-prefix", "duplicate-key"})
     config = load_config(None, known_rules=RULES, extra_ignore=("duplicate-key",))
@@ -214,14 +209,14 @@ def test_load_config_extra_ignore(tmp_path: Path) -> None:
 @pytest.mark.parametrize("text", ["[project]\nname = 'x'\n", "[tool]\nbibclean = 1\n"])
 def test_load_config_pyproject_without_table(tmp_path: Path, text: str) -> None:
     """Test that a pyproject.toml must hold a [tool.bibclean] table."""
-    path = _write(tmp_path / "pyproject.toml", text)
+    path = write(tmp_path / "pyproject.toml", text)
     with pytest.raises(ConfigError, match=re.escape("no [tool.bibclean] table")):
         load_config(path, known_rules=RULES)
 
 
 def test_load_config_invalid_toml(tmp_path: Path) -> None:
     """Test the message of a TOML syntax error."""
-    path = _write(tmp_path / "bibclean.toml", "indent = \n")
+    path = write(tmp_path / "bibclean.toml", "indent = \n")
     with pytest.raises(ConfigError, match="invalid TOML"):
         load_config(path, known_rules=RULES)
 
@@ -234,7 +229,7 @@ def test_load_config_missing_file(tmp_path: Path) -> None:
 
 def test_config_error_attributes(tmp_path: Path) -> None:
     """Test that the error carries the path and names the dedicated file."""
-    path = _write(tmp_path / "bibclean.toml", "unknown-key = 1\n")
+    path = write(tmp_path / "bibclean.toml", "unknown-key = 1\n")
     for _ in range(2):  # failures are not memoized
         with pytest.raises(ConfigError) as excinfo:
             load_config(path, known_rules=RULES)
@@ -244,19 +239,19 @@ def test_config_error_attributes(tmp_path: Path) -> None:
 
 def test_find_config_precedence(tmp_path: Path) -> None:
     """Test the precedence of the three file names inside one directory."""
-    _write(tmp_path / "pyproject.toml", "[tool.bibclean]\nindent = 8\n")
+    write(tmp_path / "pyproject.toml", "[tool.bibclean]\nindent = 8\n")
     assert find_config(tmp_path) == tmp_path / "pyproject.toml"
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
+    write(tmp_path / "bibclean.toml", "indent = 4\n")
     find_config.cache_clear()
     assert find_config(tmp_path) == tmp_path / "bibclean.toml"
-    _write(tmp_path / ".bibclean.toml", "indent = 3\n")
+    write(tmp_path / ".bibclean.toml", "indent = 3\n")
     find_config.cache_clear()
     assert find_config(tmp_path) == tmp_path / ".bibclean.toml"
 
 
 def test_find_config_walks_up(tmp_path: Path) -> None:
     """Test that the walk goes up until a file is found."""
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
+    write(tmp_path / "bibclean.toml", "indent = 4\n")
     deep = tmp_path / "a" / "b"
     deep.mkdir(parents=True)
     assert find_config(deep) == tmp_path / "bibclean.toml"
@@ -264,14 +259,14 @@ def test_find_config_walks_up(tmp_path: Path) -> None:
 
 def test_find_config_skips_pyproject_without_table(tmp_path: Path) -> None:
     """Test that a pyproject.toml without the table is not a match."""
-    _write(tmp_path / "a" / "pyproject.toml", "[project]\nname = 'x'\n")
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
+    write(tmp_path / "a" / "pyproject.toml", "[project]\nname = 'x'\n")
+    write(tmp_path / "bibclean.toml", "indent = 4\n")
     assert find_config(tmp_path / "a") == tmp_path / "bibclean.toml"
 
 
 def test_find_config_invalid_pyproject(tmp_path: Path) -> None:
     """Test that an unparsable pyproject.toml is an error."""
-    _write(tmp_path / "pyproject.toml", "[tool\n")
+    write(tmp_path / "pyproject.toml", "[tool\n")
     with pytest.raises(ConfigError, match="invalid TOML"):
         find_config(tmp_path)
 
