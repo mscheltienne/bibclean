@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 
 import click
 
-from bibclean._config import ConfigError, ConfigResolver
+from bibclean._config import ConfigError, find_config, load_config
 from bibclean._diagnostics import (
     format_diagnostic,
     pluralize,
@@ -23,6 +23,7 @@ from bibclean._version import __version__
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from bibclean._config import Config
     from bibclean._diagnostics import Diagnostic
     from bibclean._engine import Report
 
@@ -146,17 +147,16 @@ def execute(
     if verbose and quiet:
         raise click.UsageError("--verbose and --quiet are mutually exclusive")
     ordered = _dedupe(files)
-    resolver = ConfigResolver(
-        known_rules=RULE_NAMES,
-        override=config,
-        isolated=isolated,
-        extra_ignore=ignore,
-    )
     if verbose:
         _echo_verbose(f"bibclean {__version__}")
-    if config is not None:
+    override: Config | None = None
+    if isolated or config is not None:
         try:
-            resolver.for_file(Path(ordered[0]))
+            override = load_config(
+                None if isolated else config.resolve(),
+                known_rules=RULE_NAMES,
+                extra_ignore=ignore,
+            )
         except ConfigError as exc:
             _echo_error(str(config), exc.message)
             return 2
@@ -166,7 +166,11 @@ def execute(
     fixed = 0
     for file in ordered:
         try:
-            configuration = resolver.for_file(Path(file))
+            configuration = override or load_config(
+                find_config(Path(file).resolve().parent),
+                known_rules=RULE_NAMES,
+                extra_ignore=ignore,
+            )
         except ConfigError as exc:
             _echo_error(file, exc.message)
             errors += 1

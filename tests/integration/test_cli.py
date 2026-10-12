@@ -220,11 +220,13 @@ def test_config_and_isolated_are_exclusive(tmp_path: Path, runner: CliRunner) ->
 def test_isolated_ignores_a_discovered_configuration(
     tmp_path: Path, runner: CliRunner
 ) -> None:
-    """Test that --isolated bypasses the configuration file next to the input."""
+    """Test that --isolated and --config bypass the file next to the input."""
     path = _write(tmp_path, "a.bib", CLEAN)
     _write(tmp_path, "bibclean.toml", "indent = 4\n")
+    custom = _write(tmp_path, "custom.toml", "indent = 2\n")
     assert runner.invoke(run, ["check", str(path)]).exit_code == 1
     assert runner.invoke(run, ["check", "--isolated", str(path)]).exit_code == 0
+    assert runner.invoke(run, ["check", "-c", str(custom), str(path)]).exit_code == 0
 
 
 def test_configuration_is_discovered_per_directory(

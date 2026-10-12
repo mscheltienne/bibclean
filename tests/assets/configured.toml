@@ -1,10 +1,8 @@
-[tool.bibclean]
 indent = "tab"
 sort-fields = ["author", "title", "journal", "year"]
 month = "name"
-strip-fields = false
 exclude = ["ignored_entry"]
-ignore = ["url-with-doi"]
+ignore = ["url-with-doi", "strip-field"]
 
-[tool.bibclean.article]
+[article]
 required = ["author", "title", "year", "doi"]

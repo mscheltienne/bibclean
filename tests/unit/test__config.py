@@ -7,7 +7,6 @@ import pytest
 
 from bibclean._config import (
     ConfigError,
-    ConfigResolver,
     default_config,
     find_config,
     load_config,
@@ -39,7 +38,6 @@ def test_default_config() -> None:
     assert config.lint.ignore == frozenset()
     assert config.lint.exclude == frozenset()
     assert config.lint.exclude_types == frozenset()
-    assert config.lint.strip_fields is True
     assert config.lint.month == "abbreviation"
     assert set(config.lint.types) == set(TYPES)
     assert config.lint.types["article"].required == TYPES["article"][0]
@@ -59,7 +57,6 @@ def test_parse_config_values() -> None:
             "ignore": ["doi-prefix"],
             "exclude": ["Smith2020"],
             "exclude-types": ["Software"],
-            "strip-fields": False,
         },
         path=None,
         known_rules=RULES,
@@ -73,7 +70,6 @@ def test_parse_config_values() -> None:
     assert config.lint.ignore == frozenset({"doi-prefix"})
     assert config.lint.exclude == frozenset({"Smith2020"})
     assert config.lint.exclude_types == frozenset({"software"})
-    assert config.lint.strip_fields is False
 
 
 @pytest.mark.parametrize(
@@ -87,7 +83,8 @@ def test_parse_config_values() -> None:
         ({"zzzzzzz": 1}, "unknown key 'zzzzzzz' in [tool.bibclean]"),
         (
             {"indent": True},
-            "'indent' in [tool.bibclean] must be an integer or \"tab\", got True",
+            "'indent' in [tool.bibclean] must be a positive integer or \"tab\", "
+            "got True",
         ),
         (
             {"indent": 0},
@@ -107,11 +104,15 @@ def test_parse_config_values() -> None:
             "'sort-fields' in [tool.bibclean] must be a boolean or an array of "
             "strings, got [1, 2]",
         ),
-        ({"month": 1}, "'month' in [tool.bibclean] must be a string, got 1"),
         (
-            {"month": "names"},
+            {"month": "preserve"},
             '\'month\' in [tool.bibclean] must be one of "abbreviation", "name", '
-            '"number", "preserve", got \'names\'',
+            "\"number\", got 'preserve'",
+        ),
+        (
+            {"strip-fields": False},
+            "unknown key 'strip-fields' in [tool.bibclean], "
+            "did you mean 'sort-fields'?",
         ),
         (
             {"exclude": [1, 2]},
@@ -132,6 +133,11 @@ def test_parse_config_values() -> None:
             {"article": {"keep": "author"}},
             "'keep' in [tool.bibclean.article] must be an array of strings, "
             "got 'author'",
+        ),
+        (
+            {"InProceeding": {"keep": ["doi"]}},
+            "unknown entry type 'inproceeding' in [tool.bibclean.inproceeding], did "
+            "you mean 'inproceedings'? (a new entry type must declare 'required')",
         ),
     ],
 )
@@ -154,8 +160,7 @@ def test_merge_types() -> None:
             "Article": {"required": ["author", "title", "year", "doi"]},
             "book": {"keep": ["Address"]},
             "custom": {"required": ["title"]},
-            "other": {"keep": ["note"]},
-            "empty": {},
+            "other": {"required": [], "keep": ["note"]},
         },
         path=None,
         known_rules=RULES,
@@ -173,8 +178,6 @@ def test_merge_types() -> None:
     assert types["custom"].keep is None
     assert types["other"].required == ()
     assert types["other"].keep == frozenset({"note"})
-    assert types["empty"].required == ()
-    assert types["empty"].keep is None
 
 
 def test_exclude_types_keeps_the_tables() -> None:
@@ -186,39 +189,36 @@ def test_exclude_types_keeps_the_tables() -> None:
 
 def test_load_config_top_level(tmp_path: Path) -> None:
     """Test a dedicated file using top-level keys."""
-    path = _write(tmp_path / "bibclean.toml", "indent = 4\n")
+    path = _write(tmp_path / "bibclean.toml", 'indent = 4\n[Book]\nkeep = ["note"]\n')
     config = load_config(path, known_rules=RULES)
     assert config.format.indent == 4
+    assert "note" in config.lint.types["book"].keep
     assert config.source == path
+    assert load_config(path, known_rules=RULES) is config
 
 
-def test_load_config_tool_table(tmp_path: Path) -> None:
-    """Test a dedicated file using a [tool.bibclean] table."""
-    path = _write(
-        tmp_path / "bibclean.toml",
-        '[tool.other]\nx = 1\n\n[tool.bibclean]\nmonth = "name"\n',
-    )
-    assert load_config(path, known_rules=RULES).lint.month == "name"
+def test_load_config_tool_table_in_dedicated_file(tmp_path: Path) -> None:
+    """Test that a dedicated file cannot use a [tool.bibclean] table."""
+    path = _write(tmp_path / "bibclean.toml", "[tool.bibclean]\nindent = 4\n")
+    with pytest.raises(ConfigError, match=re.escape("[tool] tables are read from")):
+        load_config(path, known_rules=RULES)
 
 
 def test_load_config_extra_ignore(tmp_path: Path) -> None:
     """Test that extra rule names are added to the ignore set."""
     path = _write(tmp_path / "bibclean.toml", 'ignore = ["doi-prefix"]\n')
-    config = load_config(path, known_rules=RULES, extra_ignore=["duplicate-key"])
+    config = load_config(path, known_rules=RULES, extra_ignore=("duplicate-key",))
     assert config.lint.ignore == frozenset({"doi-prefix", "duplicate-key"})
+    config = load_config(None, known_rules=RULES, extra_ignore=("duplicate-key",))
+    assert config.source is None
+    assert config.lint.ignore == frozenset({"duplicate-key"})
 
 
-def test_load_config_pyproject_without_table(tmp_path: Path) -> None:
-    """Test that a pyproject.toml must hold the table."""
-    path = _write(tmp_path / "pyproject.toml", "[project]\nname = 'x'\n")
-    with pytest.raises(ConfigError, match=re.escape("missing [tool.bibclean] table")):
-        load_config(path, known_rules=RULES)
-
-
-def test_load_config_not_a_table(tmp_path: Path) -> None:
-    """Test that the table must be a TOML table."""
-    path = _write(tmp_path / "pyproject.toml", "[tool]\nbibclean = 1\n")
-    with pytest.raises(ConfigError, match=re.escape("[tool.bibclean] must be a table")):
+@pytest.mark.parametrize("text", ["[project]\nname = 'x'\n", "[tool]\nbibclean = 1\n"])
+def test_load_config_pyproject_without_table(tmp_path: Path, text: str) -> None:
+    """Test that a pyproject.toml must hold a [tool.bibclean] table."""
+    path = _write(tmp_path / "pyproject.toml", text)
+    with pytest.raises(ConfigError, match=re.escape("no [tool.bibclean] table")):
         load_config(path, known_rules=RULES)
 
 
@@ -236,12 +236,13 @@ def test_load_config_missing_file(tmp_path: Path) -> None:
 
 
 def test_config_error_attributes(tmp_path: Path) -> None:
-    """Test that the error carries the path and stringifies to the message."""
+    """Test that the error carries the path and names the dedicated file."""
     path = _write(tmp_path / "bibclean.toml", "unknown-key = 1\n")
-    with pytest.raises(ConfigError) as excinfo:
-        load_config(path, known_rules=RULES)
+    for _ in range(2):  # failures are not memoized
+        with pytest.raises(ConfigError) as excinfo:
+            load_config(path, known_rules=RULES)
     assert excinfo.value.path == path
-    assert str(excinfo.value) == excinfo.value.message
+    assert str(excinfo.value) == "unknown key 'unknown-key' in bibclean.toml"
 
 
 def test_find_config_precedence(tmp_path: Path) -> None:
@@ -249,8 +250,10 @@ def test_find_config_precedence(tmp_path: Path) -> None:
     _write(tmp_path / "pyproject.toml", "[tool.bibclean]\nindent = 8\n")
     assert find_config(tmp_path) == tmp_path / "pyproject.toml"
     _write(tmp_path / "bibclean.toml", "indent = 4\n")
+    find_config.cache_clear()
     assert find_config(tmp_path) == tmp_path / "bibclean.toml"
     _write(tmp_path / ".bibclean.toml", "indent = 3\n")
+    find_config.cache_clear()
     assert find_config(tmp_path) == tmp_path / ".bibclean.toml"
 
 
@@ -283,71 +286,6 @@ def test_find_config_none(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
         lambda path: False,  # noqa: ARG005
     )
     assert find_config(tmp_path) is None
-
-
-def test_resolver_isolated(tmp_path: Path) -> None:
-    """Test that --isolated short-circuits the discovery."""
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
-    resolver = ConfigResolver(known_rules=RULES, isolated=True, extra_ignore=RULES[:1])
-    config = resolver.for_file(tmp_path / "a.bib")
-    assert config.source is None
-    assert config.format.indent == 2
-    assert config.lint.ignore == frozenset(RULES[:1])
-    assert resolver.for_file(tmp_path / "b.bib") is config
-
-
-def test_resolver_override(tmp_path: Path) -> None:
-    """Test that --config is used for every input."""
-    path = _write(tmp_path / "custom.toml", "indent = 8\n")
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
-    resolver = ConfigResolver(known_rules=RULES, override=path)
-    assert resolver.for_file(tmp_path / "a.bib").format.indent == 8
-    assert resolver.for_file(tmp_path / "sub" / "b.bib").format.indent == 8
-
-
-def test_resolver_caches_the_directory_walk(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Test that two files in one directory walk the tree once."""
-    _write(tmp_path / "bibclean.toml", "indent = 4\n")
-    calls = []
-    original = find_config
-
-    def counting(directory: Path) -> Path | None:
-        calls.append(directory)
-        return original(directory)
-
-    monkeypatch.setattr("bibclean._config.find_config", counting)
-    resolver = ConfigResolver(known_rules=RULES)
-    first = resolver.for_file(tmp_path / "a.bib")
-    second = resolver.for_file(tmp_path / "b.bib")
-    assert first is second
-    assert len(calls) == 1
-
-
-def test_resolver_without_config(tmp_path: Path) -> None:
-    """Test that the defaults apply when no file is found."""
-    resolver = ConfigResolver(known_rules=RULES, extra_ignore=["doi-prefix"])
-    monkey = tmp_path / "deep" / "a.bib"
-    monkey.parent.mkdir()
-    config = resolver.for_file(monkey)
-    assert config.lint.ignore == frozenset({"doi-prefix"}) or config.source is not None
-
-
-def test_resolver_does_not_cache_failures(tmp_path: Path) -> None:
-    """Test that an invalid file is reported for every input using it."""
-    _write(tmp_path / "bibclean.toml", "unknown-key = 1\n")
-    resolver = ConfigResolver(known_rules=RULES)
-    for name in ("a.bib", "b.bib"):
-        with pytest.raises(ConfigError):
-            resolver.for_file(tmp_path / name)
-
-
-def test_pyproject_probe_on_a_missing_file(tmp_path: Path) -> None:
-    """Test that an unreadable candidate is not a match."""
-    from bibclean._config import _pyproject_has_table
-
-    assert _pyproject_has_table(tmp_path / "absent.toml") is False
 
 
 def test_sort_fields_boolean() -> None:

@@ -48,14 +48,6 @@ def test_required_fields_are_never_stripped(
     assert "journal" in output
 
 
-def test_master_switch(
-    apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
-) -> None:
-    """Test that strip-fields disables the rule entirely."""
-    rows, _ = apply_rule(NAME, SOURCE, config(strip_fields=False))
-    assert rows == []
-
-
 def test_unknown_type_and_missing_keep(
     apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
 ) -> None:

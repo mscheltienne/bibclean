@@ -116,15 +116,6 @@ def test_unrecognised_concatenation(
     assert rows == [(2, 3, "unrecognised month 'jan # {-} # feb'", False)]
 
 
-def test_preserve(
-    apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
-) -> None:
-    """Test that the preserve mode disables the rule."""
-    rows, output = apply_rule(NAME, SOURCE, config(month="preserve"))
-    assert rows == []
-    assert "month = {September}" in output
-
-
 def test_exclude(
     apply_rule: Callable[..., tuple[list[Any], str]], config: Callable[..., Config]
 ) -> None:

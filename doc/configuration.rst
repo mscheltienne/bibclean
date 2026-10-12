@@ -16,19 +16,22 @@ root of the filesystem and stops at the first directory holding one of:
 2. ``bibclean.toml``
 3. ``pyproject.toml`` containing a ``[tool.bibclean]`` table
 
-A dedicated file wins over ``pyproject.toml`` in the same directory. The result is
-cached per directory, so a batch of files in one folder walks the tree once, and
-two files in different projects each use their own configuration.
+A dedicated file wins over ``pyproject.toml`` in the same directory, and two files
+in different projects each use their own configuration.
 
-In ``pyproject.toml`` the table must be ``[tool.bibclean]``. In a dedicated file,
-and in a file passed to ``--config``, the keys may be written either under
-``[tool.bibclean]`` or at the top level.
+In ``pyproject.toml`` the keys live under ``[tool.bibclean]``. A dedicated file,
+like any file passed to ``--config`` other than a ``pyproject.toml``, writes them
+at the top level, and its per-type tables are top-level tables such as
+``[article]``.
 
 .. code-block:: toml
 
     # bibclean.toml
     indent = 4
     exclude = ["ignored_entry"]
+
+    [article]
+    required = ["author", "title", "year"]
 
 ``-c, --config PATH`` replaces the discovered file for every input, and
 ``--isolated`` ignores every file and runs with the defaults. The two are mutually
@@ -51,13 +54,12 @@ Options
     trailing-comma = false
     sort-entries = true
     sort-fields = true           # true | false | ["author", "title", "year"]
-    month = "abbreviation"       # "abbreviation" | "name" | "number" | "preserve"
+    month = "abbreviation"       # "abbreviation" | "name" | "number"
 
     # linting
     ignore = []                  # rule names disabled everywhere
     exclude = []                 # cite keys exempt from the rules
     exclude-types = []           # entry types exempt from the rules
-    strip-fields = true          # master switch of the strip-field rule
 
 .. list-table::
    :header-rows: 1
@@ -86,8 +88,8 @@ Options
    * - ``month``
      - string, ``"abbreviation"``
      - Target form of the ``month`` field: the macro ``feb``, the name
-       ``{February}``, the number ``{2}``, or ``"preserve"`` to disable the
-       :ref:`rule-month-format` rule.
+       ``{February}`` or the number ``{2}``. Ignore :ref:`rule-month-format` to
+       leave the field as written.
    * - ``ignore``
      - array of strings, ``[]``
      - Names of the rules that never run. See :doc:`rules`.
@@ -100,9 +102,6 @@ Options
      - array of strings, ``[]``
      - Entry types exempt from every rule, compared in lower case. Excluded
        entries are still formatted.
-   * - ``strip-fields``
-     - boolean, ``true``
-     - Master switch of the :ref:`rule-strip-field` rule.
 
 Per entry type
 --------------
@@ -125,9 +124,11 @@ required names on top of the names listed, and ``doi`` and ``url`` are never
 stripped, so a citation keeps its link.
 
 The shipped tables below are the base. A user table overrides ``required`` and
-``keep`` independently: a key left out keeps its default. A type that has no
-shipped table and no ``keep`` is never stripped; one with no ``required`` has no
-required field. Type names and field names are compared in lower case.
+``keep`` independently: a key left out keeps its default. A table for a type that
+has no shipped table must declare ``required``, an empty list being enough, so that
+a misspelled type name such as ``[tool.bibclean.inproceeding]`` is reported instead of
+silently defining a new type. Such a type without ``keep`` is never stripped. Type
+names and field names are compared in lower case.
 
 Default tables
 --------------

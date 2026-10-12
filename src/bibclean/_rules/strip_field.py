@@ -17,8 +17,7 @@ def strip_field(ctx: Context) -> list[Finding]:
 
     The field is removed. The kept names of a type always contain its required
     names, and ``doi`` and ``url`` are never stripped so that a citation keeps
-    its link. A type without a keep list is never stripped, and
-    ``strip-fields = false`` disables the rule entirely.
+    its link. A type without a keep list is never stripped.
 
     .. code-block:: bibtex
 
@@ -26,8 +25,6 @@ def strip_field(ctx: Context) -> list[Finding]:
 
     pybtex: nothing, noise only.
     """
-    if not ctx.config.lint.strip_fields:
-        return []
     findings: list[Finding] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):

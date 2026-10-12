@@ -73,7 +73,7 @@ def month_format(ctx: Context) -> list[Finding]:
 
     The value is rewritten as the macro, the English name or the number,
     following the ``month`` option. A value that is not a recognised month is
-    reported and left untouched. ``month = "preserve"`` disables the rule.
+    reported and left untouched.
 
     .. code-block:: bibtex
 
@@ -83,8 +83,6 @@ def month_format(ctx: Context) -> list[Finding]:
     so both forms render the same but a canonical file needs one of them.
     """
     mode = ctx.config.lint.month
-    if mode == "preserve":
-        return []
     findings: list[Finding] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):

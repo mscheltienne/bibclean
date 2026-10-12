@@ -212,7 +212,7 @@ def test_idempotency(assets: Path) -> None:
         case = path.name.split(".")[0]
         toml = assets / f"{case}.toml"
         options = (
-            load_config(toml, known_rules=("url-with-doi",)).format
+            load_config(toml, known_rules=("url-with-doi", "strip-field")).format
             if toml.exists()
             else DEFAULTS
         )
