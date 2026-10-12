@@ -70,8 +70,7 @@ API and behavior changes
 - ``bibclean FILE [-o OUT] [--overwrite] [-c CFG] [--exit-non-zero-on-fix]``
   becomes ``bibclean fix FILES... [-c CFG] [--diff]``; the files are always
   rewritten in place.
-- ``bibclean-check FILE`` becomes ``bibclean check FILES...`` and
-  ``bibclean-sys_info`` becomes ``bibclean sys-info``. The console scripts
+- ``bibclean-check FILE`` becomes ``bibclean check FILES...``. The console scripts
   ``bibclean-check`` and ``bibclean-sys_info`` are removed.
 - Exit codes are now 0 for a clean run, 1 for a violation or a written file, and 2
   for a configuration error, an unreadable file or a usage error. A syntax error
@@ -85,9 +84,8 @@ API and behavior changes
 - Entries are written with a two-space indent instead of one space, and months
   with the macro ``feb`` instead of ``{February}``. The first ``bibclean fix``
   after upgrading therefore rewrites the whole file once.
-- The runtime dependencies are ``click`` and ``packaging``: ``bibtexparser``,
-  ``numpy``, ``psutil`` and ``toml`` are removed. ``bibclean sys-info`` reports the
-  hardware only when ``psutil`` is installed.
+- The only runtime dependency is ``click``: ``bibtexparser``, ``numpy``,
+  ``packaging``, ``psutil`` and ``toml`` are removed.
 - The minimum supported Python version is 3.11.
 
 Authors

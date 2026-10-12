@@ -23,7 +23,7 @@ jobs:
         with:
           activate-environment: true
       - run: uv sync -q --no-default-groups --group doc
-      - run: bibclean sys-info --developer
+      - run: uv pip list
       - run: make -C doc html
       - name: Prune sphinx environment
         run: rm -R ./doc/_build/html/.doctrees

@@ -3,15 +3,14 @@
 Command-line
 ============
 
-``bibclean`` is a single command with three sub-commands. ``--help`` on any of
-them lists its arguments.
+``bibclean`` is a single command with two sub-commands. ``--help`` on any of them
+lists its arguments.
 
 .. code-block:: text
 
     bibclean --version
-    bibclean check    [OPTIONS] FILES...
-    bibclean fix      [OPTIONS] FILES...
-    bibclean sys-info [--developer]
+    bibclean check [OPTIONS] FILES...
+    bibclean fix   [OPTIONS] FILES...
 
 bibclean check
 --------------
@@ -122,13 +121,6 @@ spelling.
 Nothing is printed when there is nothing to report. Errors go to the error stream.
 The output is coloured on a terminal, unless ``NO_COLOR`` is set or ``TERM`` is
 ``dumb``.
-
-bibclean sys-info
------------------
-
-``bibclean sys-info`` prints the platform, the Python and the dependency versions,
-for bug reports. ``--developer`` adds the development dependency groups, only for
-an editable install.
 
 pre-commit
 ----------

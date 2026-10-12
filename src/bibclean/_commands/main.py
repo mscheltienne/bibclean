@@ -4,7 +4,6 @@ import click
 
 from bibclean._commands.check import run as check
 from bibclean._commands.fix import run as fix
-from bibclean._commands.sys_info import run as sys_info
 from bibclean._version import __version__
 
 
@@ -18,4 +17,3 @@ def run() -> None:
 
 run.add_command(check)
 run.add_command(fix)
-run.add_command(sys_info)

@@ -73,7 +73,6 @@ source = { editable = "." }
 default-groups = "all"
 dependencies = [
     { name = "click" },
-    { name = "packaging" },
 ]
 
 [package.dev-dependencies]
@@ -100,7 +99,6 @@ style = [
 ]
 test = [
     { name = "platformdirs" },
-    { name = "psutil" },
     { name = "pybtex" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -109,10 +107,7 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=8.2" },
-    { name = "packaging" },
-]
+requires-dist = [{ name = "click", specifier = ">=8.2" }]
 
 [package.metadata.requires-dev]
 doc = [
@@ -137,7 +132,6 @@ style = [
 ]
 test = [
     { name = "platformdirs" },
-    { name = "psutil" },
     { name = "pybtex" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-cov" },

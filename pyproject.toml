@@ -25,7 +25,6 @@ style = [
 ]
 test = [
   'platformdirs',
-  'psutil',
   'pybtex',
   'pytest-cov',
   'pytest-randomly',
@@ -51,7 +50,6 @@ classifiers = [
 ]
 dependencies = [
   'click>=8.2',
-  'packaging',
 ]
 description = 'A linter and formatter for BibTeX files.'
 dynamic = ["version"]

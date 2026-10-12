@@ -35,7 +35,7 @@ jobs:
           activate-environment: true
           python-version: ${{ matrix.python-version }}
       - run: uv sync -q --no-default-groups --group test
-      - run: bibclean sys-info --developer
+      - run: uv pip list
       - run: pytest tests --cov=bibclean --cov-report=xml --cov-config=pyproject.toml
       - uses: codecov/codecov-action@v7
         if: ${{ github.repository == 'mscheltienne/bibclean' }}
