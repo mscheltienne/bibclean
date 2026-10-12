@@ -22,12 +22,15 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
       - uses: astral-sh/setup-uv@v10.3.0
       - name: Hooks fail on a malformed file and leave it untouched
+        # try-repo builds from a shallow clone without remote, where setuptools_scm
+        # cannot fetch the tags; the scratch repository must share the drive of the
+        # workspace on Windows
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BIBCLEAN: "1.0.0"
         run: |
-          cd "$(mktemp -d)"
+          cd "$(mktemp -d -p "$RUNNER_TEMP")"
           git init -q
           cp "$GITHUB_WORKSPACE/tests/assets/clean.bib" good.bib
           cp "$GITHUB_WORKSPACE/tests/assets/malformed.bib" broken.bib
