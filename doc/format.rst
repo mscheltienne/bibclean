@@ -160,9 +160,6 @@ every run of blank lines is reduced to one.
 Reading conventions
 -------------------
 
-Two details of how a file is read are worth knowing, because they decide whether
-a line is data or text.
-
 **Every @ starts a block.** Like BibTeX and `pybtex`_, every ``@`` outside a block
 starts a block, wherever it is. ``%`` is not a comment character for BibTeX, so an
 ``@`` in a ``%`` line starts a block too: an e-mail address there is a syntax error
@@ -179,9 +176,7 @@ entry. To disable an entry, delete its ``@``. ``@comment`` must be followed by
 
 After a block that cannot be parsed, reading resumes at the next ``@``. Since the
 broken block swallows the text up to there, a file with a syntax error is never
-rewritten, like ``black`` or ``ruff format`` refuse a file they cannot parse:
-``check`` and ``fix`` still report every violation, none of them as fixable, and
-``fix`` leaves the file untouched.
+rewritten: every violation is still reported, none of them as fixable.
 
 **Braces are counted as BibTeX counts them.** A backslash has no special meaning
 to the parser: ``\{`` opens a brace and ``\"`` closes a quoted value. A value such

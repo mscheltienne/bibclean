@@ -19,12 +19,11 @@ Version 1.0
 
 .. warning::
 
-   The hook ``bibclean-fix`` no longer accepts ``--exit-non-zero-on-fix``: exiting
-   with a non-zero code after writing a file is now the default. A
-   ``.pre-commit-config.yaml`` pinning ``rev: 0.8.0`` with
-   ``args: [--exit-non-zero-on-fix]`` fails with a usage error after
-   ``pre-commit autoupdate`` until the ``args`` line is removed. The check hook is
-   renamed from ``bibclean`` to ``bibclean-check``.
+   The hook ``bibclean`` is renamed ``bibclean-check``. The hook ``bibclean-fix``
+   no longer accepts ``--exit-non-zero-on-fix``, as exiting with a non-zero code
+   after writing a file is the default: remove ``args: [--exit-non-zero-on-fix]``
+   from ``.pre-commit-config.yaml`` when upgrading, or the hook fails with a usage
+   error.
 
 bibclean 1.0 is a rewrite. It is a linter and formatter for BibTeX files, with its
 own lossless parser, a canonical format, fourteen rules and automatic
@@ -35,10 +34,9 @@ Enhancements
 
 - New ``bibclean check`` and ``bibclean fix`` commands, accepting any number of
   files. A file that cannot be read is reported and the batch continues.
-- Files are parsed by ``bibclean`` itself. Comments, ``@string`` macros,
-  ``@preamble`` blocks and unknown entry types are preserved, and a file with a
-  block that cannot be parsed is reported and never rewritten. Like BibTeX and
-  ``pybtex``, every ``@`` starts a block, including one in a ``%`` line.
+- Files are parsed by ``bibclean`` itself. Like BibTeX and ``pybtex``, every ``@``
+  starts a block, including one in a ``%`` line. A file with a block that cannot be
+  parsed is reported and never rewritten.
 - One canonical format, with a two-space indent, braced values, sorted entries and
   sorted fields, described in :doc:`../format`.
 - Fourteen rules, each disabled by name with ``ignore`` or ``--ignore``, described
@@ -57,15 +55,11 @@ Enhancements
   colour on a terminal and honouring ``NO_COLOR``.
 - Two pre-commit hooks, ``bibclean-check`` and ``bibclean-fix``, running on the
   ``pre-commit``, ``pre-merge-commit``, ``pre-push`` and ``manual`` stages.
-- Faster startup: the runtime dependencies are ``click`` and ``packaging``.
-  ``bibtexparser``, ``numpy`` and ``toml`` are gone, and ``psutil`` is optional and
-  used by ``bibclean sys-info`` only.
 
 Bugs
 ----
 
 - ``--exit-non-zero-on-fix`` never fired, because it compared a value with itself.
-  Exiting with a non-zero code after writing a file is now the default behaviour.
 - Non-standard entry types such as ``@software`` and ``@online``, ``@string``
   macros, ``@preamble`` blocks and comments were dropped or inlined; they are now
   preserved.
@@ -73,8 +67,6 @@ Bugs
 API and behavior changes
 ------------------------
 
-- The hook ``bibclean`` is renamed ``bibclean-check``, and the hook
-  ``bibclean-fix`` no longer takes ``--exit-non-zero-on-fix``.
 - ``bibclean FILE [-o OUT] [--overwrite] [-c CFG] [--exit-non-zero-on-fix]``
   becomes ``bibclean fix FILES... [-c CFG] [--diff]``; the files are always
   rewritten in place.
@@ -85,12 +77,17 @@ API and behavior changes
   for a configuration error, an unreadable file or a usage error. A syntax error
   in a ``.bib`` file exits 1, not 2.
 - The configuration key ``exclude_type`` is renamed ``exclude-types``, and the
-  configuration is discovered instead of requiring ``-c``.
+  configuration is discovered instead of requiring ``-c``. A configuration file
+  other than ``pyproject.toml`` holds its keys at the top level, not under
+  ``[tool.bibclean]``.
 - The Python API ``check_bib_database``, ``clean_bib_database``, ``load_bib`` and
   ``save_bib`` is removed.
 - Entries are written with a two-space indent instead of one space, and months
   with the macro ``feb`` instead of ``{February}``. The first ``bibclean fix``
   after upgrading therefore rewrites the whole file once.
+- The runtime dependencies are ``click`` and ``packaging``: ``bibtexparser``,
+  ``numpy``, ``psutil`` and ``toml`` are removed. ``bibclean sys-info`` reports the
+  hardware only when ``psutil`` is installed.
 - The minimum supported Python version is 3.11.
 
 Authors

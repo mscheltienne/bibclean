@@ -114,7 +114,8 @@ class Rule:
     check : callable
         Function running the rule over a context and returning its diagnostics.
     doc : str
-        Cleaned docstring of the function.
+        User documentation of the rule: the summary and extended summary of the
+        docstring of the function.
     """
 
     name: str
@@ -141,12 +142,24 @@ def rule(
     Returns
     -------
     callable
-        A decorator replacing the function by the corresponding rule, whose
-        documentation is the cleaned docstring of the function.
+        A decorator replacing the function by the corresponding rule.
     """
 
     def decorator(function: RuleFunction) -> Rule:
-        doc = inspect.cleandoc(function.__doc__ or "")
+        """Build the rule of a function.
+
+        Parameters
+        ----------
+        function : callable
+            Function running the rule over a context and returning its diagnostics.
+
+        Returns
+        -------
+        Rule
+            The rule, documented by the docstring of the function up to its
+            ``Parameters`` section.
+        """
+        doc = inspect.cleandoc(function.__doc__ or "").split("\n\nParameters\n")[0]
         return Rule(name=name, fixable=fixable, scope=scope, check=function, doc=doc)
 
     return decorator
@@ -172,13 +185,38 @@ def signature(entry: Entry, options: FormatOptions) -> str:
 
 
 def _fields_named(entry: Entry, name: str) -> list[Field]:
-    """Return the fields of an entry with a given name, case-insensitively."""
+    """Return the fields of an entry with a given name, case-insensitively.
+
+    Parameters
+    ----------
+    entry : Entry
+        Entry to inspect.
+    name : str
+        Field name.
+
+    Returns
+    -------
+    list of Field
+        The fields with that name, in source order.
+    """
     lowered = name.lower()
     return [field for field in entry.fields if field.key.lower() == lowered]
 
 
 def _single_text(value: Value) -> str | None:
-    """Return the collapsed text of a value made of one braced or quoted part."""
+    """Return the text of a value made of one braced or quoted part.
+
+    Parameters
+    ----------
+    value : Value
+        Value to inspect.
+
+    Returns
+    -------
+    str | None
+        The text with its whitespace collapsed and stripped, None for a macro or a
+        concatenation.
+    """
     if len(value.parts) != 1:
         return None
     part = value.parts[0]

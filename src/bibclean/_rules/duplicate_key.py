@@ -25,6 +25,16 @@ def duplicate_key(ctx: Context) -> list[Diagnostic]:
 
     pybtex: cite keys are stored in a case-insensitive dictionary and the
     documentation build fails on the repeat.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     seen: dict[str, Entry] = {}

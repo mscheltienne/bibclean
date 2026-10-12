@@ -31,6 +31,16 @@ def syntax_error(ctx: Context) -> list[Diagnostic]:
        }
 
     pybtex: the documentation build fails on the file.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     return [
         Diagnostic(block.start, block.message, False)

@@ -62,6 +62,16 @@ def doi_prefix(ctx: Context) -> list[Diagnostic]:
 
     pybtex: the styles prepend the resolver themselves, producing a broken
     double link.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():

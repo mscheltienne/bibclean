@@ -24,6 +24,7 @@ style = [
   'yamllint',
 ]
 test = [
+  'platformdirs',
   'psutil',
   'pybtex',
   'pytest-cov',
@@ -100,7 +101,6 @@ cover_pylib = false
 omit = [
   '**/__init__.py',
   '**/bibclean/_version.py',
-  '**/bibclean/utils/_fixes.py',
 ]
 
 [tool.pytest.ini_options]
@@ -120,7 +120,6 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 ignore = []
-logger-objects = ["bibclean.utils.logs.logger"]
 select = ['A', 'B', 'C4', 'D', 'E', 'F', 'G', 'I', 'LOG', 'NPY', 'PERF', 'PIE', 'PT', 'T20', 'TID', 'UP', 'W']
 
 [tool.ruff.lint.flake8-tidy-imports]
@@ -140,7 +139,6 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.pydocstyle]
 convention = 'numpy'
-ignore-decorators = ["bibclean.utils._docs.copy_doc"]
 
 [tool.setuptools]
 include-package-data = false

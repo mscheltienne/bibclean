@@ -9,9 +9,6 @@ from importlib.util import find_spec
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from bibclean.utils._checks import check_type
-from bibclean.utils._imports import import_optional_dependency
-
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import IO
@@ -36,16 +33,24 @@ def sys_info(
     extra : bool
         If True, display information about optional dependencies.
     developer : bool
-        If True, display information about optional dependencies. Only available for
-        the package installed in editable mode.
+        If True, display information about developer dependencies, read from the
+        ``pyproject.toml`` of a package installed from source.
     package : str | None
         The package to display information about. If None, display information about the
         current package.
+
+    Raises
+    ------
+    RuntimeError
+        If the requirements of the package cannot be retrieved, or if ``developer`` is
+        True and the ``pyproject.toml`` of the package cannot be found.
     """
     from packaging.requirements import Requirement
 
-    check_type(developer, (bool,), "developer")
-    check_type(package, (str, None), "package")
+    try:
+        import psutil
+    except ImportError:
+        psutil = None
 
     ljust = 26
     out = partial(print, end="", file=fid)
@@ -54,26 +59,19 @@ def sys_info(
     if "-" in package:
         package = package.replace("-", "_")
 
-    # OS information - requires python 3.8 or above
     out("Platform:".ljust(ljust) + platform.platform() + "\n")
-    # python information
     out("Python:".ljust(ljust) + sys.version.replace("\n", " ") + "\n")
     out("Executable:".ljust(ljust) + sys.executable + "\n")
-    # CPU information
     out("CPU:".ljust(ljust) + platform.processor() + "\n")
-    psutil = import_optional_dependency("psutil", raise_error=False)
     if psutil is not None:
         out("Physical cores:".ljust(ljust) + str(psutil.cpu_count(False)) + "\n")
         out("Logical cores:".ljust(ljust) + str(psutil.cpu_count(True)) + "\n")
-        # memory information
         out("RAM:".ljust(ljust))
         out(f"{psutil.virtual_memory().total / float(2**30):0.1f} GB\n")
         out("SWAP:".ljust(ljust))
         out(f"{psutil.swap_memory().total / float(2**30):0.1f} GB\n")
-    # package information
     out(f"{package}:".ljust(ljust) + version(package) + "\n")
 
-    # dependencies
     out("\nCore dependencies\n")
     requirements = requires(package)
     if requirements is None:
@@ -99,8 +97,7 @@ def sys_info(
                 _list_dependencies_info(out, ljust, package, extra_dependencies)
 
     if developer:
-        # following PEP 735, dependency-groups are intentionally omitted from metadata,
-        # thus we need to parse the pyproject.toml file directly.
+        # PEP 735 dependency groups are not part of the metadata.
         origin = Path(find_spec(package).origin)
         for folder in origin.parents[1:3]:  # support 'src' or 'flat' layout structure
             if (folder / "pyproject.toml").exists():
@@ -132,7 +129,19 @@ def sys_info(
 def _list_dependencies_info(
     out: Callable, ljust: int, package: str, dependencies: list[Requirement]
 ) -> None:
-    """List dependencies names and versions."""
+    """List the names and installed versions of dependencies.
+
+    Parameters
+    ----------
+    out : Callable
+        The function writing a line of output.
+    ljust : int
+        The width the dependency names are padded to.
+    package : str
+        The package whose dependencies are listed; skipped if listed as a dependency.
+    dependencies : list of Requirement
+        The dependencies to list.
+    """
     unicode = sys.stdout.encoding.lower().startswith("utf")
     if unicode:
         ljust += 1
@@ -147,9 +156,7 @@ def _list_dependencies_info(
             not_found.append(dep)
             continue
 
-        # build the output string step by step
         output = f"✔︎ {dep.name}" if unicode else dep.name
-        # handle version specifiers
         if len(dep.specifier) != 0:
             output += f" ({str(dep.specifier)})"
         output += ":"
@@ -172,10 +179,18 @@ def _list_dependencies_info(
 def _find_distribution_name(module_package: str) -> str:
     """Find the distribution name from a module's ``__package__``.
 
-    Tries progressively shorter prefixes until finding one with valid metadata.
-    Handles both regular packages (e.g., ``template.utils`` -> ``template``) and
-    namespace packages (e.g., ``sphinxcontrib.pydantic.utils`` ->
-    ``sphinxcontrib.pydantic``).
+    Tries progressively shorter prefixes until finding one with valid metadata, e.g.
+    ``bibclean.utils`` -> ``bibclean``.
+
+    Parameters
+    ----------
+    module_package : str
+        The ``__package__`` of a module.
+
+    Returns
+    -------
+    str
+        The distribution name, or ``module_package`` if no prefix has metadata.
     """
     parts = module_package.split(".")
     for i in range(len(parts), 0, -1):

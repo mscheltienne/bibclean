@@ -5,7 +5,9 @@ import click
 from bibclean.utils.config import sys_info
 
 
-@click.command(name="sys-info")
+@click.command(
+    name="sys-info", help="Print the platform, Python and dependency versions."
+)
 @click.option(
     "--extra",
     help="Display information for optional dependencies.",
@@ -17,5 +19,13 @@ from bibclean.utils.config import sys_info
     is_flag=True,
 )
 def run(extra: bool, developer: bool) -> None:
-    """Print the platform, Python and dependency versions."""
+    """Print the platform, Python and dependency versions.
+
+    Parameters
+    ----------
+    extra : bool
+        Also print the optional dependencies.
+    developer : bool
+        Also print the developer dependencies.
+    """
     sys_info(extra=extra, developer=developer)

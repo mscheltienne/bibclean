@@ -99,6 +99,7 @@ style = [
     { name = "yamllint" },
 ]
 test = [
+    { name = "platformdirs" },
     { name = "psutil" },
     { name = "pybtex" },
     { name = "pytest" },
@@ -135,6 +136,7 @@ style = [
     { name = "yamllint" },
 ]
 test = [
+    { name = "platformdirs" },
     { name = "psutil" },
     { name = "pybtex" },
     { name = "pytest", specifier = ">=9.1.1" },

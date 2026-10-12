@@ -26,6 +26,16 @@ def strip_field(ctx: Context) -> list[Diagnostic]:
        @article{k, abstract = {...}, file = {...}, urldate = {...}}
 
     pybtex: nothing, noise only.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     targets = {

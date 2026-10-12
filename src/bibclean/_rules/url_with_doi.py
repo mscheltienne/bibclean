@@ -10,15 +10,26 @@ if TYPE_CHECKING:
 
 @rule(name="url-with-doi", fixable="yes", scope="entry")
 def url_with_doi(ctx: Context) -> list[Diagnostic]:
-    """Report a ``url`` field made redundant by a ``doi`` field.
+    """Report a ``url`` field in an entry that has a ``doi`` field.
 
-    The ``url`` field is removed.
+    The ``url`` field is removed, whatever it points to: the DOI is the stable link
+    to the work.
 
     .. code-block:: bibtex
 
        @article{k, doi = {10.1/x}, url = {https://example.org}}
 
     pybtex: nothing, the reference simply carries two links to the same work.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():

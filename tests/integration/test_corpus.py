@@ -1,6 +1,7 @@
 """Exercise bibclean on an external corpus of real-world and parser test files.
 
-The corpus is downloaded at test time by the ``corpus`` fixture into the pytest cache,
+The corpus is downloaded at test time by the ``corpus`` fixture into the ``corpus``
+folder of the user cache directory of ``bibclean`` (``platformdirs.user_cache_dir``),
 from the raw URLs pinned to a commit in ``tests/assets/corpus.json``, which maps each
 base URL to the license of the repository and the SHA-256 digest of every file. A file
 that cannot be downloaded or does not match its digest is skipped. It gathers the test

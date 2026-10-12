@@ -24,6 +24,16 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
 
     pybtex: latexcodec treats ``%`` as the start of a comment and drops the rest
     of the value when the reference is decoded.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():
@@ -51,7 +61,18 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
 
 
 def _escape(text: str) -> str:
-    """Prefix every unescaped percent sign with a backslash."""
+    """Prefix every unescaped percent sign with a backslash.
+
+    Parameters
+    ----------
+    text : str
+        Text to escape.
+
+    Returns
+    -------
+    str
+        The text, every ``%`` preceded by an even number of backslashes escaped.
+    """
     out: list[str] = []
     backslashes = 0
     for char in text:

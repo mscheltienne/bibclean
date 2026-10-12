@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from importlib.util import find_spec
 from io import StringIO
 
@@ -41,9 +42,7 @@ def test_sys_info() -> None:
 
 def test_sys_info_without_psutil(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that the hardware lines are skipped when psutil is not installed."""
-    monkeypatch.setattr(
-        "bibclean.utils.config.import_optional_dependency", lambda *args, **kwargs: None
-    )
+    monkeypatch.setitem(sys.modules, "psutil", None)
     out = StringIO()
     sys_info(fid=out)
     value = out.getvalue()

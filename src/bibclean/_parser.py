@@ -71,7 +71,15 @@ class LineIndex:
 
 
 class _ParseError(Exception):
-    """Failure inside a block, caught and turned into a :class:`~Malformed`."""
+    """Failure inside a block, turned into a :class:`~bibclean._model.Malformed`.
+
+    Parameters
+    ----------
+    message : str
+        Description of the failure.
+    offset : int
+        Character offset at which the failure was detected.
+    """
 
     def __init__(self, message: str, offset: int) -> None:
         super().__init__(message)
@@ -79,7 +87,13 @@ class _ParseError(Exception):
 
 
 class _Scanner:
-    """Recursive descent scanner over one source text."""
+    """Recursive descent scanner over one source text.
+
+    Parameters
+    ----------
+    source : str
+        Decoded source text.
+    """
 
     def __init__(self, source: str) -> None:
         self.source = source
@@ -88,20 +102,49 @@ class _Scanner:
         self._key: str | None = None
 
     def _peek(self) -> str:
+        """Return the character at the current offset.
+
+        Returns
+        -------
+        str
+            The character, an empty string at the end of the source.
+        """
         return self.source[self.pos] if self.pos < len(self.source) else ""
 
     def _skip_ws(self) -> None:
+        """Advance the current offset past whitespace."""
         source = self.source
         end = len(source)
         while self.pos < end and source[self.pos] in WHITESPACE:
             self.pos += 1
 
     def _expect(self, char: str, message: str) -> None:
+        """Consume one expected character.
+
+        Parameters
+        ----------
+        char : str
+            Character expected at the current offset.
+        message : str
+            Message of the error raised when another character is found.
+
+        Raises
+        ------
+        _ParseError
+            If the character at the current offset is not ``char``.
+        """
         if self._peek() != char:
             raise _ParseError(message, self.pos)
         self.pos += 1
 
     def _scan_identifier(self) -> str:
+        """Consume an entry type, a field name, a string name or a bare macro.
+
+        Returns
+        -------
+        str
+            The identifier, empty when the current character cannot start one.
+        """
         source = self.source
         end = len(source)
         start = self.pos
@@ -110,6 +153,13 @@ class _Scanner:
         return source[start : self.pos]
 
     def _scan_cite_key(self) -> str:
+        """Consume a cite key, which ends at whitespace or at ``,{}()``.
+
+        Returns
+        -------
+        str
+            The cite key, empty when the current character cannot start one.
+        """
         source = self.source
         end = len(source)
         start = self.pos
@@ -186,6 +236,25 @@ class _Scanner:
         return block, self.pos
 
     def _scan_string(self, at: int, closing: str) -> StringDef:
+        """Consume the body of an ``@string`` block, after its opening delimiter.
+
+        Parameters
+        ----------
+        at : int
+            Offset of the ``'@'`` starting the block.
+        closing : str
+            Delimiter closing the block, ``'}'`` or ``')'``.
+
+        Returns
+        -------
+        StringDef
+            The macro definition.
+
+        Raises
+        ------
+        _ParseError
+            If the body is not ``name = value`` followed by the closing delimiter.
+        """
         self._skip_ws()
         key = self._scan_identifier()
         if not key:
@@ -204,6 +273,25 @@ class _Scanner:
         )
 
     def _scan_preamble(self, at: int, closing: str) -> Preamble:
+        """Consume the body of an ``@preamble`` block, after its opening delimiter.
+
+        Parameters
+        ----------
+        at : int
+            Offset of the ``'@'`` starting the block.
+        closing : str
+            Delimiter closing the block, ``'}'`` or ``')'``.
+
+        Returns
+        -------
+        Preamble
+            The preamble.
+
+        Raises
+        ------
+        _ParseError
+            If the body is not a value followed by the closing delimiter.
+        """
         self._skip_ws()
         value = self._scan_value("preamble")
         self._skip_ws()
@@ -215,6 +303,30 @@ class _Scanner:
         )
 
     def _scan_entry(self, at: int, kind_text: str, opening: str, closing: str) -> Entry:
+        """Consume the body of an entry, after its opening delimiter.
+
+        Parameters
+        ----------
+        at : int
+            Offset of the ``'@'`` starting the block.
+        kind_text : str
+            Entry type, as written.
+        opening : str
+            Delimiter opening the block, ``'{'`` or ``'('``.
+        closing : str
+            Delimiter closing the block, ``'}'`` or ``')'``.
+
+        Returns
+        -------
+        Entry
+            The entry.
+
+        Raises
+        ------
+        _ParseError
+            If the body is not a cite key followed by comma-separated
+            ``name = value`` fields and the closing delimiter.
+        """
         self._skip_ws()
         key = self._scan_cite_key()
         if not key:
@@ -274,6 +386,24 @@ class _Scanner:
         )
 
     def _scan_value(self, what: str) -> Value:
+        """Consume a value: parts joined by ``'#'``.
+
+        Parameters
+        ----------
+        what : str
+            Name of the construct holding the value, used in error messages.
+
+        Returns
+        -------
+        Value
+            The value. The current offset is left after its last part, before any
+            trailing whitespace.
+
+        Raises
+        ------
+        _ParseError
+            If a part cannot be read.
+        """
         parts = [self._scan_part(what)]
         while True:
             saved = self.pos
@@ -287,6 +417,27 @@ class _Scanner:
                 return Value(parts)
 
     def _scan_part(self, what: str) -> Part:
+        """Consume one braced, quoted or bare part of a value.
+
+        Braces are counted as BibTeX counts them: a backslash escapes nothing, and a
+        quoted part ends at the first ``'"'`` outside braces.
+
+        Parameters
+        ----------
+        what : str
+            Name of the construct holding the value, used in error messages.
+
+        Returns
+        -------
+        Part
+            The part, its text without the delimiters.
+
+        Raises
+        ------
+        _ParseError
+            If no part starts at the current offset, if the braces of a quoted part
+            are unbalanced, or if the source ends inside the part.
+        """
         source = self.source
         end = len(source)
         char = self._peek()

@@ -7,16 +7,11 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
+import platformdirs
 import pytest
 from click.testing import CliRunner
 
-from bibclean.utils.logs import logger
 from tests.helpers import corpus_manifest
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest options."""
-    logger.propagate = True  # setup logging
 
 
 @pytest.fixture(scope="session")
@@ -60,11 +55,12 @@ def _download(url: str, digest: str, path: Path) -> Path | None:
 
 
 @pytest.fixture(scope="session")
-def corpus(pytestconfig: pytest.Config) -> dict[str, Path | None]:
-    """Download the external corpus into the pytest cache.
+def corpus() -> dict[str, Path | None]:
+    """Download the external corpus into the user cache directory.
 
-    Files are cached by digest across runs. The download stops after 40 seconds, below
-    the test timeout, and the files missing by then are None.
+    Files are cached by digest across runs in the ``corpus`` folder of
+    ``platformdirs.user_cache_dir("bibclean")``. The download stops after 40 seconds,
+    below the test timeout, and the files missing by then are None.
 
     Returns
     -------
@@ -72,7 +68,8 @@ def corpus(pytestconfig: pytest.Config) -> dict[str, Path | None]:
         Maps the name of every file of :func:`tests.helpers.corpus_manifest` to its
         cached copy, or to None when it is not available.
     """
-    cache = pytestconfig.cache.mkdir("corpus")
+    cache = Path(platformdirs.user_cache_dir("bibclean")) / "corpus"
+    cache.mkdir(parents=True, exist_ok=True)
     pool = ThreadPoolExecutor(16)
     futures = {
         name: pool.submit(_download, url, digest, cache / digest)

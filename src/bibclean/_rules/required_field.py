@@ -28,6 +28,16 @@ def required_field(ctx: Context) -> list[Diagnostic]:
     pybtex: the style prints an incomplete reference, or fails outright. Like
     BibTeX, pybtex fills the fields missing from an entry with those of its
     ``crossref`` target.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     by_key: dict[str, Entry] = {}

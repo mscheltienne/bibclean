@@ -33,14 +33,15 @@ at the top level, and its per-type tables are top-level tables such as
     [article]
     required = ["author", "title", "year"]
 
-``-c, --config PATH`` replaces the discovered file for every input, and
+``-c, --config FILE`` replaces the discovered file for every input, and
 ``--isolated`` ignores every file and runs with the defaults. The two are mutually
 exclusive. ``--ignore`` adds rule names to whichever configuration applies,
 including the defaults.
 
 An unknown key, a value of the wrong type and an unknown rule name in ``ignore``
-are errors: the run stops with exit code 2 and a message naming the key, with a
-suggestion when a known key is close enough.
+are errors, reported with the name of the key and a suggestion when a known key is
+close enough. The files using that configuration are skipped and the run exits
+with code 2.
 
 Options
 -------

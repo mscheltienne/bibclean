@@ -27,6 +27,16 @@ def undefined_string(ctx: Context) -> list[Diagnostic]:
        @article{k, journal = jnuero}
 
     pybtex: the documentation build fails with an undefined macro error.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     every = {block.key.lower() for block in ctx.blocks if isinstance(block, StringDef)}
@@ -44,7 +54,23 @@ def undefined_string(ctx: Context) -> list[Diagnostic]:
 
 
 def _check(value: Value, position: Position, defined: set[str]) -> list[Diagnostic]:
-    """Report the bare parts of a value that are neither digits nor defined."""
+    """Report the macros of a value that are not defined.
+
+    Parameters
+    ----------
+    value : Value
+        Value to inspect.
+    position : Position
+        Position reported for the value.
+    defined : set of str
+        Lowercased names of the macros defined for the value; the month macros are
+        always defined.
+
+    Returns
+    -------
+    list of Diagnostic
+        One violation per undefined macro.
+    """
     findings: list[Diagnostic] = []
     for part in value.parts:
         if not part.is_macro:

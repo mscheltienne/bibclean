@@ -20,7 +20,15 @@ _BLANK = " \t\n\r\f\v\N{BYTE ORDER MARK}"
 
 @dataclass(slots=True)
 class _Unit:
-    """A block together with the comments and prose written directly above it."""
+    """A block together with the comments and prose written directly above it.
+
+    Parameters
+    ----------
+    prefixes : list of Block
+        The free text written directly above the block.
+    block : Block | None
+        The block, None for the free text at the end of a file.
+    """
 
     prefixes: list[Block]
     block: Block | None
@@ -148,8 +156,7 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     str
         The canonical text: strings and preambles in source order, entries, then
         malformed blocks in source order, one blank line between units and exactly
-        one final newline. An input without any block renders
-        as the empty string.
+        one final newline. An input without any block renders as the empty string.
     """
     units = _order_units(_group_units(blocks), options)
     if not units:
@@ -158,7 +165,21 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
 
 
 def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
-    """Order the fields of an entry according to the options."""
+    """Order the fields of an entry according to the options.
+
+    Parameters
+    ----------
+    entry : Entry
+        Entry whose fields are ordered.
+    options : FormatOptions
+        Formatting options, of which ``sort_fields`` is used.
+
+    Returns
+    -------
+    list of Field
+        The fields in source order, sorted by name, or with the names listed in
+        ``sort_fields`` first, in that order, and the others sorted by name.
+    """
     order = options.sort_fields
     if order is False:
         return list(entry.fields)
@@ -167,6 +188,19 @@ def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
     rank = {name: i for i, name in enumerate(dict.fromkeys(n.lower() for n in order))}
 
     def key(item: Field) -> tuple[int, str]:
+        """Return the sort key of a field.
+
+        Parameters
+        ----------
+        item : Field
+            Field to sort.
+
+        Returns
+        -------
+        tuple of (int, str)
+            The rank of the name in ``sort_fields``, then the name for the fields
+            not listed there.
+        """
         name = item.key.lower()
         if name in rank:
             return (rank[name], "")
@@ -176,7 +210,19 @@ def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
 
 
 def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
-    """Group blocks into units, dropping whitespace-only junk."""
+    """Group blocks into units, dropping whitespace-only free text.
+
+    Parameters
+    ----------
+    blocks : sequence of Block
+        Blocks, in source order.
+
+    Returns
+    -------
+    list of _Unit
+        The units, in source order. Free text after the last block forms a unit
+        without block.
+    """
     units: list[_Unit] = []
     pending: list[Block] = []
     for block in blocks:
@@ -194,7 +240,18 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
 def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
     """Order units: strings and preambles, entries, malformed blocks, trailing prose.
 
-    Only the entries are sorted; the other groups keep their source order.
+    Parameters
+    ----------
+    units : sequence of _Unit
+        Units, in source order.
+    options : FormatOptions
+        Formatting options, of which ``sort_entries`` is used.
+
+    Returns
+    -------
+    list of _Unit
+        The ordered units. Only the entries are sorted, by cite key without case;
+        the other groups keep their source order.
     """
     header: list[_Unit] = []
     entries: list[_Unit] = []
@@ -215,6 +272,19 @@ def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
 
 
 def _render_unit(unit: _Unit, options: FormatOptions) -> str:
-    """Render a unit: its prefixes then its block, one per line."""
+    """Render a unit: its prefixes then its block, one per line.
+
+    Parameters
+    ----------
+    unit : _Unit
+        Unit to render.
+    options : FormatOptions
+        Formatting options.
+
+    Returns
+    -------
+    str
+        The unit, without a trailing newline.
+    """
     blocks = [*unit.prefixes, unit.block] if unit.block is not None else unit.prefixes
     return "\n".join(render_block(block, options) for block in blocks)

@@ -20,14 +20,8 @@ bibclean check doc/references.bib   # report violations, never write
 bibclean fix doc/references.bib     # rewrite it in place
 ```
 
-Or with [uv](https://docs.astral.sh/uv/):
-
-```bash
-uvx bibclean check doc/references.bib   # report violations, never write
-uvx bibclean fix doc/references.bib     # rewrite it in place
-```
-
-Example output:
+With [uv](https://docs.astral.sh/uv/), `uvx bibclean check doc/references.bib` runs
+it without installing it. Example output:
 
 ```
 doc/references.bib:14:3: strip-field field 'abstract' is not kept for @article [*]

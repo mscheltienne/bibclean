@@ -25,6 +25,16 @@ def pages_range(ctx: Context) -> list[Diagnostic]:
        @article{k, pages = {4101-4105}}
 
     pybtex: nothing, typography of the rendered reference.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():

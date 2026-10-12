@@ -27,6 +27,16 @@ def author_format(ctx: Context) -> list[Diagnostic]:
 
     pybtex: the name is rejected with ``Too many commas`` and the documentation
     build fails.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():

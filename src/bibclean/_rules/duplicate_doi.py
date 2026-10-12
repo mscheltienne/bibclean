@@ -26,6 +26,16 @@ def duplicate_doi(ctx: Context) -> list[Diagnostic]:
        @article{a-1, doi = {https://doi.org/10.1/X}}
 
     pybtex: nothing, the bibliography simply lists the work twice.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     seen: dict[str, Entry] = {}

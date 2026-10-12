@@ -56,7 +56,7 @@ Options
 
    * - Option
      - Meaning
-   * - ``-c, --config PATH``
+   * - ``-c, --config FILE``
      - Use this TOML file instead of the discovered configuration, for every input
        file. See :doc:`configuration`.
    * - ``--isolated``
@@ -94,8 +94,6 @@ Exit codes
 
 A syntax error inside a ``.bib`` file is a violation, not an error: it exits 1, and
 ``fix`` leaves that file untouched.
-Exit code 2 is reserved for a file or an option ``bibclean`` could not handle at
-all, and it never stops the other files of the batch.
 
 Output
 ------
@@ -120,14 +118,8 @@ followed by ``Fixed N violations, wrote M files.`` (``would write`` with
 ``--diff``). Paths are printed exactly as they were typed on the command line.
 
 Nothing is printed when there is nothing to report. Errors go to the error stream.
-
-Colours
--------
-
-The output is coloured when the standard output is a terminal. Colours are
-disabled when the environment variable ``NO_COLOR`` is set to a non-empty value,
-when ``TERM`` is ``dumb``, and whenever the output is redirected to a file or a
-pipe, so a captured report is always plain text.
+The output is coloured on a terminal, unless ``NO_COLOR`` is set or ``TERM`` is
+``dumb``.
 
 bibclean sys-info
 -----------------
@@ -161,9 +153,8 @@ Two `pre-commit`_ hooks are available.
           - id: bibclean-fix
             files: doc/references.bib
 
-The mode is part of the hook entry, not of its arguments, so an ``args:`` list in
-a consumer configuration does not have to repeat it. Both hooks run on the
-``pre-commit``, ``pre-merge-commit``, ``pre-push`` and ``manual`` stages.
+Both hooks run on the ``pre-commit``, ``pre-merge-commit``, ``pre-push`` and
+``manual`` stages.
 
 GitHub action
 -------------
@@ -184,5 +175,5 @@ Below is a workflow checking the bibliography of a documentation build.
         runs-on: ubuntu-latest
         steps:
           - uses: actions/checkout@v7
-          - uses: astral-sh/setup-uv@v7
+          - uses: astral-sh/setup-uv@v10.3.0
           - run: uvx bibclean check doc/references.bib

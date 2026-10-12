@@ -56,6 +56,16 @@ def month_format(ctx: Context) -> list[Diagnostic]:
 
     pybtex: macros are substituted while literal names are printed as they are,
     so both forms render the same but a canonical file needs one of them.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     mode = ctx.config.lint.month
     findings: list[Diagnostic] = []

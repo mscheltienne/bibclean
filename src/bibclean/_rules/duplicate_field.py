@@ -23,6 +23,16 @@ def duplicate_field(ctx: Context) -> list[Diagnostic]:
        @article{k, title = {Other}, title = {Another}}
 
     pybtex: the documentation build fails on the repeated field.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
     """
     findings: list[Diagnostic] = []
     for entry in ctx.entries():
