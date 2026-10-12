@@ -83,6 +83,12 @@ def test_render_block_kinds() -> None:
     assert "@misc{k,\n  a = {b}\n}" in rendered
 
 
+def test_string_value_keeps_outer_whitespace() -> None:
+    """Test that a macro value keeps the spaces a concatenation relies on."""
+    (block,) = parse('@string{stoc = "  Symposium  on  Theory "}')
+    assert render_block(block, DEFAULTS) == "@string{stoc = { Symposium on Theory }}"
+
+
 def test_render_malformed() -> None:
     """Test that a malformed block is emitted verbatim without trailing space."""
     blocks = parse("@misc{k, a = {b\n")

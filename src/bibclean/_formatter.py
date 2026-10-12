@@ -42,13 +42,16 @@ def collapse_whitespace(text: str) -> str:
     return _WHITESPACE_RUN.sub(" ", text)
 
 
-def render_value(value: Value) -> str:
+def render_value(value: Value, *, strip: bool = True) -> str:
     """Render a value in canonical form.
 
     Parameters
     ----------
     value : Value
         Value to render.
+    strip : bool
+        Strip the whitespace at both ends of the value. A macro value keeps it,
+        since a concatenation such as ``"ACM" # stoc`` relies on it.
 
     Returns
     -------
@@ -61,9 +64,9 @@ def render_value(value: Value) -> str:
         part.text if part.kind == "bare" else collapse_whitespace(part.text)
         for part in parts
     ]
-    if parts[0].kind != "bare":
+    if strip and parts[0].kind != "bare":
         texts[0] = texts[0].lstrip()
-    if parts[-1].kind != "bare":
+    if strip and parts[-1].kind != "bare":
         texts[-1] = texts[-1].rstrip()
     rendered = []
     for part, text in zip(parts, texts, strict=True):
@@ -121,7 +124,8 @@ def render_block(block: Block, options: FormatOptions) -> str:
     if isinstance(block, Entry):
         return render_entry(block, options)
     if isinstance(block, StringDef):
-        return "@string{" + block.key + " = " + render_value(block.value) + "}"
+        value = render_value(block.value, strip=False)
+        return "@string{" + block.key + " = " + value + "}"
     if isinstance(block, Preamble):
         return "@preamble{" + render_value(block.value) + "}"
     if isinstance(block, Malformed):

@@ -77,7 +77,7 @@ The style
      - ``{A  {Title}   here}``
      - ``{A {Title} here}``
      - fixed
-   * - Outer whitespace stripped
+   * - Outer whitespace stripped, except in ``@string`` values
      - ``{ A }``
      - ``{A}``
      - fixed
