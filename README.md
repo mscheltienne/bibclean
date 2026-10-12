@@ -5,6 +5,13 @@
 [![PyPI version](https://badge.fury.io/py/bibclean.svg)](https://badge.fury.io/py/bibclean)
 [![Downloads](https://static.pepy.tech/badge/bibclean)](https://pepy.tech/project/bibclean)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mscheltienne/bibclean/main/doc/_static/logo-dark.svg">
+    <img alt="bibclean" src="https://raw.githubusercontent.com/mscheltienne/bibclean/main/doc/_static/logo-light.svg" width="360">
+  </picture>
+</p>
+
 # bibclean
 
 A linter and formatter for BibTeX files, available as a command-line tool and as
