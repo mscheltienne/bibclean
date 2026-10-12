@@ -158,7 +158,8 @@ def test_merge_types() -> None:
     types = config.lint.types
     assert types["article"].required == ("author", "title", "year", "doi")
     assert types["article"].keep == frozenset(
-        {"author", "title", "year", "doi", "month", "number", "pages", "url", "volume"}
+        {"author", "journal", "title", "year", "doi", "month", "number", "pages"}
+        | {"url", "volume"}
     )
     assert types["book"].required == TYPES["book"][0]
     assert types["book"].keep == frozenset(
@@ -168,6 +169,14 @@ def test_merge_types() -> None:
     assert types["custom"].keep is None
     assert types["other"].required == ()
     assert types["other"].keep == frozenset({"note"})
+
+
+def test_required_override_keeps_the_shipped_required() -> None:
+    """Test that overriding only 'required' keeps the shipped required names."""
+    config = parse_config(
+        {"article": {"required": ["author", "title", "year"]}}, path=None
+    )
+    assert "journal" in config.lint.types["article"].keep
 
 
 def test_exclude_types_keeps_the_tables() -> None:
@@ -229,7 +238,9 @@ def test_config_error_message(tmp_path: Path) -> None:
     for _ in range(2):  # failures are not memoized
         with pytest.raises(ConfigError) as excinfo:
             load_config(path)
-    assert str(excinfo.value) == "unknown key 'unknown-key' in bibclean.toml"
+    assert str(excinfo.value) == (
+        f"{path}: unknown key 'unknown-key' in the top-level table"
+    )
 
 
 def test_find_config_precedence(tmp_path: Path) -> None:
@@ -270,7 +281,7 @@ def test_find_config_none(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
     """Test that the walk returns None when nothing is found."""
     monkeypatch.setattr(
         "bibclean._config._pyproject_has_table",
-        lambda path: False,  # noqa: ARG005
+        lambda _path: False,
     )
     assert find_config(tmp_path) is None
 

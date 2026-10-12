@@ -134,7 +134,7 @@ def execute(
                 None if isolated else config.resolve(), extra_ignore=ignore
             )
         except ConfigError as exc:
-            _echo_error(str(config), str(exc))
+            click.echo(f"error: {exc}", err=True)
             return 2
     lines: list[str] = []
     errors = 0
@@ -161,7 +161,6 @@ def execute(
             )
         else:
             error = None
-            fixable += sum(item.fixable for item in report.diagnostics)
             lines.extend(
                 format_diagnostic(file, item)
                 for item in report.diagnostics
@@ -178,6 +177,8 @@ def execute(
                     except OSError as exc:
                         error = f"cannot write file: {exc.strerror or exc}"
                 written += error is None
+            if error is None:
+                fixable += sum(item.fixable for item in report.diagnostics)
         if error is not None:
             _echo_error(file, error)
             errors += 1
@@ -270,7 +271,7 @@ def use_color(stream: IO[str]) -> bool:
 
 
 def _validate_encoding(ctx: click.Context, param: click.Parameter, value: str) -> str:
-    """Reject an encoding name that Python does not know.
+    """Reject an encoding name that Python does not know as a text encoding.
 
     Parameters
     ----------
@@ -289,12 +290,15 @@ def _validate_encoding(ctx: click.Context, param: click.Parameter, value: str) -
     Raises
     ------
     click.BadParameter
-        If Python has no codec of that name.
+        If Python has no codec of that name, or a codec that does not convert
+        between text and bytes, such as ``'hex'`` or ``'rot13'``.
     """
     try:
-        codecs.lookup(value)
+        text = codecs.lookup(value)._is_text_encoding
     except LookupError:
         raise click.BadParameter(f"unknown encoding '{value}'")
+    if not text:
+        raise click.BadParameter(f"'{value}' is not a text encoding")
     return value
 
 

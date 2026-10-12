@@ -145,7 +145,8 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     Returns
     -------
     str
-        The canonical text: strings and preambles in source order, then entries,
+        The canonical text: the leading free text, strings and preambles in source
+        order, then entries,
         one blank line between units and exactly one final newline. An input
         without any block renders as the empty string.
     """
@@ -212,7 +213,9 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
     -------
     list of _Unit
         The units, in source order. Free text after the last block forms a unit
-        without block.
+        without block, and so does the header: the free text at the start of the
+        file up to the last blank line separating two pieces of free text, or the
+        free text and the first block.
     """
     units: list[_Unit] = []
     pending: list[Block] = []
@@ -221,6 +224,15 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
             if block.raw.strip(_BLANK):
                 pending.append(block)
             continue
+        if not units:
+            tails = [item.raw[len(item.raw.rstrip(_BLANK)) :] for item in pending]
+            split = max(
+                (i + 1 for i, tail in enumerate(tails) if tail.count("\n") > 1),
+                default=0,
+            )
+            if split:
+                units.append(_Unit(prefixes=pending[:split], block=None))
+                pending = pending[split:]
         units.append(_Unit(prefixes=pending, block=block))
         pending = []
     if pending:
@@ -229,7 +241,7 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
 
 
 def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
-    """Order units: strings and preambles, entries, trailing prose.
+    """Order units: leading prose, strings and preambles, entries, trailing prose.
 
     Parameters
     ----------
@@ -249,7 +261,7 @@ def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
     entries: list[_Unit] = []
     trailing: list[_Unit] = []
     for unit in units:
-        if unit.block is None:
+        if unit.block is None and unit is not units[0]:
             trailing.append(unit)
         elif isinstance(unit.block, Entry):
             entries.append(unit)

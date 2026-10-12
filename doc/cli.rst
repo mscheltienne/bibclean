@@ -29,7 +29,8 @@ bibclean fix
 ``bibclean fix`` runs the same analysis, applies every fixable rule, rewrites the
 canonical text of the files that changed and reports what is left. A file is
 rewritten as soon as its canonical text differs from what is on disk, even when
-unfixable violations remain. A file with a syntax error is never rewritten: its
+unfixable violations remain. A file with a syntax error, or one redefining a
+``@string`` macro (see :ref:`rule-duplicate-string`), is never rewritten: its
 violations are all reported as unfixable until the error is repaired.
 
 .. code-block:: bash

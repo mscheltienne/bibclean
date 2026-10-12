@@ -3,9 +3,11 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from bibclean._model import StringDef
 from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
+    from bibclean._model import Value
     from bibclean._rules._base import Context
 
 _EXEMPT = frozenset({"doi", "file", "url"})
@@ -18,10 +20,11 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
     r"""Report a ``%`` that is not escaped by a backslash.
 
     Every unescaped ``%`` of the value becomes ``\%``, and one finding is
-    emitted per field whatever the number of occurrences. The fields ``url``,
-    ``doi`` and ``file`` are exempt, where a ``%`` is legitimate URL encoding, and
-    so are the argument of ``\url`` and the first argument of ``\href`` in any
-    other field.
+    emitted per field or ``@string`` value whatever the number of occurrences. The
+    fields ``url``, ``doi`` and ``file`` are exempt, where a ``%`` is legitimate URL
+    encoding, and so are the argument of ``\url`` and the first argument of
+    ``\href`` in any other field or ``@string`` value. A ``@string`` value is always
+    checked, since it is expanded into the fields using it.
 
     .. code-block:: bibtex
 
@@ -41,26 +44,42 @@ def unescaped_percent(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
+    suffix = "pybtex drops the rest of the value"
+    for block in ctx.blocks:
+        if isinstance(block, StringDef) and _escape_value(block.value):
+            message = f"unescaped '%' in string '{block.key}', {suffix}"
+            findings.append(Diagnostic(block.start, message, True))
     for entry in ctx.checked_entries():
         for field in entry.fields:
             name = field.key.lower()
-            if name in _EXEMPT:
-                continue
-            changed = False
-            for part in field.value.parts:
-                if part.kind == "bare":
-                    continue
-                escaped = _escape(part.text)
-                if escaped != part.text:
-                    part.text = escaped
-                    changed = True
-            if changed:
-                message = (
-                    f"unescaped '%' in field '{name}', "
-                    "pybtex drops the rest of the value"
-                )
+            if name not in _EXEMPT and _escape_value(field.value):
+                message = f"unescaped '%' in field '{name}', {suffix}"
                 findings.append(Diagnostic(field.start, message, True))
     return findings
+
+
+def _escape_value(value: Value) -> bool:
+    """Escape in place the unescaped percent signs of the literal parts of a value.
+
+    Parameters
+    ----------
+    value : Value
+        Value to escape.
+
+    Returns
+    -------
+    bool
+        True when a part was changed.
+    """
+    changed = False
+    for part in value.parts:
+        if part.kind == "bare":
+            continue
+        escaped = _escape(part.text)
+        if escaped != part.text:
+            part.text = escaped
+            changed = True
+    return changed
 
 
 def _escape(text: str) -> str:

@@ -70,9 +70,19 @@ def test_detection(mode: str, source: str, message: str, rendered: str) -> None:
     assert rendered in output
 
 
-def test_already_canonical() -> None:
-    """Test that a value already in the target form reports nothing."""
-    assert apply_rule(NAME, "@article{k, month = sep}\n")[0] == []
+@pytest.mark.parametrize(
+    ("mode", "value"),
+    [
+        ("abbreviation", "sep"),
+        ("number", "9"),
+        ("number", '"9"'),
+        ("name", '" September "'),
+    ],
+)
+def test_already_canonical(mode: str, value: str) -> None:
+    """Test that a value rendering in the target form reports nothing."""
+    source = "@article{k, month = " + value + "}\n"
+    assert apply_rule(NAME, source, lint_config(month=mode))[0] == []
 
 
 def test_unrecognised() -> None:

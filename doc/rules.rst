@@ -3,7 +3,7 @@
 Rules
 =====
 
-Fourteen rules run over every file, in the order below. The rules repairing a value
+Fifteen rules run over every file, in the order below. The rules repairing a value
 run before the rules comparing fields and entries, so that a single ``fix`` merges
 the repeats that only become identical once repaired. ``bibclean check`` and
 ``bibclean fix`` report the same violations; only ``fix`` writes the result.

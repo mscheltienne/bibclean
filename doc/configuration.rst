@@ -41,7 +41,13 @@ including the defaults.
 An unknown key, a value of the wrong type and an unknown rule name in ``ignore``
 are errors, reported with the name of the key and a suggestion when a known key is
 close enough. The files using that configuration are skipped and the run exits
-with code 2.
+with code 2. The error is reported for each skipped file and names the
+configuration file, while an invalid ``--config`` file is reported once:
+
+.. code-block:: text
+
+    doc/references.bib: error: /project/.bibclean.toml: invalid TOML: ...
+    error: /project/custom.toml: 'indent' in the top-level table must be ...
 
 Options
 -------
@@ -128,7 +134,9 @@ entry keeps the fields it inherits. An entry referenced by a ``crossref`` is not
 stripped either, since its fields are inherited.
 
 The shipped tables below are the base. A user table overrides ``required`` and
-``keep`` independently: a key left out keeps its default. A table for a type that
+``keep`` independently: a key left out keeps its default, and the default ``keep``
+of a shipped type includes its shipped required names, so that dropping a name from
+``required`` does not strip that field. A table for a type that
 has no shipped table must declare ``required``, an empty list being enough, so that
 a misspelled type name such as ``[tool.bibclean.inproceeding]`` is reported instead of
 silently defining a new type. Such a type without ``keep`` is never stripped. Type

@@ -22,6 +22,7 @@ def test_order() -> None:
         "duplicate-field",
         "duplicate-key",
         "duplicate-doi",
+        "duplicate-string",
         "undefined-string",
         "author-format",
         "required-field",

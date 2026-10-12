@@ -6,13 +6,14 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from bibclean._formatter import format_blocks
-from bibclean._model import Malformed
+from bibclean._model import Malformed, StringDef
 from bibclean._parser import parse
 from bibclean._rules import RULES
 from bibclean._rules._base import Context, Diagnostic
 
 if TYPE_CHECKING:
     from bibclean._config import Config
+    from bibclean._model import Block
 
 NOT_FORMATTED_MESSAGE = "file is not formatted, run `bibclean fix`"
 
@@ -27,7 +28,7 @@ class Report:
         Every violation, sorted by position, the file-level one last.
     output : bytes | None
         Encoded canonical text to write, None when the file is left as it is
-        because it is already canonical or holds a syntax error.
+        because it is already canonical, holds a syntax error or redefines a macro.
     """
 
     diagnostics: list[Diagnostic]
@@ -99,7 +100,8 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     Report
         The diagnostics and the output to write. The fixable rules always run, so
         ``check`` and ``fix`` report exactly the same violations. A file with a
-        syntax error is never rewritten and none of its violations is fixable.
+        syntax error or a redefined macro is never rewritten and none of its
+        violations is fixable.
 
     Raises
     ------
@@ -109,11 +111,11 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     blocks = parse(decode(data, encoding))
     if codecs.lookup(encoding).name == "utf-8-sig":
         encoding = "utf-8"
-    malformed = any(isinstance(block, Malformed) for block in blocks)
-    formatted = None if malformed else format_blocks(blocks, config.format)
+    frozen = _is_unsafe_to_rewrite(blocks)
+    formatted = None if frozen else format_blocks(blocks, config.format)
     context = Context(blocks=blocks, config=config)
     diagnostics = lint(context)
-    if malformed:
+    if frozen:
         diagnostics = [replace(item, fixable=False) for item in diagnostics]
         output = None
     else:
@@ -131,8 +133,28 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     return Report(diagnostics=diagnostics, output=output)
 
 
+def _is_unsafe_to_rewrite(blocks: list[Block]) -> bool:
+    """Check whether rewriting a file could change its meaning.
+
+    Parameters
+    ----------
+    blocks : list of Block
+        Blocks of the file, as parsed.
+
+    Returns
+    -------
+    bool
+        True when a block is malformed, since it swallows the text up to the next
+        ``@``, or when a ``@string`` macro is defined twice, case-insensitively,
+        since hoisting the definitions changes the values of the entries between.
+    """
+    names = [block.key.lower() for block in blocks if isinstance(block, StringDef)]
+    malformed = any(isinstance(block, Malformed) for block in blocks)
+    return malformed or len(set(names)) < len(names)
+
+
 def unified_diff(path: str, before: str, after: str) -> str:
-    """Build the unified diff between two texts.
+    r"""Build the unified diff between two texts.
 
     Parameters
     ----------
@@ -146,14 +168,18 @@ def unified_diff(path: str, before: str, after: str) -> str:
     Returns
     -------
     str
-        The diff, with ``a/<path>`` and ``b/<path>`` headers, empty when the
-        two texts are equal.
+        The diff, with ``a/<path>`` and ``b/<path>`` headers, the leading ``/`` of
+        an absolute path dropped, empty when the two texts are equal. A line without
+        a final newline is followed by the ``\ No newline at end of file`` marker.
     """
+    path = path.lstrip("/")
+    lines = difflib.unified_diff(
+        before.splitlines(keepends=True),
+        after.splitlines(keepends=True),
+        fromfile=f"a/{path}",
+        tofile=f"b/{path}",
+    )
     return "".join(
-        difflib.unified_diff(
-            before.splitlines(keepends=True),
-            after.splitlines(keepends=True),
-            fromfile=f"a/{path}",
-            tofile=f"b/{path}",
-        )
+        line if line.endswith("\n") else line + "\n\\ No newline at end of file\n"
+        for line in lines
     )

@@ -19,7 +19,7 @@ bibliography stays readable in review and builds without surprises with `pybtex`
 and `sphinxcontrib-bibtex`_.
 
 - one canonical style, described in :doc:`format`;
-- fourteen rules, described in :doc:`rules`;
+- fifteen rules, described in :doc:`rules`;
 - configuration discovered from ``pyproject.toml``, ``bibclean.toml`` or
   ``.bibclean.toml``, described in :doc:`configuration`;
 - comments, ``@string`` macros, ``@preamble`` blocks and unknown entry types are

@@ -103,7 +103,8 @@ The style
      - fixed
    * - Comments
      - ``% x`` above an entry
-     - still above it after sorting, no blank line between
+     - still above it after sorting, no blank line between; at the start of the
+       file and followed by a blank line, first
      - fixed
    * - Blank lines
      - any number, anywhere
@@ -152,8 +153,10 @@ Nothing is dropped.
 
 Blocks are grouped into units before they are ordered: a unit is one block
 together with the comments and free text written directly above it, so an
-annotation travels with the entry it describes. Units are then emitted as macro
-definitions and preambles, in the order of the source since a preamble may use a
+annotation travels with the entry it describes. Free text at the start of the file
+separated from the first block by a blank line, such as the ``% Encoding: UTF-8``
+header written by JabRef, is a header instead and stays first. Units are then
+emitted as the header, macro definitions and preambles, in the order of the source since a preamble may use a
 macro defined above it, and finally entries, sorted by cite key. An entry named by
 the ``crossref`` field of another entry is placed after every entry that is not, as
 BibTeX requires; cite keys are compared case-insensitively. Inside free text, every
@@ -178,7 +181,10 @@ entry. To disable an entry, delete its ``@``. ``@comment`` must be followed by
 
 After a block that cannot be parsed, reading resumes at the next ``@``. Since the
 broken block swallows the text up to there, a file with a syntax error is never
-rewritten: every violation is still reported, none of them as fixable.
+rewritten: every violation is still reported, none of them as fixable. The same
+holds for a file defining a ``@string`` macro twice, since hoisting the definitions
+above the entries would change the values of the entries written between them (see
+:ref:`rule-duplicate-string`).
 
 **Braces are counted as BibTeX counts them.** A backslash has no special meaning
 to the parser: ``\{`` opens a brace and ``\"`` closes a quoted value. A value such

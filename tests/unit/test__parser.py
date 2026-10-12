@@ -121,6 +121,22 @@ def test_values() -> None:
     assert [part.kind for part in values["e"].parts] == ["bare", "quoted", "braced"]
 
 
+@pytest.mark.parametrize(
+    ("source", "key"),
+    [
+        ("@misc{Smith(2020), title = {A}}\n", "Smith(2020)"),
+        ("@misc(Smith(2020, title = {A})\n", "Smith(2020"),
+        ("@misc{key\xa0, title = {A}}\n", "key"),
+    ],
+)
+def test_cite_key(source: str, key: str) -> None:
+    """Test that parentheses belong to a key and that Unicode spaces are skipped."""
+    entry = parse(source)[0]
+    assert isinstance(entry, Entry)
+    assert entry.key == key
+    assert [field.key for field in entry.fields] == ["title"]
+
+
 def test_entry_without_fields() -> None:
     """Test entries with no field and with a trailing comma only."""
     plain = parse("@misc{k}\n")[0]
@@ -149,7 +165,7 @@ def test_entry_without_fields() -> None:
         (
             "@article{k\xa0x}\n",
             "expected ',' or '}' after cite key 'k'",
-            Position(1, 11),
+            Position(1, 12),
         ),
         ("@article{k, = {x}}\n", "expected a field name", Position(1, 13)),
         (

@@ -6,7 +6,7 @@ from dataclasses import replace
 import pytest
 
 from bibclean._config import default_config
-from bibclean._engine import NOT_FORMATTED_MESSAGE, process
+from bibclean._engine import NOT_FORMATTED_MESSAGE, process, unified_diff
 from tests.helpers import assert_converged
 
 CLEAN = b"@misc{k,\n  title = {A}\n}\n"
@@ -82,6 +82,14 @@ def test_bom_is_removed(encoding: str) -> None:
     assert report.output == CLEAN
     assert [item.message for item in report.diagnostics] == [NOT_FORMATTED_MESSAGE]
     assert process(CLEAN, encoding, default_config()).output is None
+
+
+def test_unified_diff_is_a_valid_patch() -> None:
+    """Test the marker of a missing final newline and the header of an absolute path."""
+    assert unified_diff("/abs/a.bib", "x", "y\n") == (
+        "--- a/abs/a.bib\n+++ b/abs/a.bib\n@@ -1 +1 @@\n"
+        "-x\n\\ No newline at end of file\n+y\n"
+    )
 
 
 def test_crlf_is_not_formatted() -> None:

@@ -70,12 +70,18 @@ def test_non_ascii_round_trip(tmp_path: Path, runner: CliRunner) -> None:
     assert path.read_text(encoding="utf-8") == f"@misc{{k,\n  title = {{{text}}}\n}}\n"
 
 
-def test_unknown_encoding(tmp_path: Path, runner: CliRunner) -> None:
-    """Test that an unknown encoding name is a usage error."""
+@pytest.mark.parametrize(
+    ("encoding", "message"),
+    [("utf-9", "unknown encoding 'utf-9'"), ("hex", "'hex' is not a text encoding")],
+)
+def test_unknown_encoding(
+    tmp_path: Path, runner: CliRunner, encoding: str, message: str
+) -> None:
+    """Test that an unknown or non-text encoding name is a usage error."""
     path = write(tmp_path / "a.bib", CLEAN)
-    result = runner.invoke(run, ["check", "--encoding", "utf-9", str(path)])
+    result = runner.invoke(run, ["check", "--encoding", encoding, str(path)])
     assert result.exit_code == 2
-    assert "unknown encoding 'utf-9'" in result.stderr
+    assert message in result.stderr
 
 
 def test_batch_continues_after_an_error(tmp_path: Path, runner: CliRunner) -> None:
@@ -139,8 +145,8 @@ def test_fix_diff_writes_nothing(tmp_path: Path, runner: CliRunner) -> None:
     result = runner.invoke(run, ["fix", "--isolated", "--diff", str(path)])
     assert result.exit_code == 1
     assert path.read_text(encoding="utf-8") == DIRTY
-    assert f"--- a/{path}" in result.stdout
-    assert f"+++ b/{path}" in result.stdout
+    assert f"--- a/{str(path).lstrip('/')}\n" in result.stdout
+    assert f"+++ b/{str(path).lstrip('/')}\n" in result.stdout
     assert result.stdout.endswith("Would fix 1 violation, would write 1 file.\n")
 
 
@@ -259,8 +265,17 @@ def test_invalid_configuration_override(tmp_path: Path, runner: CliRunner) -> No
     result = runner.invoke(run, ["check", "-c", str(config), str(path), str(other)])
     assert result.exit_code == 2
     assert result.stderr.count("error:") == 1
-    assert result.stderr.startswith(f"{config}: error:")
+    assert result.stderr.startswith(f"error: {config.resolve()}: 'indent' in")
     assert "must be a positive integer" in result.stderr
+
+
+def test_invalid_discovered_configuration(tmp_path: Path, runner: CliRunner) -> None:
+    """Test that the error of a discovered configuration names the file."""
+    path = write(tmp_path / "a.bib", CLEAN)
+    config = write(tmp_path / ".bibclean.toml", "indent = \n")
+    result = runner.invoke(run, ["check", str(path)])
+    assert result.exit_code == 2
+    assert result.stderr.startswith(f"{path}: error: {config.resolve()}: invalid TOML:")
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig"])
@@ -305,3 +320,4 @@ def test_write_failure(
     result = runner.invoke(run, ["fix", "--isolated", str(path)])
     assert result.exit_code == 2
     assert "error: cannot write file: Permission denied" in result.stderr
+    assert "Fixed" not in result.stdout

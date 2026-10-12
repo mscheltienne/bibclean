@@ -6,6 +6,7 @@ from bibclean._rules.doi_prefix import doi_prefix
 from bibclean._rules.duplicate_doi import duplicate_doi
 from bibclean._rules.duplicate_field import duplicate_field
 from bibclean._rules.duplicate_key import duplicate_key
+from bibclean._rules.duplicate_string import duplicate_string
 from bibclean._rules.empty_field import empty_field
 from bibclean._rules.month_format import month_format
 from bibclean._rules.pages_range import pages_range
@@ -30,6 +31,7 @@ RULES: tuple[Rule, ...] = (
     duplicate_field,
     duplicate_key,
     duplicate_doi,
+    duplicate_string,
     undefined_string,
     author_format,
     required_field,

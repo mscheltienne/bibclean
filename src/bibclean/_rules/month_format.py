@@ -83,10 +83,10 @@ def month_format(ctx: Context) -> list[Diagnostic]:
                 message = f"unrecognised month '{written}'"
                 findings.append(Diagnostic(field.start, message, False))
                 continue
-            target = month_target(number, mode)
-            if parts == [target]:
+            target = Value([month_target(number, mode)])
+            if written == render_value(target):
                 continue
-            field.value = Value([target])
-            message = f"month '{written}' should be '{render_value(field.value)}'"
+            field.value = target
+            message = f"month '{written}' should be '{render_value(target)}'"
             findings.append(Diagnostic(field.start, message, True))
     return findings

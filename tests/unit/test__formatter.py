@@ -176,6 +176,28 @@ def test_comments_travel_with_the_next_block() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (
+            "% Encoding: UTF-8\n\n@misc{zeta, a = {1}}\n@misc{alpha, a = {2}}\n",
+            "% Encoding: UTF-8\n\n@misc{alpha,\n  a = {2}\n}\n\n"
+            "@misc{zeta,\n  a = {1}\n}\n",
+        ),
+        (
+            "% h\n\n@comment{c}\n@misc{zeta, a = {1}}\n@misc{alpha, a = {2}}\n",
+            "% h\n\n@misc{alpha,\n  a = {2}\n}\n\n"
+            "@comment{c}\n@misc{zeta,\n  a = {1}\n}\n",
+        ),
+    ],
+    ids=["header", "header-then-comment"],
+)
+def test_leading_header_stays_first(source: str, expected: str) -> None:
+    """Test that free text followed by a blank line at the start stays first."""
+    assert format_blocks(parse(source), DEFAULTS) == expected
+    assert format_blocks(parse(expected), DEFAULTS) == expected
+
+
 @pytest.mark.parametrize("source", ["", "   \n\n\t\n"])
 def test_empty_files(source: str) -> None:
     """Test that an empty or whitespace-only file renders as nothing."""

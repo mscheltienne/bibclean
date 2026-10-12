@@ -16,6 +16,14 @@ def test_detection() -> None:
     assert "{Filtering (50\\% of 90\\% of the signal)}" in output
 
 
+def test_string_value() -> None:
+    """Test that a percent in a macro definition is escaped and reported."""
+    rows, output = apply_rule(NAME, "@string{s = {50% off}}\n")
+    message = "unescaped '%' in string 's', pybtex drops the rest of the value"
+    assert rows == [(1, 1, message, True)]
+    assert "@string{s = {50\\% off}}" in output
+
+
 @pytest.mark.parametrize(
     ("value", "escaped"),
     [

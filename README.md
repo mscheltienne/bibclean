@@ -41,6 +41,6 @@ repos:
       - id: bibclean-fix
 ```
 
-The documentation, including the canonical format, the fourteen rules and the
+The documentation, including the canonical format, the fifteen rules and the
 configuration reference, is available
 [here](https://mscheltienne.github.io/bibclean/dev/index.html).

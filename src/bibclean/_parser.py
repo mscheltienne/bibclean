@@ -4,7 +4,6 @@ import re
 from bisect import bisect_right
 
 from bibclean._model import (
-    WHITESPACE,
     Block,
     Entry,
     Field,
@@ -17,8 +16,11 @@ from bibclean._model import (
     Value,
 )
 
-_NOT_IDENTIFIER = frozenset(WHITESPACE + "\"#%'(),={}")
-_NOT_CITE_KEY = frozenset(WHITESPACE + ",{}()")
+# '\s' matches the characters for which str.isspace() is true, as in pybtex
+_WHITESPACE = re.compile(r"\s*")
+_IDENTIFIER = re.compile(r"[^\s\"#%'(),={}]*")
+# a cite key ends at whitespace, ',', a brace or the closing delimiter of its entry
+_CITE_KEY = {"}": re.compile(r"[^\s,{}]*"), ")": re.compile(r"[^\s,{})]*")}
 
 
 def _next_at(source: str, pos: int) -> int:
@@ -112,11 +114,8 @@ class _Scanner:
         return self.source[self.pos] if self.pos < len(self.source) else ""
 
     def _skip_ws(self) -> None:
-        """Advance the current offset past whitespace."""
-        source = self.source
-        end = len(source)
-        while self.pos < end and source[self.pos] in WHITESPACE:
-            self.pos += 1
+        """Advance the current offset past whitespace, Unicode spaces included."""
+        self.pos = _WHITESPACE.match(self.source, self.pos).end()
 
     def _expect(self, char: str, message: str) -> None:
         """Consume one expected character.
@@ -145,29 +144,26 @@ class _Scanner:
         str
             The identifier, empty when the current character cannot start one.
         """
-        source = self.source
-        end = len(source)
         start = self.pos
-        while self.pos < end and source[self.pos] not in _NOT_IDENTIFIER:
-            self.pos += 1
-        return source[start : self.pos]
+        self.pos = _IDENTIFIER.match(self.source, start).end()
+        return self.source[start : self.pos]
 
-    def _scan_cite_key(self) -> str:
-        """Consume a cite key, which ends at whitespace or at ``,{}()``.
+    def _scan_cite_key(self, closing: str) -> str:
+        """Consume a cite key, which ends at whitespace, ``','``, ``'{'`` or ``'}'``.
+
+        Parameters
+        ----------
+        closing : str
+            Delimiter closing the entry, ``'}'`` or ``')'``, which also ends the key.
 
         Returns
         -------
         str
             The cite key, empty when the current character cannot start one.
         """
-        source = self.source
-        end = len(source)
         start = self.pos
-        while self.pos < end and not (
-            source[self.pos] in _NOT_CITE_KEY or source[self.pos].isspace()
-        ):
-            self.pos += 1
-        return source[start : self.pos]
+        self.pos = _CITE_KEY[closing].match(self.source, start).end()
+        return self.source[start : self.pos]
 
     def scan_block(self, at: int) -> tuple[Block, int]:
         """Scan one ``'@'`` block, recovering from any failure.
@@ -325,7 +321,7 @@ class _Scanner:
             ``name = value`` fields and the closing delimiter.
         """
         self._skip_ws()
-        key = self._scan_cite_key()
+        key = self._scan_cite_key(closing)
         if not key:
             raise _ParseError("expected a cite key", self.pos)
         self._key = key
@@ -468,8 +464,9 @@ class _Scanner:
                     return Part("quoted", text)
                 self.pos += 1
             raise _ParseError(f"unexpected end of file in {what}", end)
-        if char and char not in _NOT_IDENTIFIER:
-            return Part("bare", self._scan_identifier())
+        text = self._scan_identifier()
+        if text:
+            return Part("bare", text)
         raise _ParseError(f"expected a value for {what}", self.pos)
 
 

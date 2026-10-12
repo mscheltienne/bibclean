@@ -138,9 +138,9 @@ def parse_config(table: Mapping[str, Any], *, path: Path | None) -> Config:
         Content of the ``[tool.bibclean]`` table of a ``pyproject.toml``, or the
         whole document of a dedicated file.
     path : Path | None
-        File the table was read from, used in error messages. A dedicated file is
-        any file not named ``pyproject.toml``; None stands for a
-        ``[tool.bibclean]`` table.
+        File the table was read from, which decides how error messages name the
+        tables. A dedicated file is any file not named ``pyproject.toml``; None
+        stands for a ``[tool.bibclean]`` table.
 
     Returns
     -------
@@ -156,7 +156,7 @@ def parse_config(table: Mapping[str, Any], *, path: Path | None) -> Config:
         raises.
     """
     nested = path is None or path.name == "pyproject.toml"
-    top = "[tool.bibclean]" if nested else path.name
+    top = "[tool.bibclean]" if nested else "the top-level table"
     values: dict[str, Any] = {}
     user_types: dict[str, dict[str, tuple[str, ...]]] = {}
     for key, value in table.items():
@@ -208,24 +208,27 @@ def load_config(path: Path | None, *, extra_ignore: tuple[str, ...] = ()) -> Con
     ------
     ConfigError
         If the file cannot be read, is not valid TOML, lacks its table, or fails
-        validation. Failures are not memoized, so every input using an invalid
-        file reports it.
+        validation, with a message starting with the path of the file. Failures are
+        not memoized, so every input using an invalid file reports it.
     """
     if path is None:
         config = default_config()
     else:
         document = _read_toml(path)
-        if path.name == "pyproject.toml":
-            tool = document.get("tool")
-            document = tool.get("bibclean") if isinstance(tool, dict) else None
-            if not isinstance(document, dict):
-                raise ConfigError("no [tool.bibclean] table")
-        elif "tool" in document:
-            raise ConfigError(
-                f"[tool] tables are read from pyproject.toml only, write the keys "
-                f"at the top level of {path.name}"
-            )
-        config = parse_config(document, path=path)
+        try:
+            if path.name == "pyproject.toml":
+                tool = document.get("tool")
+                document = tool.get("bibclean") if isinstance(tool, dict) else None
+                if not isinstance(document, dict):
+                    raise ConfigError("no [tool.bibclean] table")
+            elif "tool" in document:
+                raise ConfigError(
+                    "[tool] tables are read from pyproject.toml only, write the keys "
+                    "at the top level"
+                )
+            config = parse_config(document, path=path)
+        except ConfigError as exc:
+            raise ConfigError(f"{path}: {exc}") from None
     lint = replace(config.lint, ignore=config.lint.ignore | frozenset(extra_ignore))
     return replace(config, lint=lint)
 
@@ -280,15 +283,16 @@ def _read_toml(path: Path) -> dict[str, Any]:
     Raises
     ------
     ConfigError
-        If the file cannot be read or is not valid TOML. Failures are not memoized.
+        If the file cannot be read or is not valid TOML, with a message starting
+        with the path of the file. Failures are not memoized.
     """
     try:
         with path.open("rb") as fid:
             return tomllib.load(fid)
     except OSError as exc:
-        raise ConfigError(f"cannot read file: {exc.strerror or exc}")
+        raise ConfigError(f"{path}: cannot read file: {exc.strerror or exc}")
     except tomllib.TOMLDecodeError as exc:
-        raise ConfigError(f"invalid TOML: {exc}")
+        raise ConfigError(f"{path}: invalid TOML: {exc}")
 
 
 def _pyproject_has_table(path: Path) -> bool:
@@ -453,10 +457,13 @@ def _merge_types(
     -------
     dict of str to TypeRules
         Field requirements of every shipped or user type. A user key replaces the
-        shipped one; a type without any ``keep`` list is never stripped. The kept
-        names are lowercased and include every required name, alternatives split.
+        shipped one, the shipped ``keep`` list including the shipped required names;
+        a type without any ``keep`` list is never stripped. The kept names are
+        lowercased and include every required name, alternatives split.
     """
-    merged: dict[str, tuple[tuple[str, ...], tuple[str, ...] | None]] = dict(TYPES)
+    merged: dict[str, tuple[tuple[str, ...], tuple[str, ...] | None]] = {
+        name: (required, (*required, *keep)) for name, (required, keep) in TYPES.items()
+    }
     for name, table in user_types.items():
         required, keep = merged.get(name, ((), None))
         merged[name] = (table.get("required", required), table.get("keep", keep))
@@ -464,7 +471,10 @@ def _merge_types(
     for name, (required, keep) in merged.items():
         kept = None
         if keep is not None:
-            alternatives = [item for names in required for item in names.split("|")]
-            kept = frozenset(item.lower() for item in (*alternatives, *keep))
+            kept = frozenset(
+                item.lower()
+                for names in (*required, *keep)
+                for item in names.split("|")
+            )
         types[name] = TypeRules(required=required, keep=kept)
     return types
