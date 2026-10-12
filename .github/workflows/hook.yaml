@@ -1,0 +1,44 @@
+name: hook
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  try-repo:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - name: Hooks fail on a malformed file and leave it untouched
+        # try-repo builds from a shallow clone without remote, where setuptools_scm
+        # cannot fetch the tags; the scratch repository must share the drive of the
+        # workspace on Windows
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BIBCLEAN: "1.0.0"
+        run: |
+          cd "$(mktemp -d -p "$RUNNER_TEMP")"
+          git init -q
+          cp "$GITHUB_WORKSPACE/tests/assets/clean.bib" good.bib
+          cp "$GITHUB_WORKSPACE/tests/assets/malformed.bib" broken.bib
+          git add .
+          for hook in bibclean-check bibclean-fix; do
+            if uvx pre-commit try-repo "$GITHUB_WORKSPACE" "$hook" --all-files | tee "$hook.log"; then
+              exit 1
+            fi
+            grep -q "broken.bib:8:1: syntax-error" "$hook.log"
+          done
+          git diff --exit-code -- good.bib broken.bib

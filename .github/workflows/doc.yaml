@@ -19,11 +19,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           activate-environment: true
       - run: uv sync -q --no-default-groups --group doc
-      - run: bibclean sys-info --developer
+      - run: uv run --no-sync --with psutil python tools/sys_info.py
+      - run: uv pip list
       - run: make -C doc html
       - name: Prune sphinx environment
         run: rm -R ./doc/_build/html/.doctrees

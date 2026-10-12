@@ -1,0 +1,8 @@
+indent = "tab"
+sort-fields = ["author", "title", "journal", "year"]
+month = "name"
+exclude = ["ignored_entry"]
+ignore = ["url-with-doi", "strip-field"]
+
+[article]
+required = ["author", "title", "year", "doi"]

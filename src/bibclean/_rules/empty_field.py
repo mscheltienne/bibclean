@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from bibclean._model import collapse_whitespace
+from bibclean._rules._base import Diagnostic, rule
+
+if TYPE_CHECKING:
+    from bibclean._rules._base import Context
+
+
+@rule(name="empty-field", fixable="yes", scope="field")
+def empty_field(ctx: Context) -> list[Diagnostic]:
+    """Report a field whose value is empty once whitespace is collapsed.
+
+    The field is removed. A value holding a macro is never empty and is left
+    alone.
+
+    .. code-block:: bibtex
+
+       @article{k, volume = {}, note = {  }}
+
+    pybtex: the field is dropped silently, so the file lies about its content.
+
+    Parameters
+    ----------
+    ctx : Context
+        Working model and configuration of the file.
+
+    Returns
+    -------
+    list of Diagnostic
+        The violations found.
+    """
+    findings: list[Diagnostic] = []
+    for entry in ctx.checked_entries():
+        for field in list(entry.fields):
+            parts = field.value.parts
+            if any(part.kind == "bare" for part in parts):
+                continue
+            text = "".join(collapse_whitespace(part.text) for part in parts)
+            if text.strip():
+                continue
+            entry.fields.remove(field)
+            message = f"field '{field.key.lower()}' is empty"
+            findings.append(Diagnostic(field.start, message, True))
+    return findings

@@ -7,12 +7,40 @@
 
 # bibclean
 
-A simple BibTeX file checker and cleaner, available as a command-line tool and as
-pre-commit hooks. The documentation can be found
-[here](https://mscheltienne.github.io/bibclean/dev/index.html).
+A linter and formatter for BibTeX files, available as a command-line tool and as
+pre-commit hooks. It rewrites a `.bib` file into a canonical style and reports what
+it cannot rewrite, so that a bibliography stays readable in review and builds
+without surprises with `pybtex` and `sphinxcontrib-bibtex`. Comments, `@string` macros,
+`@preamble` blocks and unknown entry types are preserved, and a file with a block
+that cannot be parsed is reported and never rewritten.
 
 ```bash
 pip install bibclean
-bibclean check doc/references.bib   # exit 1 if the file is not clean
-bibclean fix doc/references.bib     # clean it in place
+bibclean check doc/references.bib   # report violations, never write
+bibclean fix doc/references.bib     # rewrite it in place
 ```
+
+With [uv](https://docs.astral.sh/uv/), `uvx bibclean check doc/references.bib` runs
+it without installing it. Example output:
+
+```
+doc/references.bib:14:3: strip-field field 'abstract' is not kept for @article [*]
+doc/references.bib:27:1: duplicate-key cite key 'smith2020' is already defined as 'Smith2020' at line 3
+doc/references.bib: file is not formatted, run `bibclean fix` [*]
+Found 3 violations (2 fixable).
+```
+
+Two pre-commit hooks are available: `bibclean-check` reports and never writes,
+`bibclean-fix` rewrites and fails when it did.
+
+```yaml
+repos:
+  - repo: https://github.com/mscheltienne/bibclean
+    rev: 1.0.0
+    hooks:
+      - id: bibclean-fix
+```
+
+The documentation, including the canonical format, the fifteen rules and the
+configuration reference, is available
+[here](https://mscheltienne.github.io/bibclean/dev/index.html).

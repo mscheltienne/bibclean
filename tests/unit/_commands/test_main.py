@@ -1,17 +1,23 @@
 from __future__ import annotations
 
-from click.testing import CliRunner
+from typing import TYPE_CHECKING
 
 from bibclean._commands.main import run
+from bibclean._version import __version__
+
+if TYPE_CHECKING:
+    from click.testing import CliRunner
 
 
-def test_main() -> None:
-    """Test the main package entry-point."""
-    runner = CliRunner()
-    result = runner.invoke(run, ["--help"])
+def test_version(runner: CliRunner) -> None:
+    """Test the version line."""
+    result = runner.invoke(run, ["--version"])
     assert result.exit_code == 0
-    assert "Main package entry-point" in result.output
-    assert "Options:" in result.output
-    assert "Commands:" in result.output
-    for command in ("check", "fix", "sys-info"):
-        assert command in result.output
+    assert result.stdout == f"bibclean {__version__}\n"
+
+
+def test_no_arguments(runner: CliRunner) -> None:
+    """Test that the group prints its usage when called without a sub-command."""
+    result = runner.invoke(run, [])
+    assert result.exit_code == 2
+    assert "Usage:" in result.stderr

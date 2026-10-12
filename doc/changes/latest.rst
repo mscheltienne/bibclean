@@ -19,32 +19,75 @@ Version 1.0
 
 .. warning::
 
-    This release is API-breaking. The pre-commit hook ``bibclean-fix`` no longer accepts
-    ``--exit-non-zero-on-fix``: remove the ``args`` line from your
-    ``.pre-commit-config.yaml`` after ``pre-commit autoupdate``. The hook ``bibclean``
-    is renamed ``bibclean-check``.
+   The hook ``bibclean`` is renamed ``bibclean-check``. The hook ``bibclean-fix``
+   no longer accepts ``--exit-non-zero-on-fix``, as exiting with a non-zero code
+   after writing a file is the default: remove ``args: [--exit-non-zero-on-fix]``
+   from ``.pre-commit-config.yaml`` when upgrading, or the hook fails with a usage
+   error.
+
+bibclean 1.0 is a rewrite. It is a linter and formatter for BibTeX files, with its
+own lossless parser, a canonical format, fifteen rules and automatic
+configuration discovery. There is no public Python API.
 
 Enhancements
 ------------
 
-- New unified command-line interface ``bibclean`` with the sub-commands ``check``,
-  ``fix`` and ``sys-info``, built with ``click``.
+- New ``bibclean check`` and ``bibclean fix`` commands, accepting any number of
+  files. A file that cannot be read is reported and the batch continues.
+- Files are parsed by ``bibclean`` itself. Like BibTeX and ``pybtex``, every ``@``
+  starts a block, including one in a ``%`` line. A file with a block that cannot be
+  parsed, or that defines a ``@string`` macro twice, is reported and never
+  rewritten.
+- One canonical format, with a two-space indent, braced values, sorted entries and
+  sorted fields, described in :doc:`../format`.
+- Fifteen rules, each disabled by name with ``ignore`` or ``--ignore``, described
+  in :doc:`../rules`: :ref:`rule-syntax-error`, :ref:`rule-doi-prefix`,
+  :ref:`rule-empty-field`, :ref:`rule-strip-field`, :ref:`rule-url-with-doi`,
+  :ref:`rule-month-format`, :ref:`rule-pages-range`,
+  :ref:`rule-unescaped-percent`, :ref:`rule-duplicate-field`,
+  :ref:`rule-duplicate-key`, :ref:`rule-duplicate-doi`,
+  :ref:`rule-duplicate-string`, :ref:`rule-undefined-string`, :ref:`rule-author-format` and
+  :ref:`rule-required-field`.
+- The configuration is discovered from ``pyproject.toml``, ``bibclean.toml`` or
+  ``.bibclean.toml`` next to the files, described in :doc:`../configuration`.
+  ``--config`` overrides it and ``--isolated`` ignores it.
+- New options ``--diff``, ``--ignore``, ``--isolated`` and ``--quiet``. Violations
+  are reported one per line with their position, followed by a summary line, in
+  colour on a terminal and honouring ``NO_COLOR``.
 - Two pre-commit hooks, ``bibclean-check`` and ``bibclean-fix``, running on the
   ``pre-commit``, ``pre-merge-commit``, ``pre-push`` and ``manual`` stages.
-- Fewer runtime dependencies: ``numpy``, ``psutil`` and ``toml`` are no longer required
-  (``psutil`` is optional and only used by ``bibclean sys-info``).
+
+Bugs
+----
+
+- ``--exit-non-zero-on-fix`` never fired, because it compared a value with itself.
+- Non-standard entry types such as ``@software`` and ``@online``, ``@string``
+  macros, ``@preamble`` blocks and comments were dropped or inlined; they are now
+  preserved.
 
 API and behavior changes
 ------------------------
 
-- The console scripts ``bibclean-check`` and ``bibclean-sys_info`` are removed; use
-  ``bibclean check`` and ``bibclean sys-info``.
-- ``bibclean FILE`` becomes ``bibclean fix FILE``. The options ``-o/--output``,
-  ``--overwrite`` and ``--exit-non-zero-on-fix`` are removed; the file is always cleaned
-  in place.
+- ``bibclean FILE [-o OUT] [--overwrite] [-c CFG] [--exit-non-zero-on-fix]``
+  becomes ``bibclean fix FILES... [-c CFG] [--diff]``; the files are always
+  rewritten in place.
+- ``bibclean-check FILE`` becomes ``bibclean check FILES...``. The console scripts
+  ``bibclean-check`` and ``bibclean-sys_info`` are removed.
+- Exit codes are now 0 for a clean run, 1 for a violation or a written file, and 2
+  for a configuration error, an unreadable file or a usage error. A syntax error
+  in a ``.bib`` file exits 1, not 2.
+- The configuration key ``exclude_type`` is renamed ``exclude-types``, and the
+  configuration is discovered instead of requiring ``-c``. A configuration file
+  other than ``pyproject.toml`` holds its keys at the top level, not under
+  ``[tool.bibclean]``.
+- The Python API ``check_bib_database``, ``clean_bib_database``, ``load_bib`` and
+  ``save_bib`` is removed.
+- Entries are written with a two-space indent instead of one space, and months
+  with the macro ``feb`` instead of ``{February}``. The first ``bibclean fix``
+  after upgrading therefore rewrites the whole file once.
+- The only runtime dependency is ``click``: ``bibtexparser``, ``numpy``,
+  ``packaging``, ``psutil`` and ``toml`` are removed.
 - The minimum supported Python version is 3.11.
-- The package is now versioned from git tags (``setuptools_scm``) and uses a ``src``
-  layout.
 
 Authors
 -------
