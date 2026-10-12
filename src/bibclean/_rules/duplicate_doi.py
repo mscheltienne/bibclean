@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._rules._base import (
-    Finding,
+    Diagnostic,
     _fields_named,
     _single_text,
     rule,
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 @rule(name="duplicate-doi", fixable="partial", scope="file")
-def duplicate_doi(ctx: Context) -> list[Finding]:
+def duplicate_doi(ctx: Context) -> list[Diagnostic]:
     """Report two entries carrying the same DOI.
 
     DOIs are compared once the resolver prefixes are stripped and the case is
@@ -33,7 +33,7 @@ def duplicate_doi(ctx: Context) -> list[Finding]:
 
     pybtex: nothing, the bibliography simply lists the work twice.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     seen: dict[str, Entry] = {}
     for entry in ctx.entries():
         fields = _fields_named(entry, "doi")
@@ -59,5 +59,5 @@ def duplicate_doi(ctx: Context) -> list[Finding]:
         identical = signature(entry, options) == signature(first, options)
         if identical:
             ctx.remove(entry)
-        findings.append(Finding(entry.start, message, identical))
+        findings.append(Diagnostic(entry.start, message, identical))
     return findings

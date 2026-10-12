@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._model import entry_type
-from bibclean._rules._base import Finding, _remove_field, rule
+from bibclean._rules._base import Diagnostic, _remove_field, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -12,7 +12,7 @@ _ALWAYS_KEPT = frozenset({"doi", "url"})
 
 
 @rule(name="strip-field", fixable="yes", scope="field")
-def strip_field(ctx: Context) -> list[Finding]:
+def strip_field(ctx: Context) -> list[Diagnostic]:
     """Report a field that the entry type does not keep.
 
     The field is removed. The kept names of a type always contain its required
@@ -25,7 +25,7 @@ def strip_field(ctx: Context) -> list[Finding]:
 
     pybtex: nothing, noise only.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -38,5 +38,5 @@ def strip_field(ctx: Context) -> list[Finding]:
                 continue
             _remove_field(entry, field)
             message = f"field '{name}' is not kept for @{entry_type(entry)}"
-            findings.append(Finding(field.start, message, True))
+            findings.append(Diagnostic(field.start, message, True))
     return findings

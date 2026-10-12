@@ -180,32 +180,18 @@ def test_quiet(tmp_path: Path, runner: CliRunner) -> None:
     assert result.stdout == "Found 1 violation (1 fixable).\n"
 
 
-def test_verbose(tmp_path: Path, runner: CliRunner) -> None:
-    """Test that --verbose reports the version and the per-file outcome."""
-    path = _write(tmp_path, "a.bib", DIRTY)
-    result = runner.invoke(run, ["check", "--isolated", "-v", str(path)])
+def test_syntax_error_is_never_fixed(tmp_path: Path, runner: CliRunner) -> None:
+    """Test that a file with a syntax error is reported but never rewritten."""
+    path = _write(tmp_path, "a.bib", DIRTY + "@misc{broken,\n")
+    result = runner.invoke(run, ["check", "--isolated", str(path)])
     assert result.exit_code == 1
-    lines = result.stderr.splitlines()
-    assert lines[0].startswith("bibclean ")
-    assert lines[1] == f"{path}: configuration defaults"
-    assert lines[2] == f"{path}: 1 violation"
-
-
-def test_verbose_fix(tmp_path: Path, runner: CliRunner) -> None:
-    """Test the per-file outcome reported by 'fix'."""
-    path = _write(tmp_path, "a.bib", UNFIXABLE)
-    result = runner.invoke(run, ["fix", "--isolated", "-v", str(path)])
-    assert (
-        result.stderr.splitlines()[-1] == f"{path}: unchanged, 3 unfixable violations"
-    )
-
-
-def test_verbose_and_quiet_are_exclusive(tmp_path: Path, runner: CliRunner) -> None:
-    """Test that --verbose and --quiet cannot be combined."""
-    path = _write(tmp_path, "a.bib", CLEAN)
-    result = runner.invoke(run, ["check", "-v", "-q", str(path)])
-    assert result.exit_code == 2
-    assert "--verbose and --quiet are mutually exclusive" in result.stderr
+    assert "[*]" not in result.stdout
+    assert "file is not formatted" not in result.stdout
+    assert result.stdout.endswith("Found 1 violation (0 fixable).\n")
+    result = runner.invoke(run, ["fix", "--isolated", str(path)])
+    assert result.exit_code == 1
+    assert path.read_bytes() == (DIRTY + "@misc{broken,\n").encode("utf-8")
+    assert result.stdout.endswith("Fixed 0 violations, wrote 0 files.\n")
 
 
 def test_config_and_isolated_are_exclusive(tmp_path: Path, runner: CliRunner) -> None:
@@ -268,14 +254,31 @@ def test_invalid_configuration_override(tmp_path: Path, runner: CliRunner) -> No
     assert "must be a positive integer" in result.stderr
 
 
-def test_crlf_and_bom_are_rewritten(tmp_path: Path, runner: CliRunner) -> None:
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig"])
+def test_crlf_and_bom_are_rewritten(
+    tmp_path: Path, runner: CliRunner, encoding: str
+) -> None:
     """Test that a file with CRLF endings and a BOM is rewritten without them."""
     path = tmp_path / "a.bib"
     path.write_bytes("﻿@misc{k,\r\n  title = {A}\r\n}\r\n".encode())
-    result = runner.invoke(run, ["check", "--isolated", str(path)])
+    options = ["--isolated", "--encoding", encoding, str(path)]
+    result = runner.invoke(run, ["check", *options])
     assert result.exit_code == 1
     assert "file is not formatted" in result.stdout
-    assert runner.invoke(run, ["fix", "--isolated", str(path)]).exit_code == 1
+    assert runner.invoke(run, ["fix", *options]).exit_code == 1
+    assert path.read_bytes() == CLEAN.encode("utf-8")
+    assert runner.invoke(run, ["check", *options]).exit_code == 0
+
+
+def test_bom_alone_is_rewritten_with_utf8_sig(
+    tmp_path: Path, runner: CliRunner
+) -> None:
+    """Test that --encoding utf-8-sig reports and removes a byte order mark."""
+    path = tmp_path / "a.bib"
+    path.write_bytes(b"\xef\xbb\xbf" + CLEAN.encode("utf-8"))
+    options = ["--isolated", "--encoding", "utf-8-sig", str(path)]
+    assert runner.invoke(run, ["check", *options]).exit_code == 1
+    assert runner.invoke(run, ["fix", *options]).exit_code == 1
     assert path.read_bytes() == CLEAN.encode("utf-8")
 
 

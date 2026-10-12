@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._formatter import render_value
-from bibclean._rules._base import Finding, _remove_field, rule
+from bibclean._rules._base import Diagnostic, _remove_field, rule
 
 if TYPE_CHECKING:
     from bibclean._model import Field
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @rule(name="duplicate-field", fixable="partial", scope="entry")
-def duplicate_field(ctx: Context) -> list[Finding]:
+def duplicate_field(ctx: Context) -> list[Diagnostic]:
     """Report a field defined twice in one entry, case-insensitively.
 
     The repeat is removed when both definitions render to the same value,
@@ -24,7 +24,7 @@ def duplicate_field(ctx: Context) -> list[Finding]:
 
     pybtex: the documentation build fails on the repeated field.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -41,5 +41,5 @@ def duplicate_field(ctx: Context) -> list[Finding]:
                 message = f"field '{name}' is defined twice with the same value"
             else:
                 message = f"field '{name}' is defined twice with different values"
-            findings.append(Finding(field.start, message, identical))
+            findings.append(Diagnostic(field.start, message, identical))
     return findings

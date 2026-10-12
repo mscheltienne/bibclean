@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from bibclean._defaults import DOI_PREFIXES
 from bibclean._model import Part, Value
-from bibclean._rules._base import Finding, _fields_named, _single_text, rule
+from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -57,7 +57,7 @@ def normalize_doi(text: str) -> str:
 
 
 @rule(name="doi-prefix", fixable="yes", scope="value")
-def doi_prefix(ctx: Context) -> list[Finding]:
+def doi_prefix(ctx: Context) -> list[Diagnostic]:
     """Report a ``doi`` field carrying a resolver prefix.
 
     The prefix is removed and the bare identifier is kept. Recognised prefixes
@@ -72,7 +72,7 @@ def doi_prefix(ctx: Context) -> list[Finding]:
     pybtex: the styles prepend the resolver themselves, producing a broken
     double link.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -85,5 +85,5 @@ def doi_prefix(ctx: Context) -> list[Finding]:
                 continue
             field.value = Value([Part("braced", stripped)])
             message = "field 'doi' has a URL prefix, expected the bare identifier"
-            findings.append(Finding(field.start, message, True))
+            findings.append(Diagnostic(field.start, message, True))
     return findings

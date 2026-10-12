@@ -4,7 +4,7 @@ import re
 from typing import TYPE_CHECKING
 
 from bibclean._model import Part, Value
-from bibclean._rules._base import Finding, _fields_named, _single_text, rule
+from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -13,7 +13,7 @@ _RANGE = re.compile(r"([0-9]+)\s*(?:-{1,3}|–|—)\s*([0-9]+)")
 
 
 @rule(name="pages-range", fixable="yes", scope="value")
-def pages_range(ctx: Context) -> list[Finding]:
+def pages_range(ctx: Context) -> list[Diagnostic]:
     """Report a numeric page range that does not use an en dash.
 
     A value made of digits, a dash and digits is rewritten with ``--``, whatever
@@ -26,7 +26,7 @@ def pages_range(ctx: Context) -> list[Finding]:
 
     pybtex: nothing, typography of the rendered reference.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -42,5 +42,5 @@ def pages_range(ctx: Context) -> list[Finding]:
                 continue
             field.value = Value([Part("braced", target)])
             message = f"page range '{text}' should use '--'"
-            findings.append(Finding(field.start, message, True))
+            findings.append(Diagnostic(field.start, message, True))
     return findings

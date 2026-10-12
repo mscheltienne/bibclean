@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from bibclean._defaults import MONTH_MACROS
 from bibclean._model import Entry, Preamble, StringDef
-from bibclean._rules._base import Finding, rule
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._model import Position, Value
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @rule(name="undefined-string", fixable="no", scope="value")
-def undefined_string(ctx: Context) -> list[Finding]:
+def undefined_string(ctx: Context) -> list[Diagnostic]:
     """Report a bare macro that no ``@string`` block defines.
 
     The twelve month macros are always defined. A ``@string`` block may only
@@ -26,7 +26,7 @@ def undefined_string(ctx: Context) -> list[Finding]:
 
     pybtex: the documentation build fails with an undefined macro error.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     defined: set[str] = set()
     for block in ctx.blocks:
         if isinstance(block, StringDef):
@@ -40,14 +40,14 @@ def undefined_string(ctx: Context) -> list[Finding]:
     return findings
 
 
-def _check(value: Value, position: Position, defined: set[str]) -> list[Finding]:
+def _check(value: Value, position: Position, defined: set[str]) -> list[Diagnostic]:
     """Report the bare parts of a value that are neither digits nor defined."""
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for part in value.parts:
         if not part.is_macro:
             continue
         text = part.text
         if text.lower() in MONTH_MACROS or text.lower() in defined:
             continue
-        findings.append(Finding(position, f"undefined string '{text}'", False))
+        findings.append(Diagnostic(position, f"undefined string '{text}'", False))
     return findings

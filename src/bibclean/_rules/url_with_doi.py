@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._rules._base import (
-    Finding,
+    Diagnostic,
     _fields_named,
     _has_field,
     _remove_field,
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @rule(name="url-with-doi", fixable="yes", scope="entry")
-def url_with_doi(ctx: Context) -> list[Finding]:
+def url_with_doi(ctx: Context) -> list[Diagnostic]:
     """Report a ``url`` field made redundant by a ``doi`` field.
 
     The ``url`` field is removed. When only one of the two exists it is kept
@@ -28,13 +28,13 @@ def url_with_doi(ctx: Context) -> list[Finding]:
 
     pybtex: nothing, the reference simply carries two links to the same work.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry) or not _has_field(entry, "doi"):
             continue
         for field in _fields_named(entry, "url"):
             _remove_field(entry, field)
             findings.append(
-                Finding(field.start, "field 'url' is redundant with 'doi'", True)
+                Diagnostic(field.start, "field 'url' is redundant with 'doi'", True)
             )
     return findings

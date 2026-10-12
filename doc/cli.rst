@@ -30,7 +30,8 @@ bibclean fix
 ``bibclean fix`` runs the same analysis, applies every fixable rule, rewrites the
 canonical text of the files that changed and reports what is left. A file is
 rewritten as soon as its canonical text differs from what is on disk, even when
-unfixable violations remain.
+unfixable violations remain. A file with a syntax error is never rewritten: its
+violations are all reported as unfixable until the error is repaired.
 
 .. code-block:: bash
 
@@ -66,9 +67,6 @@ Options
        configuration that applies.
    * - ``--encoding NAME``
      - Encoding used to read and write the files, ``utf-8`` by default.
-   * - ``-v, --verbose``
-     - Report the version, the configuration used and the outcome of each file on
-       the error stream.
    * - ``-q, --quiet``
      - Print the summary line only.
    * - ``--diff``
@@ -94,7 +92,8 @@ Exit codes
      - Configuration error, unreadable file, bad encoding or usage error.
      - Same.
 
-A syntax error inside a ``.bib`` file is a violation, not an error: it exits 1.
+A syntax error inside a ``.bib`` file is a violation, not an error: it exits 1, and
+``fix`` leaves that file untouched.
 Exit code 2 is reserved for a file or an option ``bibclean`` could not handle at
 all, and it never stops the other files of the batch.
 
@@ -120,8 +119,7 @@ whole. The trailing ``[*]`` marks a violation that ``bibclean fix`` resolves.
 followed by ``Fixed N violations, wrote M files.`` (``would write`` with
 ``--diff``). Paths are printed exactly as they were typed on the command line.
 
-Nothing is printed when there is nothing to report. Errors, and the lines added
-by ``--verbose``, go to the error stream.
+Nothing is printed when there is nothing to report. Errors go to the error stream.
 
 Colours
 -------

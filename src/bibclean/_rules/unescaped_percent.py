@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._rules._base import Finding, rule
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -11,7 +11,7 @@ _EXEMPT = frozenset({"doi", "file", "url"})
 
 
 @rule(name="unescaped-percent", fixable="yes", scope="value")
-def unescaped_percent(ctx: Context) -> list[Finding]:
+def unescaped_percent(ctx: Context) -> list[Diagnostic]:
     r"""Report a ``%`` that is not escaped by a backslash.
 
     Every unescaped ``%`` of the value becomes ``\%``, and one finding is
@@ -25,7 +25,7 @@ def unescaped_percent(ctx: Context) -> list[Finding]:
     pybtex: latexcodec treats ``%`` as the start of a comment and drops the rest
     of the value when the reference is decoded.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -46,7 +46,7 @@ def unescaped_percent(ctx: Context) -> list[Finding]:
                     f"unescaped '%' in field '{name}', "
                     "pybtex drops the rest of the value"
                 )
-                findings.append(Finding(field.start, message, True))
+                findings.append(Diagnostic(field.start, message, True))
     return findings
 
 

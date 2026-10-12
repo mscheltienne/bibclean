@@ -114,8 +114,8 @@ The style
      - ``@article{K, }``
      - fixed
    * - Unparsable block
-     - verbatim
-     - verbatim, at its original position among the entries
+     - ``@article{K, title = {A}``
+     - the whole file unchanged until the block is repaired
      - fixed
    * - Line endings and final newline
      - ``\r\n``, missing
@@ -154,10 +154,8 @@ Blocks are grouped into units before they are ordered: a unit is one block
 together with the comments and free text written directly above it, so an
 annotation travels with the entry it describes. Units are then emitted as macro
 definitions and preambles, in the order of the source since a preamble may use a
-macro defined above it, and finally entries, sorted by cite key. A block that could
-not be parsed stays at the
-position it had among the entries. Inside free text, every run of blank lines is
-reduced to one.
+macro defined above it, and finally entries, sorted by cite key. Inside free text,
+every run of blank lines is reduced to one.
 
 Reading conventions
 -------------------
@@ -178,7 +176,10 @@ address survive untouched instead of becoming a syntax error:
     @misc{a, title = {A}} @misc{b, title = {B}}  % two entries, then a note @x
 
 After a block that cannot be parsed, reading resumes at the next line whose first
-non-blank character is ``@``.
+non-blank character is ``@``. Since the broken block swallows the text up to that
+line, a file with a syntax error is never rewritten, like ``black`` or
+``ruff format`` refuse a file they cannot parse: ``check`` and ``fix`` still report
+every violation, none of them as fixable, and ``fix`` leaves the file untouched.
 
 **Braces are counted as BibTeX counts them.** A backslash has no special meaning
 to the parser: ``\{`` opens a brace and ``\"`` closes a quoted value. A value such
@@ -189,6 +190,7 @@ Encoding and line endings
 -------------------------
 
 Files are read and written as UTF-8 unless ``--encoding`` says otherwise. The
-output always uses line feeds and ends with exactly one newline, and a byte order
-mark is removed. A file with carriage returns or a byte order mark is therefore
-reported as not formatted, and rewritten once.
+output always uses line feeds and ends with exactly one newline, and never starts
+with a UTF-8 byte order mark, even with ``--encoding utf-8-sig``. A file with
+carriage returns or a byte order mark is therefore reported as not formatted, and
+rewritten once.

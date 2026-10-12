@@ -1,17 +1,38 @@
 from __future__ import annotations
 
+import io
 from typing import TYPE_CHECKING
 
 import click
 import pytest
 
-from bibclean._commands._common import _dedupe, _validate_encoding, execute
+from bibclean._commands._common import (
+    _validate_encoding,
+    execute,
+    format_diagnostic,
+    pluralize,
+    use_color,
+)
+from bibclean._model import Position
+from bibclean._rules._base import Diagnostic
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 CLEAN = "@misc{k,\n  title = {A}\n}\n"
 DIRTY = "@Misc{k, Title = {A}}\n"
+POSITIONED = Diagnostic(Position(3, 5), "boom", True, "doi-prefix")
+UNFIXABLE = Diagnostic(Position(1, 1), "missing", False, "required-field")
+FILE_LEVEL = Diagnostic(None, "file is not formatted", True)
+
+
+class _Tty(io.StringIO):
+    def __init__(self, tty: bool) -> None:
+        super().__init__()
+        self._tty = tty
+
+    def isatty(self) -> bool:
+        return self._tty
 
 
 def _write(directory: Path, name: str, text: str) -> Path:
@@ -27,7 +48,6 @@ def _execute(files: tuple[str, ...], **kwargs: object) -> int:
         "isolated": True,
         "ignore": (),
         "encoding": "utf-8",
-        "verbose": False,
         "quiet": False,
         "diff": False,
     }
@@ -35,10 +55,43 @@ def _execute(files: tuple[str, ...], **kwargs: object) -> int:
     return execute(files, **defaults)
 
 
-def test_dedupe() -> None:
-    """Test that repeated paths are dropped in first-occurrence order."""
-    assert _dedupe(("b.bib", "a.bib", "b.bib")) == ["b.bib", "a.bib"]
-    assert _dedupe(()) == []
+@pytest.mark.parametrize(
+    ("count", "expected"),
+    [(0, "0 violations"), (1, "1 violation"), (2, "2 violations")],
+)
+def test_pluralize(count: int, expected: str) -> None:
+    """Test the singular and plural forms."""
+    assert pluralize(count, "violation") == expected
+
+
+@pytest.mark.parametrize(
+    ("diagnostic", "expected"),
+    [
+        (POSITIONED, "a.bib:3:5: doi-prefix boom [*]"),
+        (UNFIXABLE, "a.bib:1:1: required-field missing"),
+        (FILE_LEVEL, "a.bib: file is not formatted [*]"),
+    ],
+)
+def test_format_diagnostic(diagnostic: Diagnostic, expected: str) -> None:
+    """Test that a diagnostic renders as a styled line."""
+    line = format_diagnostic("a.bib", diagnostic)
+    assert "\x1b[" in line
+    assert click.unstyle(line) == expected
+
+
+def test_use_color(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the colour detection."""
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.delenv("TERM", raising=False)
+    assert use_color(_Tty(True)) is True
+    assert use_color(_Tty(False)) is False
+    monkeypatch.setenv("TERM", "dumb")
+    assert use_color(_Tty(True)) is False
+    monkeypatch.setenv("TERM", "xterm")
+    monkeypatch.setenv("NO_COLOR", "1")
+    assert use_color(_Tty(True)) is False
+    monkeypatch.setenv("NO_COLOR", "")
+    assert use_color(_Tty(True)) is True
 
 
 def test_validate_encoding() -> None:
@@ -48,13 +101,11 @@ def test_validate_encoding() -> None:
         _validate_encoding(None, None, "utf-9")
 
 
-def test_mutually_exclusive_options(tmp_path: Path) -> None:
-    """Test the two pairs of options that cannot be combined."""
+def test_config_and_isolated_are_exclusive(tmp_path: Path) -> None:
+    """Test that --config and --isolated cannot be combined."""
     config = _write(tmp_path, "bibclean.toml", "indent = 4\n")
     with pytest.raises(click.UsageError, match="--config and --isolated"):
         _execute(("a.bib",), config=config)
-    with pytest.raises(click.UsageError, match="--verbose and --quiet"):
-        _execute(("a.bib",), verbose=True, quiet=True)
 
 
 def test_check_exit_codes(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
@@ -97,24 +148,9 @@ def test_write_failure(
     def _fail(*args: object, **kwargs: object) -> None:
         raise OSError(13, "Permission denied")
 
-    monkeypatch.setattr("bibclean._commands._common.write_source", _fail)
+    monkeypatch.setattr("pathlib.Path.write_bytes", _fail)
     assert _execute((str(dirty),), mode="fix") == 2
     assert "error: cannot write file: Permission denied" in capsys.readouterr().err
-
-
-def test_convergence_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
-) -> None:
-    """Test that an internal error is one line on stderr and exit code 2."""
-    dirty = _write(tmp_path, "a.bib", DIRTY)
-
-    def _fail(path: str, *args: object, **kwargs: object) -> None:
-        raise RuntimeError(f"{path}: internal error, fixes did not converge")
-
-    monkeypatch.setattr("bibclean._commands._common.process", _fail)
-    assert _execute((str(dirty),)) == 2
-    err = capsys.readouterr().err
-    assert err == f"{dirty}: error: internal error, fixes did not converge\n"
 
 
 def test_quiet_prints_the_summary_only(
@@ -124,26 +160,6 @@ def test_quiet_prints_the_summary_only(
     dirty = _write(tmp_path, "a.bib", DIRTY)
     assert _execute((str(dirty),), quiet=True) == 1
     assert capsys.readouterr().out == "Found 1 violation (1 fixable).\n"
-
-
-def test_verbose_lines(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
-    """Test the verbose lines of a run without violation."""
-    clean = _write(tmp_path, "a.bib", CLEAN)
-    assert _execute((str(clean),), verbose=True) == 0
-    lines = capsys.readouterr().err.splitlines()
-    assert lines[0].startswith("bibclean ")
-    assert lines[1] == f"{clean}: configuration defaults"
-    assert lines[2] == f"{clean}: ok"
-
-
-def test_verbose_reports_the_configuration_file(
-    tmp_path: Path, capsys: pytest.CaptureFixture
-) -> None:
-    """Test that the discovered configuration file is named."""
-    config = _write(tmp_path, "bibclean.toml", "indent = 2\n")
-    clean = _write(tmp_path, "a.bib", CLEAN)
-    assert _execute((str(clean),), isolated=False, verbose=True) == 0
-    assert f"{clean}: configuration {config}" in capsys.readouterr().err
 
 
 def test_invalid_configuration_override(
@@ -160,21 +176,9 @@ def test_invalid_configuration_override(
     assert err.startswith(f"{config}: error:")
 
 
-def test_verbose_fix_reports_a_written_file(
-    tmp_path: Path, capsys: pytest.CaptureFixture
-) -> None:
-    """Test the verbose line of a file that was rewritten."""
+def test_fix_diff(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    """Test that --diff prints the change and writes nothing."""
     dirty = _write(tmp_path, "a.bib", DIRTY)
-    assert _execute((str(dirty),), mode="fix", verbose=True) == 1
-    assert capsys.readouterr().err.splitlines()[-1] == f"{dirty}: written"
-
-
-def test_verbose_fix_reports_a_diff(
-    tmp_path: Path, capsys: pytest.CaptureFixture
-) -> None:
-    """Test the verbose line of a file that --diff would rewrite."""
-    dirty = _write(tmp_path, "a.bib", DIRTY)
-    assert _execute((str(dirty),), mode="fix", verbose=True, diff=True) == 1
-    captured = capsys.readouterr()
-    assert captured.err.splitlines()[-1] == f"{dirty}: would write"
-    assert captured.out.startswith(f"--- a/{dirty}")
+    assert _execute((str(dirty),), mode="fix", diff=True) == 1
+    assert capsys.readouterr().out.startswith(f"--- a/{dirty}")
+    assert dirty.read_text(encoding="utf-8") == DIRTY

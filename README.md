@@ -11,8 +11,8 @@ A linter and formatter for BibTeX files, available as a command-line tool and as
 pre-commit hooks. It rewrites a `.bib` file into a canonical style and reports what
 it cannot rewrite, so that a bibliography stays readable in review and builds
 without surprises with `pybtex` and `sphinxcontrib-bibtex`. Comments, `@string` macros,
-`@preamble` blocks and unknown entry types are preserved, and a block that cannot
-be parsed is kept verbatim and reported.
+`@preamble` blocks and unknown entry types are preserved, and a file with a block
+that cannot be parsed is reported and never rewritten.
 
 ```bash
 pip install bibclean

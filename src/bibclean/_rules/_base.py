@@ -20,22 +20,25 @@ _NAME = re.compile(r"^[a-z]+(-[a-z]+)*$")
 
 
 @dataclass(slots=True, frozen=True)
-class Finding:
-    """One violation reported by a rule.
+class Diagnostic:
+    """One reported violation.
 
     Parameters
     ----------
     position : Position | None
-        Where the violation is, None for a file-level finding.
+        Where the violation is, None for a file-level violation.
     message : str
         Description of the violation.
     fixable : bool
-        True when the rule changed the working model to resolve the violation.
+        True when running ``bibclean fix`` resolves the violation.
+    rule : str | None
+        Name of the rule, filled in by the engine; None for a file-level violation.
     """
 
     position: Position | None
     message: str
     fixable: bool
+    rule: str | None = None
 
 
 @dataclass(slots=True)
@@ -44,15 +47,12 @@ class Context:
 
     Parameters
     ----------
-    path : str
-        File being linted, as typed on the command line.
     blocks : list of Block
         The working model, mutated by the rules that fix.
     config : Config
         Effective configuration of the file.
     """
 
-    path: str
     blocks: list[Block]
     config: Config
 
@@ -112,7 +112,7 @@ class Context:
                 return
 
 
-RuleFunction = Callable[[Context], list[Finding]]
+RuleFunction = Callable[[Context], list[Diagnostic]]
 
 
 @dataclass(slots=True, frozen=True)
@@ -128,7 +128,7 @@ class Rule:
     scope : str
         One of ``'block'``, ``'file'``, ``'entry'``, ``'field'`` or ``'value'``.
     check : callable
-        Function running the rule over a context and returning its findings.
+        Function running the rule over a context and returning its diagnostics.
     doc : str
         Cleaned docstring of the function.
     """

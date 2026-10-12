@@ -24,14 +24,7 @@ def test_help(runner: CliRunner) -> None:
     result = runner.invoke(run, ["--help"])
     assert result.exit_code == 0
     assert "--diff" in result.stdout
-    for option in (
-        "--config",
-        "--isolated",
-        "--ignore",
-        "--encoding",
-        "--verbose",
-        "--quiet",
-    ):
+    for option in ("--config", "--isolated", "--ignore", "--encoding", "--quiet"):
         assert option in result.stdout
 
 

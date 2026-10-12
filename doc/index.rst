@@ -23,7 +23,8 @@ and `sphinxcontrib-bibtex`_.
 - configuration discovered from ``pyproject.toml``, ``bibclean.toml`` or
   ``.bibclean.toml``, described in :doc:`configuration`;
 - comments, ``@string`` macros, ``@preamble`` blocks and unknown entry types are
-  preserved, and a block that cannot be parsed is kept verbatim and reported.
+  preserved, and a file with a block that cannot be parsed is reported and never
+  rewritten.
 
 Install
 -------

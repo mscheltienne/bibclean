@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 _WHITESPACE_RUN = re.compile(r"[ \t\n\r\f\v]+")
 _BLANK_LINES = re.compile(r"\n(?:[ \t\r\f\v]*\n)+")
+# whitespace and the zero width no-break space, which a byte order mark decodes to
+_BLANK = " \t\n\r\f\v﻿"
 
 
 @dataclass(slots=True)
@@ -135,7 +137,7 @@ def render_block(block: Block, options: FormatOptions) -> str:
         return "@comment" + block.delimiter + block.body + closing
     if isinstance(block, Malformed):
         return block.raw.rstrip()
-    return _BLANK_LINES.sub("\n\n", block.raw.strip())
+    return _BLANK_LINES.sub("\n\n", block.raw.strip(_BLANK))
 
 
 def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
@@ -186,7 +188,7 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
     pending: list[Block] = []
     for block in blocks:
         if isinstance(block, Junk):
-            if block.raw.strip():
+            if block.raw.strip(_BLANK):
                 pending.append(block)
             continue
         if isinstance(block, ExplicitComment):

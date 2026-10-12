@@ -36,8 +36,8 @@ Enhancements
 - New ``bibclean check`` and ``bibclean fix`` commands, accepting any number of
   files. A file that cannot be read is reported and the batch continues.
 - Files are parsed by ``bibclean`` itself. Comments, ``@string`` macros,
-  ``@preamble`` blocks and unknown entry types are preserved, and a block that
-  cannot be parsed is kept verbatim and reported at its position.
+  ``@preamble`` blocks and unknown entry types are preserved, and a file with a
+  block that cannot be parsed is reported and never rewritten.
 - One canonical format, with a two-space indent, braced values, sorted entries and
   sorted fields, described in :doc:`../format`.
 - Thirteen rules, each disabled by name with ``ignore`` or ``--ignore``, described
@@ -50,9 +50,9 @@ Enhancements
 - The configuration is discovered from ``pyproject.toml``, ``bibclean.toml`` or
   ``.bibclean.toml`` next to the files, described in :doc:`../configuration`.
   ``--config`` overrides it and ``--isolated`` ignores it.
-- New options ``--diff``, ``--ignore``, ``--isolated``, ``--verbose`` and
-  ``--quiet``. Violations are reported one per line with their position, followed
-  by a summary line, in colour on a terminal and honouring ``NO_COLOR``.
+- New options ``--diff``, ``--ignore``, ``--isolated`` and ``--quiet``. Violations
+  are reported one per line with their position, followed by a summary line, in
+  colour on a terminal and honouring ``NO_COLOR``.
 - Two pre-commit hooks, ``bibclean-check`` and ``bibclean-fix``, running on the
   ``pre-commit``, ``pre-merge-commit``, ``pre-push`` and ``manual`` stages.
 - Faster startup: the runtime dependencies are ``click`` and ``packaging``.

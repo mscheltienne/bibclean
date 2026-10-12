@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._model import entry_type
-from bibclean._rules._base import Finding, _has_field, rule
+from bibclean._rules._base import Diagnostic, _has_field, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
 
 
 @rule(name="required-field", fixable="no", scope="entry")
-def required_field(ctx: Context) -> list[Finding]:
+def required_field(ctx: Context) -> list[Diagnostic]:
     """Report a field that the entry type requires but the entry does not have.
 
     The requirements come from the shipped tables and can be overridden per type
@@ -24,7 +24,7 @@ def required_field(ctx: Context) -> list[Finding]:
 
     pybtex: the style prints an incomplete reference, or fails outright.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -38,5 +38,5 @@ def required_field(ctx: Context) -> list[Finding]:
                 f"@{entry_type(entry)} '{entry.key}' is missing required field "
                 f"'{required}'"
             )
-            findings.append(Finding(entry.start, message, False))
+            findings.append(Diagnostic(entry.start, message, False))
     return findings

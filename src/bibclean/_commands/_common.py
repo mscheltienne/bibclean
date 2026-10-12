@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import codecs
+import os
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
@@ -8,24 +9,15 @@ from typing import TYPE_CHECKING, Literal
 import click
 
 from bibclean._config import ConfigError, find_config, load_config
-from bibclean._diagnostics import (
-    format_diagnostic,
-    pluralize,
-    sort_diagnostics,
-    summary_check,
-    summary_fix,
-    use_color,
-)
-from bibclean._engine import ReadError, process, read_source, unified_diff, write_source
+from bibclean._engine import process, unified_diff
 from bibclean._rules import RULE_NAMES
-from bibclean._version import __version__
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import IO
 
     from bibclean._config import Config
-    from bibclean._diagnostics import Diagnostic
-    from bibclean._engine import Report
+    from bibclean._rules._base import Diagnostic
 
 Mode = Literal["check", "fix"]
 
@@ -41,8 +33,7 @@ def common_options(f: Callable) -> Callable:
     Returns
     -------
     callable
-        The function, decorated with the file argument and the six shared
-        options.
+        The function, decorated with the file argument and the five shared options.
     """
     options = (
         click.option(
@@ -50,12 +41,6 @@ def common_options(f: Callable) -> Callable:
             "--quiet",
             is_flag=True,
             help="Print the summary line only.",
-        ),
-        click.option(
-            "-v",
-            "--verbose",
-            is_flag=True,
-            help="Report what is done with each file.",
         ),
         click.option(
             "--encoding",
@@ -104,7 +89,6 @@ def execute(
     isolated: bool,
     ignore: tuple[str, ...],
     encoding: str,
-    verbose: bool,
     quiet: bool,
     diff: bool,
 ) -> int:
@@ -124,8 +108,6 @@ def execute(
         Rule names added to the ``ignore`` set of whichever configuration applies.
     encoding : str
         Encoding used to decode and encode the files.
-    verbose : bool
-        Report what is done with each file on the error stream.
     quiet : bool
         Print the summary line only.
     diff : bool
@@ -140,15 +122,10 @@ def execute(
     Raises
     ------
     click.UsageError
-        If mutually exclusive options are combined.
+        If ``--config`` and ``--isolated`` are combined.
     """
     if config is not None and isolated:
         raise click.UsageError("--config and --isolated are mutually exclusive")
-    if verbose and quiet:
-        raise click.UsageError("--verbose and --quiet are mutually exclusive")
-    ordered = _dedupe(files)
-    if verbose:
-        _echo_verbose(f"bibclean {__version__}")
     override: Config | None = None
     if isolated or config is not None:
         try:
@@ -160,79 +137,164 @@ def execute(
         except ConfigError as exc:
             _echo_error(str(config), exc.message)
             return 2
-    diagnostics: list[Diagnostic] = []
+    lines: list[str] = []
     errors = 0
     written = 0
-    fixed = 0
-    for file in ordered:
+    fixable = 0
+    for file in dict.fromkeys(files):
         try:
             configuration = override or load_config(
                 find_config(Path(file).resolve().parent),
                 known_rules=RULE_NAMES,
                 extra_ignore=ignore,
             )
+            data = Path(file).read_bytes()
+            report = process(data, encoding, configuration)
         except ConfigError as exc:
             _echo_error(file, exc.message)
             errors += 1
             continue
-        try:
-            source = read_source(Path(file), encoding)
-        except ReadError as exc:
-            _echo_error(file, str(exc))
+        except OSError as exc:
+            _echo_error(file, f"cannot read file: {exc.strerror or exc}")
             errors += 1
             continue
-        try:
-            report = process(file, source, configuration)
-        except RuntimeError as exc:
-            _echo_error(file, str(exc).removeprefix(f"{file}: "))
+        except UnicodeDecodeError as exc:
+            _echo_error(
+                file,
+                f"cannot decode file with encoding '{encoding}': "
+                f"{exc.reason} at byte {exc.start}",
+            )
             errors += 1
             continue
-        diagnostics.extend(report.diagnostics)
-        status = "unchanged"
-        if mode == "fix":
-            fixed += sum(1 for item in report.diagnostics if item.fixable)
-            if report.changed:
-                if diff:
-                    click.echo(unified_diff(file, source.text, report.output), nl=False)
-                    status = "would write"
-                else:
-                    try:
-                        write_source(Path(file), report.output, encoding)
-                    except OSError as exc:
-                        _echo_error(file, f"cannot write file: {exc.strerror or exc}")
-                        errors += 1
-                        continue
-                    status = "written"
-                written += 1
-        if verbose:
-            _echo_verbose(f"{file}: configuration {configuration.source or 'defaults'}")
-            _echo_verbose(_status(file, report, mode=mode, status=status))
-    color = use_color(sys.stdout)
-    ordered_diagnostics = sort_diagnostics(diagnostics, ordered)
-    if mode == "check":
-        shown = ordered_diagnostics
-        summary = summary_check(diagnostics) if diagnostics else None
-    else:
-        shown = [item for item in ordered_diagnostics if not item.fixable]
-        summary = (
-            summary_fix(fixed, written, diff=diff)
-            if fixed or written or shown
-            else None
+        fixable += sum(item.fixable for item in report.diagnostics)
+        lines.extend(
+            format_diagnostic(file, item)
+            for item in report.diagnostics
+            if mode == "check" or not item.fixable
         )
-    if not quiet:
-        for item in shown:
-            click.echo(format_diagnostic(item, color=color), color=color)
-    if summary is not None:
-        click.echo(click.style(summary, bold=True) if color else summary, color=color)
-    if errors:
-        return 2
+        if mode == "check" or report.output is None:
+            continue
+        if diff:
+            before, after = data.decode(encoding), report.output.decode(encoding)
+            click.echo(unified_diff(file, before, after), nl=False)
+        else:
+            try:
+                Path(file).write_bytes(report.output)
+            except OSError as exc:
+                _echo_error(file, f"cannot write file: {exc.strerror or exc}")
+                errors += 1
+                continue
+        written += 1
     if mode == "check":
-        return 1 if diagnostics else 0
-    return 1 if written or shown else 0
+        summary = f"Found {pluralize(len(lines), 'violation')} ({fixable} fixable)."
+        failed = bool(lines)
+    else:
+        verb = "would write" if diff else "wrote"
+        summary = (
+            f"Fixed {pluralize(fixable, 'violation')}, "
+            f"{verb} {pluralize(written, 'file')}."
+        )
+        failed = bool(written or lines)
+    color = use_color(sys.stdout)
+    if not quiet:
+        for line in lines:
+            click.echo(line, color=color)
+    if failed or fixable:
+        click.echo(click.style(summary, bold=True), color=color)
+    return 2 if errors else int(failed)
+
+
+def format_diagnostic(path: str, diagnostic: Diagnostic) -> str:
+    """Render one diagnostic as a single styled line.
+
+    Parameters
+    ----------
+    path : str
+        File the diagnostic belongs to, as typed on the command line.
+    diagnostic : Diagnostic
+        Diagnostic to render.
+
+    Returns
+    -------
+    str
+        ``'<path>:<line>:<column>: <rule> <message>'`` for a positioned violation,
+        ``'<path>: <message>'`` for a file-level one, with ``' [*]'`` appended when
+        the violation is fixable. The pieces carry ANSI escape codes, which
+        ``click.echo`` strips when colours are disabled.
+    """
+    location = click.style(path, bold=True)
+    marker = click.style(" [*]", fg="cyan") if diagnostic.fixable else ""
+    if diagnostic.position is None:
+        return f"{location}: {diagnostic.message}{marker}"
+    rule = click.style(diagnostic.rule, fg="yellow" if diagnostic.fixable else "red")
+    position = diagnostic.position
+    return (
+        f"{location}:{position.line}:{position.column}: "
+        f"{rule} {diagnostic.message}{marker}"
+    )
+
+
+def pluralize(count: int, singular: str) -> str:
+    """Render a count with the matching form of a noun.
+
+    Parameters
+    ----------
+    count : int
+        Number of items.
+    singular : str
+        Singular form of the noun, made plural by appending an ``'s'``.
+
+    Returns
+    -------
+    str
+        The count and the noun, e.g. ``'1 violation'`` or ``'2 violations'``.
+    """
+    return f"{count} {singular if count == 1 else singular + 's'}"
+
+
+def use_color(stream: IO[str]) -> bool:
+    """Decide whether a stream should carry ANSI escape codes.
+
+    Parameters
+    ----------
+    stream : file-like
+        Output stream.
+
+    Returns
+    -------
+    bool
+        False when ``NO_COLOR`` is set to a non-empty value, when ``TERM`` is
+        ``'dumb'`` or when the stream is not a terminal.
+    """
+    if os.environ.get("NO_COLOR", "") != "":
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    return bool(stream.isatty())
 
 
 def _validate_encoding(ctx: click.Context, param: click.Parameter, value: str) -> str:
-    """Reject an encoding name that Python does not know."""
+    """Reject an encoding name that Python does not know.
+
+    Parameters
+    ----------
+    ctx : click.Context
+        Context of the command being parsed.
+    param : click.Parameter
+        The ``--encoding`` option.
+    value : str
+        Encoding name given on the command line.
+
+    Returns
+    -------
+    str
+        The encoding name, unchanged.
+
+    Raises
+    ------
+    click.BadParameter
+        If Python has no codec of that name.
+    """
     try:
         codecs.lookup(value)
     except LookupError:
@@ -240,32 +302,14 @@ def _validate_encoding(ctx: click.Context, param: click.Parameter, value: str) -
     return value
 
 
-def _dedupe(files: tuple[str, ...]) -> list[str]:
-    """Drop repeated paths, keeping the first occurrence."""
-    seen: dict[str, None] = {}
-    for file in files:
-        seen.setdefault(file, None)
-    return list(seen)
-
-
 def _echo_error(path: str, message: str) -> None:
-    """Report a file that could not be handled."""
+    """Report a file that could not be handled.
+
+    Parameters
+    ----------
+    path : str
+        File that could not be handled, as typed on the command line.
+    message : str
+        Reason of the failure.
+    """
     click.echo(f"{path}: error: {message}", err=True)
-
-
-def _echo_verbose(message: str) -> None:
-    """Report progress on the error stream."""
-    click.echo(message, err=True)
-
-
-def _status(path: str, report: Report, *, mode: Mode, status: str) -> str:
-    """Build the second verbose line of a file."""
-    if mode == "check":
-        if not report.diagnostics:
-            return f"{path}: ok"
-        return f"{path}: {pluralize(len(report.diagnostics), 'violation')}"
-    unfixable = sum(1 for item in report.diagnostics if not item.fixable)
-    line = f"{path}: {status}"
-    if unfixable:
-        return f"{line}, {pluralize(unfixable, 'unfixable violation')}"
-    return line

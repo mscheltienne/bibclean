@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._rules._base import Finding, rule, signature
+from bibclean._rules._base import Diagnostic, rule, signature
 
 if TYPE_CHECKING:
     from bibclean._model import Entry
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @rule(name="duplicate-key", fixable="partial", scope="file")
-def duplicate_key(ctx: Context) -> list[Finding]:
+def duplicate_key(ctx: Context) -> list[Diagnostic]:
     """Report a cite key that is already defined, case-insensitively.
 
     The repeat is removed when it renders exactly like the first occurrence,
@@ -26,7 +26,7 @@ def duplicate_key(ctx: Context) -> list[Finding]:
     pybtex: cite keys are stored in a case-insensitive dictionary and the
     documentation build fails on the repeat.
     """
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     seen: dict[str, Entry] = {}
     for entry in ctx.entries():
         first = seen.get(entry.key.lower())
@@ -43,5 +43,5 @@ def duplicate_key(ctx: Context) -> list[Finding]:
         identical = signature(entry, options) == signature(first, options)
         if identical:
             ctx.remove(entry)
-        findings.append(Finding(entry.start, message, identical))
+        findings.append(Diagnostic(entry.start, message, identical))
     return findings

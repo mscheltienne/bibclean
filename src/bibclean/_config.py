@@ -124,13 +124,10 @@ class Config:
         Formatting options.
     lint : LintOptions
         Linting options.
-    source : Path | None
-        File the configuration was read from, None for the defaults.
     """
 
     format: FormatOptions
     lint: LintOptions
-    source: Path | None
 
 
 def default_config() -> Config:
@@ -139,7 +136,7 @@ def default_config() -> Config:
     Returns
     -------
     Config
-        The shipped defaults, with ``source`` set to None.
+        The shipped defaults.
     """
     return parse_config({}, path=None, known_rules=())
 
@@ -206,7 +203,7 @@ def parse_config(
         **{key: value for key, value in values.items() if key not in format_names},
         types=_merge_types(user_types),
     )
-    return Config(format=format_options, lint=lint_options, source=path)
+    return Config(format=format_options, lint=lint_options)
 
 
 @cache
@@ -231,7 +228,7 @@ def load_config(
     Returns
     -------
     Config
-        The validated configuration, with ``source`` set to ``path``.
+        The validated configuration.
 
     Raises
     ------

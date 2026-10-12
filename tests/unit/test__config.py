@@ -29,7 +29,6 @@ def _write(path: Path, text: str) -> Path:
 def test_default_config() -> None:
     """Test the shipped defaults."""
     config = default_config()
-    assert config.source is None
     assert config.format.indent == 2
     assert config.format.align_values is False
     assert config.format.trailing_comma is False
@@ -193,7 +192,6 @@ def test_load_config_top_level(tmp_path: Path) -> None:
     config = load_config(path, known_rules=RULES)
     assert config.format.indent == 4
     assert "note" in config.lint.types["book"].keep
-    assert config.source == path
     assert load_config(path, known_rules=RULES) is config
 
 
@@ -210,7 +208,6 @@ def test_load_config_extra_ignore(tmp_path: Path) -> None:
     config = load_config(path, known_rules=RULES, extra_ignore=("duplicate-key",))
     assert config.lint.ignore == frozenset({"doi-prefix", "duplicate-key"})
     config = load_config(None, known_rules=RULES, extra_ignore=("duplicate-key",))
-    assert config.source is None
     assert config.lint.ignore == frozenset({"duplicate-key"})
 
 

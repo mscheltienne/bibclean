@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from bibclean._defaults import MONTHS
 from bibclean._formatter import collapse_whitespace, render_value
 from bibclean._model import Part, Value
-from bibclean._rules._base import Finding, _fields_named, rule
+from bibclean._rules._base import Diagnostic, _fields_named, rule
 
 if TYPE_CHECKING:
     from bibclean._config import Month
@@ -68,7 +68,7 @@ def month_target(number: int, mode: Month) -> Part:
 
 
 @rule(name="month-format", fixable="yes", scope="value")
-def month_format(ctx: Context) -> list[Finding]:
+def month_format(ctx: Context) -> list[Diagnostic]:
     """Report a ``month`` field that is not in the configured form.
 
     The value is rewritten as the macro, the English name or the number,
@@ -83,7 +83,7 @@ def month_format(ctx: Context) -> list[Finding]:
     so both forms render the same but a canonical file needs one of them.
     """
     mode = ctx.config.lint.month
-    findings: list[Finding] = []
+    findings: list[Diagnostic] = []
     for entry in ctx.entries():
         if ctx.is_excluded(entry):
             continue
@@ -92,7 +92,7 @@ def month_format(ctx: Context) -> list[Finding]:
             original = _original(field.value)
             if number is None:
                 message = f"unrecognised month '{original}'"
-                findings.append(Finding(field.start, message, False))
+                findings.append(Diagnostic(field.start, message, False))
                 continue
             target = month_target(number, mode)
             parts = field.value.parts
@@ -107,7 +107,7 @@ def month_format(ctx: Context) -> list[Finding]:
                 message = f"month '{original}' should be the macro '{target.text}'"
             else:
                 message = f"month '{original}' should be '{target.text}'"
-            findings.append(Finding(field.start, message, True))
+            findings.append(Diagnostic(field.start, message, True))
     return findings
 
 

@@ -37,7 +37,7 @@ def apply_rule() -> Callable[..., tuple[list[tuple[Any, ...]], str]]:
         name: str, source: str, cfg: Config | None = None
     ) -> tuple[list[tuple[Any, ...]], str]:
         cfg = default_config() if cfg is None else cfg
-        context = Context(path="t.bib", blocks=parse(source), config=cfg)
+        context = Context(blocks=parse(source), config=cfg)
         findings = get_rule(name).check(context)
         rows = [
             (
@@ -59,7 +59,7 @@ def rules_reported() -> Callable[..., list[str]]:
 
     def _reported(source: str, cfg: Config | None = None) -> list[str]:
         cfg = default_config() if cfg is None else cfg
-        context = Context(path="t.bib", blocks=parse(source), config=cfg)
+        context = Context(blocks=parse(source), config=cfg)
         return [item.rule for item in lint(context)]
 
     return _reported

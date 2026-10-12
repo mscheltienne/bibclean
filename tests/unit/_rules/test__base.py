@@ -9,7 +9,7 @@ from bibclean._model import Entry
 from bibclean._parser import parse
 from bibclean._rules._base import (
     Context,
-    Finding,
+    Diagnostic,
     Rule,
     _fields_named,
     _has_field,
@@ -27,14 +27,14 @@ SOURCE = (
 def _context(**options: object) -> Context:
     base = default_config()
     config = replace(base, lint=replace(base.lint, **options))
-    return Context(path="t.bib", blocks=parse(SOURCE), config=config)
+    return Context(blocks=parse(SOURCE), config=config)
 
 
 def test_decorator() -> None:
     """Test that the decorator builds a rule out of a function."""
 
     @rule(name="my-rule", fixable="yes", scope="entry")
-    def my_rule(ctx: Context) -> list[Finding]:
+    def my_rule(ctx: Context) -> list[Diagnostic]:
         """Do something.
 
         More text.
@@ -61,7 +61,7 @@ def test_decorator_requires_a_docstring() -> None:
     with pytest.raises(ValueError, match="has no docstring"):
 
         @rule(name="my-rule", fixable="no", scope="entry")
-        def my_rule(ctx: Context) -> list[Finding]:  # noqa: D103 - the point of the test
+        def my_rule(ctx: Context) -> list[Diagnostic]:  # noqa: D103 - the point of the test
             return []
 
 
