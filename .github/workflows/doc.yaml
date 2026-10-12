@@ -23,6 +23,7 @@ jobs:
         with:
           activate-environment: true
       - run: uv sync -q --no-default-groups --group doc
+      - run: uv run --no-sync --with psutil python tools/sys_info.py
       - run: uv pip list
       - run: make -C doc html
       - name: Prune sphinx environment
