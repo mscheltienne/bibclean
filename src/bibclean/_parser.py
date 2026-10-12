@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from bisect import bisect_right
 
 from bibclean._model import (
@@ -17,9 +18,13 @@ from bibclean._model import (
 )
 
 WHITESPACE = " \t\n\r\f\v"
-DIGITS = "0123456789"
 _NOT_IDENTIFIER = frozenset(WHITESPACE + "#%'(),={}")
 _NOT_CITE_KEY = frozenset(WHITESPACE + ",{}()")
+# an '@' that is the first non-blank character of its line; with a start offset, '^'
+# matches only at real line starts, never at the offset itself
+_LINE_START = re.compile(r"^[ \t]*@", re.MULTILINE)
+# an '@' separated from the end of the previous block by spaces and tabs only
+_AFTER_BLOCK = re.compile(r"[ \t]*@")
 
 
 class LineIndex:
@@ -57,7 +62,6 @@ class _ParseError(Exception):
 
     def __init__(self, message: str, offset: int) -> None:
         super().__init__(message)
-        self.message = message
         self.offset = offset
 
 
@@ -70,7 +74,6 @@ class _Scanner:
         self.index = LineIndex(source)
         self._key: str | None = None
 
-    # ------------------------------------------------------------------ helpers
     def _peek(self) -> str:
         return self.source[self.pos] if self.pos < len(self.source) else ""
 
@@ -101,48 +104,6 @@ class _Scanner:
             self.pos += 1
         return source[start : self.pos]
 
-    def _find_block_start(self, pos: int) -> int:
-        source = self.source
-        end = len(source)
-        if pos == 0 or source[pos - 1] == "\n":
-            line_start = pos
-        else:
-            newline = source.find("\n", pos)
-            if newline == -1:
-                return end
-            line_start = newline + 1
-        while line_start < end:
-            offset = line_start
-            while offset < end and source[offset] in " \t":
-                offset += 1
-            if offset < end and source[offset] == "@":
-                return offset
-            newline = source.find("\n", line_start)
-            if newline == -1:
-                return end
-            line_start = newline + 1
-        return end
-
-    def _resync_offset(self, block_start: int) -> int:
-        source = self.source
-        end = len(source)
-        newline = source.find("\n", block_start)
-        if newline == -1:
-            return end
-        line_start = newline + 1
-        while line_start < end:
-            offset = line_start
-            while offset < end and source[offset] in " \t":
-                offset += 1
-            if offset < end and source[offset] == "@":
-                return line_start
-            newline = source.find("\n", line_start)
-            if newline == -1:
-                return end
-            line_start = newline + 1
-        return end
-
-    # ------------------------------------------------------------------- blocks
     def scan_block(self, at: int) -> tuple[Block, int]:
         """Scan one ``'@'`` block, recovering from any failure.
 
@@ -154,7 +115,9 @@ class _Scanner:
         Returns
         -------
         block : Block
-            The parsed block, a :class:`~bibclean._model.Malformed` on failure.
+            The parsed block, a :class:`~bibclean._model.Malformed` on failure. A
+            malformed block extends to the start of the next line whose first
+            non-blank character is ``'@'``.
         end : int
             Offset of the first character after the block.
         """
@@ -183,31 +146,26 @@ class _Scanner:
             else:
                 block = self._scan_entry(at, kind_text, opening, closing)
         except _ParseError as error:
-            return self._malformed(at, kind_text, error), self._resync_offset(at)
+            if self._key is not None:
+                what = f"entry '{self._key}'"
+            elif kind_text:
+                what = f"@{kind_text.lower()} block"
+            else:
+                what = "block"
+            position = self.index.position(min(error.offset, len(self.source)))
+            resync = _LINE_START.search(self.source, at + 1)
+            end = resync.start() if resync else len(self.source)
+            malformed = Malformed(
+                start=self.index.position(at),
+                raw=self.source[at:end],
+                message=(
+                    f"{what} could not be parsed: {error} "
+                    f"at line {position.line}, column {position.column}"
+                ),
+                error=position,
+            )
+            return malformed, end
         return block, self.pos
-
-    def _malformed(
-        self, at: int, kind_text: str | None, error: _ParseError
-    ) -> Malformed:
-        if self._key is not None:
-            what = f"entry '{self._key}'"
-        elif kind_text:
-            what = f"@{kind_text.lower()} block"
-        else:
-            what = "block"
-        offset = min(error.offset, len(self.source))
-        position = self.index.position(offset)
-        message = (
-            f"{what} could not be parsed: {error.message} "
-            f"at line {position.line}, column {position.column}"
-        )
-        end = self._resync_offset(at)
-        return Malformed(
-            start=self.index.position(at),
-            raw=self.source[at:end],
-            message=message,
-            error=position,
-        )
 
     def _scan_comment(self, at: int, opening: str) -> ExplicitComment:
         source = self.source
@@ -327,11 +285,10 @@ class _Scanner:
             entry_type=kind_text,
             key=key,
             fields=fields,
-            delimiter="{" if opening == "{" else "(",
+            delimiter=opening,
             trailing_comma=trailing_comma,
         )
 
-    # ------------------------------------------------------------------- values
     def _scan_value(self, what: str) -> Value:
         parts = [self._scan_part(what)]
         while True:
@@ -355,9 +312,6 @@ class _Scanner:
             depth = 1
             while self.pos < end:
                 current = source[self.pos]
-                if current == "\\":
-                    self.pos = min(self.pos + 2, end)
-                    continue
                 if current == "{":
                     depth += 1
                 elif current == "}":
@@ -374,9 +328,6 @@ class _Scanner:
             depth = 0
             while self.pos < end:
                 current = source[self.pos]
-                if current == "\\":
-                    self.pos = min(self.pos + 2, end)
-                    continue
                 if current == "{":
                     depth += 1
                 elif current == "}":
@@ -409,17 +360,28 @@ def parse(source: str) -> list[Block]:
         input. A block the parser could not read becomes a
         :class:`~bibclean._model.Malformed` and the scan resumes at the next line
         whose first non-blank character is ``'@'``.
+
+    Notes
+    -----
+    An ``'@'`` starts a block when it is the first non-blank character of its line,
+    or when only spaces and tabs separate it from the end of the previous parsed
+    block. Any other ``'@'`` belongs to free text.
     """
     scanner = _Scanner(source)
     blocks: list[Block] = []
     pos = 0
     end = len(source)
+    after_block = False
     while pos < end:
-        at = scanner._find_block_start(pos)
+        match = (after_block and _AFTER_BLOCK.match(source, pos)) or (
+            _LINE_START.search(source, pos)
+        )
+        at = match.end() - 1 if match else end
         if at > pos:
             blocks.append(Junk(start=scanner.index.position(pos), raw=source[pos:at]))
         if at == end:
             break
         block, pos = scanner.scan_block(at)
         blocks.append(block)
+        after_block = not isinstance(block, Malformed)
     return blocks

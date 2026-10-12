@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import pytest
-
 from bibclean._model import (
     Entry,
     ExplicitComment,
     Field,
-    Junk,
     Malformed,
     Part,
     Position,
@@ -14,8 +11,6 @@ from bibclean._model import (
     StringDef,
     Value,
     entry_type,
-    field_name,
-    is_whitespace,
 )
 
 
@@ -39,17 +34,7 @@ def test_entry() -> None:
         trailing_comma=False,
     )
     assert entry_type(entry) == "article"
-    assert field_name(entry.fields[0]) == "title"
     assert entry.fields[0].value.parts[0].kind == "braced"
-
-
-@pytest.mark.parametrize(
-    ("raw", "expected"),
-    [("", True), ("  \n\t", True), ("% x", False), ("a", False)],
-)
-def test_is_whitespace(raw: str, expected: bool) -> None:
-    """Test the detection of whitespace-only blocks."""
-    assert is_whitespace(Junk(start=Position(1, 1), raw=raw)) is expected
 
 
 def test_other_blocks() -> None:

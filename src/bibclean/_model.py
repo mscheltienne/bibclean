@@ -177,38 +177,6 @@ class Malformed(Block):
     error: Position
 
 
-def is_whitespace(block: Block) -> bool:
-    """Check whether a block holds whitespace only.
-
-    Parameters
-    ----------
-    block : Block
-        Block to inspect.
-
-    Returns
-    -------
-    bool
-        True when the raw text of the block is empty or whitespace only.
-    """
-    return block.raw.strip() == ""
-
-
-def field_name(field: Field) -> str:
-    """Return the lowercased name of a field.
-
-    Parameters
-    ----------
-    field : Field
-        Field to inspect.
-
-    Returns
-    -------
-    str
-        The field name, lowercased.
-    """
-    return field.key.lower()
-
-
 def entry_type(entry: Entry) -> str:
     """Return the lowercased type of an entry.
 

@@ -147,8 +147,8 @@ def test_values() -> None:
     """Test every value form."""
     source = (
         "@misc{k,\n"
-        "  a = {nested {braces} and \\{escaped\\}},\n"
-        '  b = "quoted {with} \\" inner",\n'
+        "  a = {nested {braces} and \\{balanced\\}},\n"
+        '  b = "quoted {with} {\\"} inner",\n'
         "  c = macro,\n"
         "  d = 2024,\n"
         '  e = a # "b" # {c},\n'
@@ -158,9 +158,9 @@ def test_values() -> None:
     assert isinstance(entry, Entry)
     assert entry.trailing_comma is True
     values = {field.key: field.value for field in entry.fields}
-    assert values["a"].parts[0].text == "nested {braces} and \\{escaped\\}"
+    assert values["a"].parts[0].text == "nested {braces} and \\{balanced\\}"
     assert values["b"].parts[0].kind == "quoted"
-    assert values["b"].parts[0].text == 'quoted {with} \\" inner'
+    assert values["b"].parts[0].text == 'quoted {with} {\\"} inner'
     assert values["c"].parts[0].kind == "bare"
     assert values["d"].parts[0].text == "2024"
     assert [part.kind for part in values["e"].parts] == ["bare", "quoted", "braced"]
@@ -216,6 +216,16 @@ def test_entry_without_fields() -> None:
         ),
         ("@comment{abc\n", "unterminated @comment", Position(2, 1)),
         ("@comment(a}b)\n", "unbalanced '}' in @comment", Position(1, 11)),
+        (
+            "@article{k, title = {a \\{ b}}\n",
+            "expected ',' or '}' after field 'title'",
+            Position(2, 1),
+        ),
+        (
+            '@article{k, title = "Schr\\"odinger"}\n',
+            "expected ',' or '}' after field 'title'",
+            Position(1, 28),
+        ),
     ],
 )
 def test_errors(source: str, reason: str, error: Position) -> None:
@@ -269,6 +279,34 @@ def test_at_in_junk() -> None:
     assert [type(block).__name__ for block in single] == ["Junk"]
     indented = parse("  @misc{k}\n")
     assert [type(block).__name__ for block in indented] == ["Junk", "Entry", "Junk"]
+    note = parse("@misc{k} % note @x\n")
+    assert [type(block).__name__ for block in note] == ["Entry", "Junk"]
+    broken = parse("@misc{k, a = {b\n} @misc{j}\n")
+    assert [type(block).__name__ for block in broken] == ["Malformed"]
+
+
+@pytest.mark.parametrize(
+    ("source", "kinds"),
+    [
+        (
+            "@article{a, title={A}} @article{b, title={B}}\n",
+            ["Entry", "Junk", "Entry", "Junk"],
+        ),
+        ("@comment{x}@string{s={S}}\n", ["ExplicitComment", "StringDef", "Junk"]),
+        ("@misc{a}\t@misc{b,} @misc{c}", ["Entry", "Junk", "Entry", "Junk", "Entry"]),
+    ],
+)
+def test_blocks_on_one_line(source: str, kinds: list[str]) -> None:
+    """Test that a block right after another block on the same line is parsed."""
+    assert [type(block).__name__ for block in parse(source)] == kinds
+
+
+def test_zotero_file_field() -> None:
+    """Test that backslashes in a Zotero file field do not affect brace counting."""
+    value = "Paper.pdf:C\\:\\\\Users\\\\me\\\\Paper.pdf:application/pdf"
+    entry = parse(f"@misc{{k,\n  file = {{{value}}}\n}}\n")[0]
+    assert isinstance(entry, Entry)
+    assert entry.fields[0].value.parts[0].text == value
 
 
 def test_comment_nested_braces(assets: Path) -> None:

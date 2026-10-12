@@ -116,6 +116,23 @@ def test_fix_writes_and_exits_one(tmp_path: Path, runner: CliRunner) -> None:
     assert result.stdout == "Fixed 1 violation, wrote 1 file.\n"
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "@misc{a, title={A}} @misc{b, title={B}}\n",
+        "@comment{x}@string{s={S}}\n@misc{k, title = s}\n",
+    ],
+)
+def test_fix_blocks_on_one_line(tmp_path: Path, runner: CliRunner, text: str) -> None:
+    """Test that blocks sharing a line are split once and then left alone."""
+    path = _write(tmp_path, "a.bib", text)
+    assert runner.invoke(run, ["fix", "--isolated", str(path)]).exit_code == 1
+    fixed = path.read_text(encoding="utf-8")
+    result = runner.invoke(run, ["fix", "--isolated", str(path)])
+    assert result.exit_code == 0, result.output
+    assert path.read_text(encoding="utf-8") == fixed
+
+
 def test_fix_diff_writes_nothing(tmp_path: Path, runner: CliRunner) -> None:
     """Test that --diff prints the change and leaves the file alone."""
     path = _write(tmp_path, "a.bib", DIRTY)

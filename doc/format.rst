@@ -162,29 +162,25 @@ Reading conventions
 Two details of how a file is read are worth knowing, because they decide whether
 a line is data or text.
 
-**A block starts only at the beginning of a line.** An ``@`` is read as the start
-of a block when it is the first non-blank character of its line. Anywhere else it
-is free text, so a commented-out entry and an e-mail address survive untouched
-instead of becoming a syntax error:
+**A block starts at the beginning of a line or right after another block.** An
+``@`` is read as the start of a block when it is the first non-blank character of
+its line, or when only spaces and tabs separate it from the end of the previous
+block. Anywhere else it is free text, so a commented-out entry and an e-mail
+address survive untouched instead of becoming a syntax error:
 
 .. code-block:: bibtex
 
     % write to me@example.org
     % @article{old_entry, title = {Not an entry any more}}
+    @misc{a, title = {A}} @misc{b, title = {B}}  % two entries, then a note @x
 
-**A backslash escapes the next character.** Braces are counted so that ``\{``,
-``\}`` and ``\\`` never open or close a value, which is what makes a Zotero
-``file`` field parse:
+After a block that cannot be parsed, reading resumes at the next line whose first
+non-blank character is ``@``.
 
-.. code-block:: bibtex
-
-    @article{k,
-      file = {Paper.pdf:C\:\\Users\\me\\Zotero\\storage\\Paper.pdf:application/pdf}
-    }
-
-BibTeX itself counts braces without looking at backslashes. A value that relies on
-``\{`` to balance its braces is therefore read differently by ``bibclean`` and by
-pybtex, and should be rewritten with balanced braces.
+**Braces are counted as BibTeX counts them.** A backslash has no special meaning
+to the parser: ``\{`` opens a brace and ``\"`` closes a quoted value. A value such
+as ``{a \{ b}`` or ``"Schr\"odinger"`` is a syntax error, as it is for BibTeX and
+pybtex; write ``{\"o}`` for the umlaut and pair every ``\{`` with a ``\}``.
 
 Encoding and line endings
 -------------------------
