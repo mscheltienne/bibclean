@@ -11,9 +11,7 @@ from bibclean._formatter import (
     format_blocks,
     render_block,
     render_entry,
-    render_fields,
     render_value,
-    sort_key,
 )
 from bibclean._model import Entry
 from bibclean._parser import parse
@@ -91,14 +89,12 @@ def test_render_malformed() -> None:
     assert render_block(blocks[0], DEFAULTS) == "@misc{k, a = {b"
 
 
-def test_render_fields_and_entry() -> None:
+def test_render_entry() -> None:
     """Test the entry head, the body lines and the closing delimiter."""
     entry = _first_entry("@Article{Key,\n  Year = 2020,\n  author = {A}\n}")
-    assert render_fields(entry, DEFAULTS) == "  author = {A},\n  year = {2020}"
     assert render_entry(entry, DEFAULTS) == (
         "@article{Key,\n  author = {A},\n  year = {2020}\n}"
     )
-    assert sort_key(entry) == "key"
 
 
 @pytest.mark.parametrize(
@@ -172,14 +168,23 @@ def test_malformed_reinsertion(index: int) -> None:
 
 
 def test_block_order() -> None:
-    """Test that preambles come first, then strings, then entries and prose."""
+    """Test that strings and preambles keep their order, before entries and prose."""
     source = (
-        "@misc{k, a = {1}}\n\n@string{s = {v}}\n\n@preamble{{x}}\n\ntrailing prose\n"
+        "@misc{k, a = {1}}\n\n@string{s = {S}}\n\n@preamble{s # {x}}\n\n"
+        "@string{t = {T}}\n\ntrailing prose\n"
     )
     assert format_blocks(parse(source), DEFAULTS) == (
-        "@preamble{{x}}\n\n@string{s = {v}}\n\n@misc{k,\n  a = {1}\n}\n\n"
-        "trailing prose\n"
+        "@string{s = {S}}\n\n@preamble{s # {x}}\n\n@string{t = {T}}\n\n"
+        "@misc{k,\n  a = {1}\n}\n\ntrailing prose\n"
     )
+
+
+def test_blank_lines_in_free_text() -> None:
+    """Test that runs of blank lines inside free text collapse to one."""
+    source = "% a  \n\n \n\t\n% b\n\n% c\n@misc{k, a = {1}}\n"
+    once = format_blocks(parse(source), DEFAULTS)
+    assert once == "% a  \n\n% b\n\n% c\n@misc{k,\n  a = {1}\n}\n"
+    assert format_blocks(parse(once), DEFAULTS) == once
 
 
 def test_comments_travel_with_the_next_block() -> None:

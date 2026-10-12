@@ -99,7 +99,7 @@ The style
      - ``sort-entries``
    * - Block order
      - any
-     - preambles, then macros, then entries
+     - macros and preambles in source order, then entries
      - fixed
    * - Comments
      - ``% x`` above an entry
@@ -107,7 +107,7 @@ The style
      - fixed
    * - Blank lines
      - any number, anywhere
-     - exactly one between blocks
+     - exactly one between blocks, at most one inside free text
      - fixed
    * - Delimiters
      - ``@article(K, )``
@@ -152,9 +152,12 @@ is dropped.
 
 Blocks are grouped into units before they are ordered: a unit is one block
 together with the comments and free text written directly above it, so an
-annotation travels with the entry it describes. Units are then emitted as
-preambles, macro definitions, and finally entries, sorted by cite key. A block
-that could not be parsed stays at the position it had among the entries.
+annotation travels with the entry it describes. Units are then emitted as macro
+definitions and preambles, in the order of the source since a preamble may use a
+macro defined above it, and finally entries, sorted by cite key. A block that could
+not be parsed stays at the
+position it had among the entries. Inside free text, every run of blank lines is
+reduced to one.
 
 Reading conventions
 -------------------

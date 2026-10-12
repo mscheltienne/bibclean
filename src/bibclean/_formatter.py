@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from bibclean._model import Field, Value
 
 _WHITESPACE_RUN = re.compile(r"[ \t\n\r\f\v]+")
-_DIGITS = frozenset("0123456789")
+_BLANK_LINES = re.compile(r"\n(?:[ \t\r\f\v]*\n)+")
 
 
 @dataclass(slots=True)
@@ -46,22 +46,6 @@ def collapse_whitespace(text: str) -> str:
         The text with every run of ``[ \t\n\r\f\v]`` replaced by one space.
     """
     return _WHITESPACE_RUN.sub(" ", text)
-
-
-def sort_key(entry: Entry) -> str:
-    """Return the sort key of an entry.
-
-    Parameters
-    ----------
-    entry : Entry
-        Entry to sort.
-
-    Returns
-    -------
-    str
-        The cite key, lowercased.
-    """
-    return entry.key.lower()
 
 
 def render_value(value: Value) -> str:
@@ -89,29 +73,8 @@ def render_value(value: Value) -> str:
         texts[-1] = texts[-1].rstrip()
     rendered = []
     for part, text in zip(parts, texts, strict=True):
-        if part.kind == "bare" and not (text and set(text) <= _DIGITS):
-            rendered.append(text)
-        else:
-            rendered.append("{" + text + "}")
+        rendered.append(text if part.is_macro else "{" + text + "}")
     return " # ".join(rendered)
-
-
-def render_fields(entry: Entry, options: FormatOptions) -> str:
-    """Render the body lines of an entry.
-
-    Parameters
-    ----------
-    entry : Entry
-        Entry to render.
-    options : FormatOptions
-        Formatting options.
-
-    Returns
-    -------
-    str
-        The indented field lines, without the head and the closing delimiter.
-    """
-    return "\n".join(_field_lines(entry, options))
 
 
 def render_entry(entry: Entry, options: FormatOptions) -> str:
@@ -133,7 +96,16 @@ def render_entry(entry: Entry, options: FormatOptions) -> str:
     head = "@" + entry.entry_type.lower() + "{" + entry.key
     if fields or options.trailing_comma:
         head += ","
-    return "\n".join([head, *_field_lines(entry, options), "}"])
+    width = max((len(f.key) for f in fields), default=0) if options.align_values else 0
+    indent = "\t" if options.indent == "tab" else " " * options.indent
+    lines = [head]
+    for index, item in enumerate(fields):
+        key = item.key.lower().ljust(width)
+        last = index == len(fields) - 1
+        comma = "," if not last or options.trailing_comma else ""
+        lines.append(indent + key + " = " + render_value(item.value) + comma)
+    lines.append("}")
+    return "\n".join(lines)
 
 
 def render_block(block: Block, options: FormatOptions) -> str:
@@ -149,7 +121,8 @@ def render_block(block: Block, options: FormatOptions) -> str:
     Returns
     -------
     str
-        The block, without a trailing newline.
+        The block, without a trailing newline. Free text is stripped and every run
+        of blank lines inside it is collapsed to one blank line.
     """
     if isinstance(block, Entry):
         return render_entry(block, options)
@@ -162,7 +135,7 @@ def render_block(block: Block, options: FormatOptions) -> str:
         return "@comment" + block.delimiter + block.body + closing
     if isinstance(block, Malformed):
         return block.raw.rstrip()
-    return block.raw.strip()
+    return _BLANK_LINES.sub("\n\n", block.raw.strip())
 
 
 def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
@@ -178,8 +151,8 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     Returns
     -------
     str
-        The canonical text: preambles, then strings, then entries with the
-        malformed blocks back at their original index, one blank line between
+        The canonical text: strings and preambles in source order, then entries
+        with the malformed blocks back at their original index, one blank line between
         units and exactly one final newline. An input without any block renders
         as the empty string.
     """
@@ -189,25 +162,6 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     return "\n\n".join(_render_unit(unit, options) for unit in units) + "\n"
 
 
-def _field_lines(entry: Entry, options: FormatOptions) -> list[str]:
-    """Build the indented field lines of an entry."""
-    fields = _sorted_fields(entry, options)
-    width = max((len(f.key) for f in fields), default=0) if options.align_values else 0
-    indent = _indent(options)
-    lines = []
-    for index, item in enumerate(fields):
-        key = item.key.lower().ljust(width) if width else item.key.lower()
-        last = index == len(fields) - 1
-        comma = "," if not last or options.trailing_comma else ""
-        lines.append(indent + key + " = " + render_value(item.value) + comma)
-    return lines
-
-
-def _indent(options: FormatOptions) -> str:
-    """Return the indent string of one field line."""
-    return "\t" if options.indent == "tab" else " " * options.indent
-
-
 def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
     """Order the fields of an entry according to the options."""
     order = options.sort_fields
@@ -215,16 +169,13 @@ def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
         return list(entry.fields)
     if order is True:
         return sorted(entry.fields, key=lambda item: item.key.lower())
-    first: list[str] = []
-    for name in order:
-        if name.lower() not in first:
-            first.append(name.lower())
+    rank = {name: i for i, name in enumerate(dict.fromkeys(n.lower() for n in order))}
 
     def key(item: Field) -> tuple[int, str]:
         name = item.key.lower()
-        if name in first:
-            return (first.index(name), "")
-        return (len(first), name)
+        if name in rank:
+            return (rank[name], "")
+        return (len(rank), name)
 
     return sorted(entry.fields, key=key)
 
@@ -249,18 +200,15 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
 
 
 def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
-    """Order units: preambles, strings, entries, trailing prose."""
-    preambles: list[_Unit] = []
-    strings: list[_Unit] = []
+    """Order units: strings and preambles in source order, entries, trailing prose."""
+    header: list[_Unit] = []
     entries: list[_Unit] = []
     trailing: list[_Unit] = []
     for unit in units:
         if unit.block is None:
             trailing.append(unit)
-        elif isinstance(unit.block, Preamble):
-            preambles.append(unit)
-        elif isinstance(unit.block, StringDef):
-            strings.append(unit)
+        elif isinstance(unit.block, Preamble | StringDef):
+            header.append(unit)
         else:
             entries.append(unit)
     malformed = [
@@ -270,10 +218,10 @@ def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
     ]
     ordered = [unit for unit in entries if isinstance(unit.block, Entry)]
     if options.sort_entries:
-        ordered.sort(key=lambda unit: sort_key(unit.block))
+        ordered.sort(key=lambda unit: unit.block.key.lower())
     for index, unit in malformed:
         ordered.insert(index, unit)
-    return [*preambles, *strings, *ordered, *trailing]
+    return [*header, *ordered, *trailing]
 
 
 def _render_unit(unit: _Unit, options: FormatOptions) -> str:

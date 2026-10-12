@@ -10,8 +10,6 @@ if TYPE_CHECKING:
     from bibclean._model import Position, Value
     from bibclean._rules._base import Context
 
-_DIGITS = frozenset("0123456789")
-
 
 @rule(name="undefined-string", fixable="no", scope="value")
 def undefined_string(ctx: Context) -> list[Finding]:
@@ -46,11 +44,9 @@ def _check(value: Value, position: Position, defined: set[str]) -> list[Finding]
     """Report the bare parts of a value that are neither digits nor defined."""
     findings: list[Finding] = []
     for part in value.parts:
-        if part.kind != "bare":
+        if not part.is_macro:
             continue
         text = part.text
-        if text and set(text) <= _DIGITS:
-            continue
         if text.lower() in MONTH_MACROS or text.lower() in defined:
             continue
         findings.append(Finding(position, f"undefined string '{text}'", False))

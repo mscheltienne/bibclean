@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import pytest
+
 from bibclean._model import (
     Entry,
     ExplicitComment,
@@ -12,6 +16,9 @@ from bibclean._model import (
     Value,
     entry_type,
 )
+
+if TYPE_CHECKING:
+    from bibclean._model import Kind
 
 
 def test_position_order() -> None:
@@ -54,3 +61,19 @@ def test_other_blocks() -> None:
     assert string.key == "a"
     assert comment.delimiter == "{"
     assert malformed.error == Position(1, 11)
+
+
+@pytest.mark.parametrize(
+    ("kind", "text", "expected"),
+    [
+        ("bare", "acm", True),
+        ("bare", "jan2", True),
+        ("bare", "2024", False),
+        ("bare", "²", True),
+        ("braced", "acm", False),
+        ("quoted", "acm", False),
+    ],
+)
+def test_part_is_macro(kind: Kind, text: str, expected: bool) -> None:
+    """Test that only a bare part not made of ASCII digits is a macro."""
+    assert Part(kind, text).is_macro is expected

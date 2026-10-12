@@ -3,10 +3,10 @@ from __future__ import annotations
 import inspect
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Literal
 
-from bibclean._formatter import collapse_whitespace, render_fields
+from bibclean._formatter import collapse_whitespace, render_entry
 from bibclean._model import Entry, entry_type
 
 if TYPE_CHECKING:
@@ -176,7 +176,7 @@ def rule(
     return decorator
 
 
-def signature(entry: Entry, options: FormatOptions) -> tuple[str, str]:
+def signature(entry: Entry, options: FormatOptions) -> str:
     """Build the comparison signature of an entry.
 
     Parameters
@@ -184,15 +184,15 @@ def signature(entry: Entry, options: FormatOptions) -> tuple[str, str]:
     entry : Entry
         Entry to describe.
     options : FormatOptions
-        Formatting options used to render the fields.
+        Formatting options used to render the entry.
 
     Returns
     -------
-    tuple of str
-        The lowercased entry type and the rendered field lines. The cite key is
-        not part of the signature.
+    str
+        The canonical rendering of the entry with its cite key blanked, so that the
+        cite key is not part of the signature.
     """
-    return (entry_type(entry), render_fields(entry, options))
+    return render_entry(replace(entry, key=""), options)
 
 
 def _fields_named(entry: Entry, name: str) -> list[Field]:

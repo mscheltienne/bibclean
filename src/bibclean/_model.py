@@ -37,6 +37,17 @@ class Part:
     kind: Kind
     text: str
 
+    @property
+    def is_macro(self) -> bool:
+        """Whether the part is a bare macro name rather than a bare number.
+
+        Returns
+        -------
+        bool
+            True for a bare part whose text is not made of ASCII digits only.
+        """
+        return self.kind == "bare" and not (self.text.isascii() and self.text.isdigit())
+
 
 @dataclass(slots=True)
 class Value:
