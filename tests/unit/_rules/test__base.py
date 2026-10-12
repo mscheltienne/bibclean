@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-import pytest
-
 from bibclean._config import FormatOptions, default_config
 from bibclean._model import Entry
 from bibclean._parser import parse
@@ -12,8 +10,6 @@ from bibclean._rules._base import (
     Diagnostic,
     Rule,
     _fields_named,
-    _has_field,
-    _remove_field,
     _single_text,
     rule,
     signature,
@@ -49,35 +45,10 @@ def test_decorator() -> None:
     assert my_rule.check(_context()) == []
 
 
-@pytest.mark.parametrize("name", ["My-Rule", "my_rule", "my rule", "", "my--rule"])
-def test_decorator_rejects_bad_names(name: str) -> None:
-    """Test that a rule name must be kebab-case."""
-    with pytest.raises(ValueError, match="invalid rule name"):
-        rule(name=name, fixable="no", scope="entry")
-
-
-def test_decorator_requires_a_docstring() -> None:
-    """Test that a rule function must be documented."""
-    with pytest.raises(ValueError, match="has no docstring"):
-
-        @rule(name="my-rule", fixable="no", scope="entry")
-        def my_rule(ctx: Context) -> list[Diagnostic]:  # noqa: D103 - the point of the test
-            return []
-
-
 def test_context_entries() -> None:
     """Test that the context exposes the entries in order."""
     context = _context()
     assert [entry.key for entry in context.entries()] == ["Key", "s"]
-
-
-def test_context_remove() -> None:
-    """Test that a block is removed by identity."""
-    context = _context()
-    context.remove(context.entries()[0])
-    assert [entry.key for entry in context.entries()] == ["s"]
-    context.remove(context.blocks[0])
-    assert len(context.blocks) == 2
 
 
 def test_context_is_excluded() -> None:
@@ -112,11 +83,8 @@ def test_field_helpers() -> None:
     """Test the private field helpers."""
     entry = _context().entries()[0]
     assert [field.key for field in _fields_named(entry, "TiTle")] == ["title", "TITLE"]
-    assert _has_field(entry, "TITLE") is True
-    assert _has_field(entry, "author") is False
+    assert _fields_named(entry, "author") == []
     assert _single_text(entry.fields[0].value) == "A"
-    _remove_field(entry, entry.fields[0])
-    assert [field.key for field in entry.fields] == ["TITLE"]
 
 
 def test_single_text() -> None:
@@ -126,14 +94,3 @@ def test_single_text() -> None:
     assert _single_text(entry.fields[0].value) == "x y"
     assert _single_text(entry.fields[1].value) is None
     assert _single_text(entry.fields[2].value) is None
-
-
-def test_remove_ignores_foreign_objects() -> None:
-    """Test that removing something absent leaves the model untouched."""
-    context = _context()
-    other = parse("@misc{other}\n")[0]
-    context.remove(other)
-    assert len(context.blocks) == 4
-    entry = context.entries()[0]
-    _remove_field(entry, parse("@misc{k, a = {1}}")[0].fields[0])
-    assert len(entry.fields) == 2

@@ -51,6 +51,27 @@ def test_order_follows_the_table(
     ]
 
 
+def test_crossref_inheritance(
+    apply_rule: Callable[..., tuple[list[Any], str]],
+) -> None:
+    """Test that the fields of the crossref target count, its key case-insensitive."""
+    source = (
+        "@inproceedings{c, author = {A}, title = {T}, crossref = {P}}\n\n"
+        "@proceedings{p, booktitle = {B}, title = {B}, year = {2000}}\n"
+    )
+    rows, _ = apply_rule(NAME, source)
+    assert rows == []
+
+
+def test_crossref_missing_target(
+    apply_rule: Callable[..., tuple[list[Any], str]],
+) -> None:
+    """Test that a crossref without target inherits nothing."""
+    source = "@inproceedings{c, author = {A}, title = {T}, crossref = {p}}\n"
+    rows, _ = apply_rule(NAME, source)
+    assert [row[2].rsplit("'", 2)[1] for row in rows] == ["booktitle", "year"]
+
+
 def test_unknown_type(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
     """Test that a type without a table is never reported."""
     rows, _ = apply_rule(NAME, "@weird{k, a = {1}}\n")

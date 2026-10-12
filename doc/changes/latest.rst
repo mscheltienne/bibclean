@@ -27,7 +27,7 @@ Version 1.0
    renamed from ``bibclean`` to ``bibclean-check``.
 
 bibclean 1.0 is a rewrite. It is a linter and formatter for BibTeX files, with its
-own lossless parser, a canonical format, thirteen rules and automatic
+own lossless parser, a canonical format, fourteen rules and automatic
 configuration discovery. There is no public Python API.
 
 Enhancements
@@ -41,12 +41,13 @@ Enhancements
   ``pybtex``, every ``@`` starts a block, including one in a ``%`` line.
 - One canonical format, with a two-space indent, braced values, sorted entries and
   sorted fields, described in :doc:`../format`.
-- Thirteen rules, each disabled by name with ``ignore`` or ``--ignore``, described
-  in :doc:`../rules`: :ref:`rule-syntax-error`, :ref:`rule-duplicate-key`,
-  :ref:`rule-duplicate-doi`, :ref:`rule-duplicate-field`, :ref:`rule-empty-field`,
-  :ref:`rule-strip-field`, :ref:`rule-url-with-doi`, :ref:`rule-doi-prefix`,
+- Fourteen rules, each disabled by name with ``ignore`` or ``--ignore``, described
+  in :doc:`../rules`: :ref:`rule-syntax-error`, :ref:`rule-doi-prefix`,
+  :ref:`rule-empty-field`, :ref:`rule-strip-field`, :ref:`rule-url-with-doi`,
   :ref:`rule-month-format`, :ref:`rule-pages-range`,
-  :ref:`rule-unescaped-percent`, :ref:`rule-undefined-string` and
+  :ref:`rule-unescaped-percent`, :ref:`rule-duplicate-field`,
+  :ref:`rule-duplicate-key`, :ref:`rule-duplicate-doi`,
+  :ref:`rule-undefined-string`, :ref:`rule-author-format` and
   :ref:`rule-required-field`.
 - The configuration is discovered from ``pyproject.toml``, ``bibclean.toml`` or
   ``.bibclean.toml`` next to the files, described in :doc:`../configuration`.

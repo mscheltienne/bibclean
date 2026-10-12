@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from bibclean._model import Part
-from bibclean._parser import parse
-from bibclean._rules.month_format import month_target, parse_month
+from bibclean._rules.month_format import month_target
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -18,31 +17,37 @@ NAME = "month-format"
 SOURCE = "@article{k,\n  month = {September}\n}\n"
 
 
-def _value(text: str) -> Any:
-    entry = parse("@misc{k, month = " + text + "}")[0]
-    return entry.fields[0].value
-
-
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("jan", 1),
-        ("{Sep.}", 9),
-        ("{SEPTEMBER}", 9),
-        ("{ Sep }", 9),
-        ("{9}", 9),
-        ("{09}", 9),
-        ("12", 12),
+        ("jan", "January"),
+        ("JAN", "January"),
+        ("{Sep.}", "September"),
+        ("{SEPTEMBER}", "September"),
+        ("{ Sep }", "September"),
+        ("{9}", "September"),
+        ("{09}", "September"),
+        ("12", "December"),
         ("{13}", None),
         ("{0}", None),
         ("{Sept}", None),
+        ("{September.}", None),
         ("{Sept-Oct}", None),
         ('a # "b"', None),
     ],
 )
-def test_parse_month(text: str, expected: int | None) -> None:
+def test_recognised_forms(
+    apply_rule: Callable[..., tuple[list[Any], str]],
+    config: Callable[..., Config],
+    text: str,
+    expected: str | None,
+) -> None:
     """Test every recognised and unrecognised month form."""
-    assert parse_month(_value(text)) == expected
+    source = "@misc{k, month = " + text + "}\n"
+    rows, output = apply_rule(NAME, source, config(month="name"))
+    assert [row[3] for row in rows] == [expected is not None]
+    if expected is not None:
+        assert "month = {" + expected + "}" in output
 
 
 @pytest.mark.parametrize(
@@ -64,19 +69,19 @@ def test_month_target(mode: str, expected: Part) -> None:
         (
             "abbreviation",
             SOURCE,
-            "month 'September' should be the macro 'sep'",
+            "month '{September}' should be 'sep'",
             "month = sep",
         ),
         (
             "name",
             "@article{k,\n  month = sep\n}\n",
-            "month 'sep' should be 'September'",
+            "month 'sep' should be '{September}'",
             "month = {September}",
         ),
         (
             "number",
             SOURCE,
-            "month 'September' should be '9'",
+            "month '{September}' should be '{9}'",
             "month = {9}",
         ),
     ],
@@ -104,7 +109,7 @@ def test_already_canonical(apply_rule: Callable[..., tuple[list[Any], str]]) -> 
 def test_unrecognised(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
     """Test that an unknown month is reported and left untouched."""
     rows, output = apply_rule(NAME, "@article{k,\n  month = {Sept-Oct}\n}\n")
-    assert rows == [(2, 3, "unrecognised month 'Sept-Oct'", False)]
+    assert rows == [(2, 3, "unrecognised month '{Sept-Oct}'", False)]
     assert "month = {Sept-Oct}" in output
 
 

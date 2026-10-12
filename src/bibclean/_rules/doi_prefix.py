@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
-from bibclean._defaults import DOI_PREFIXES
 from bibclean._model import Part, Value
 from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
 
-_SORTED_PREFIXES = tuple(sorted(DOI_PREFIXES, key=len, reverse=True))
+_PREFIXES = re.compile(
+    r"\s*(?:(?:https?://(?:dx\.|www\.)?doi\.org/|doi:)\s*)*", re.IGNORECASE
+)
 
 
 def strip_doi_prefix(text: str) -> str:
@@ -24,20 +26,10 @@ def strip_doi_prefix(text: str) -> str:
     -------
     str
         The DOI without any resolver prefix, stripped of surrounding whitespace.
-        Prefixes are matched case-insensitively, longest first, and repeatedly.
-        The case of the identifier itself is preserved.
+        Prefixes are matched case-insensitively and repeatedly. The case of the
+        identifier itself is preserved.
     """
-    stripped = text.strip()
-    changed = True
-    while changed:
-        changed = False
-        lowered = stripped.lower()
-        for prefix in _SORTED_PREFIXES:
-            if lowered.startswith(prefix):
-                stripped = stripped[len(prefix) :].strip()
-                changed = True
-                break
-    return stripped
+    return text[_PREFIXES.match(text).end() :].strip()
 
 
 def normalize_doi(text: str) -> str:
@@ -61,9 +53,8 @@ def doi_prefix(ctx: Context) -> list[Diagnostic]:
     """Report a ``doi`` field carrying a resolver prefix.
 
     The prefix is removed and the bare identifier is kept. Recognised prefixes
-    are ``https://doi.org/``, ``http://doi.org/``, ``https://dx.doi.org/``,
-    ``http://dx.doi.org/``, ``https://www.doi.org/`` and ``doi:``, matched
-    case-insensitively.
+    are ``https://doi.org/``, ``https://dx.doi.org/``, ``https://www.doi.org/``,
+    their ``http://`` forms and ``doi:``, matched case-insensitively.
 
     .. code-block:: bibtex
 

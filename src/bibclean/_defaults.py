@@ -130,12 +130,3 @@ MONTHS: tuple[tuple[str, str], ...] = (
 )
 
 MONTH_MACROS: frozenset[str] = frozenset(macro for macro, _ in MONTHS)
-
-DOI_PREFIXES: tuple[str, ...] = (
-    "https://doi.org/",
-    "http://doi.org/",
-    "https://dx.doi.org/",
-    "http://dx.doi.org/",
-    "https://www.doi.org/",
-    "doi:",
-)

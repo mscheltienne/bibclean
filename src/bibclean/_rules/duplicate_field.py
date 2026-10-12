@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._formatter import render_value
-from bibclean._rules._base import Diagnostic, _remove_field, rule
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._model import Field
@@ -37,7 +37,7 @@ def duplicate_field(ctx: Context) -> list[Diagnostic]:
                 continue
             identical = render_value(field.value) == render_value(first.value)
             if identical:
-                _remove_field(entry, field)
+                entry.fields.remove(field)
                 message = f"field '{name}' is defined twice with the same value"
             else:
                 message = f"field '{name}' is defined twice with different values"

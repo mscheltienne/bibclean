@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._formatter import collapse_whitespace
-from bibclean._rules._base import Diagnostic, _remove_field, rule
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -33,7 +33,7 @@ def empty_field(ctx: Context) -> list[Diagnostic]:
             text = "".join(collapse_whitespace(part.text) for part in parts)
             if text.strip():
                 continue
-            _remove_field(entry, field)
+            entry.fields.remove(field)
             message = f"field '{field.key.lower()}' is empty"
             findings.append(Diagnostic(field.start, message, True))
     return findings

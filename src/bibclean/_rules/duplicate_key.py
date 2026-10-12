@@ -42,6 +42,6 @@ def duplicate_key(ctx: Context) -> list[Diagnostic]:
         options = ctx.config.format
         identical = signature(entry, options) == signature(first, options)
         if identical:
-            ctx.remove(entry)
+            ctx.blocks.remove(entry)
         findings.append(Diagnostic(entry.start, message, identical))
     return findings

@@ -26,8 +26,12 @@ SOURCE = "@article{k,\n  doi = {https://doi.org/10.1016/J.X}\n}\n"
         ("https://dx.doi.org/10.1/x", "10.1/x"),
         ("http://dx.doi.org/10.1/x", "10.1/x"),
         ("https://www.doi.org/10.1/x", "10.1/x"),
+        ("http://www.doi.org/10.1/x", "10.1/x"),
         ("doi:10.1/x", "10.1/x"),
+        ("DOI: 10.1/x", "10.1/x"),
         ("doi:https://doi.org/10.1/x", "10.1/x"),
+        (" doi: https://doi.org/ 10.1/x ", "10.1/x"),
+        ("https://example.org/10.1/x", "https://example.org/10.1/x"),
         ("10.1/DOI:x", "10.1/DOI:x"),
     ],
 )

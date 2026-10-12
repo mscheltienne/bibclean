@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import inspect
-import re
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Literal
@@ -15,8 +14,6 @@ if TYPE_CHECKING:
 
 Fixability = Literal["no", "partial", "yes"]
 Scope = Literal["block", "file", "entry", "field", "value"]
-
-_NAME = re.compile(r"^[a-z]+(-[a-z]+)*$")
 
 
 @dataclass(slots=True, frozen=True)
@@ -98,19 +95,6 @@ class Context:
         """
         return self.config.lint.types.get(entry_type(entry))
 
-    def remove(self, block: Block) -> None:
-        """Remove a block from the working model.
-
-        Parameters
-        ----------
-        block : Block
-            Block to remove, identified by identity.
-        """
-        for index, item in enumerate(self.blocks):
-            if item is block:
-                del self.blocks[index]
-                return
-
 
 RuleFunction = Callable[[Context], list[Diagnostic]]
 
@@ -157,20 +141,12 @@ def rule(
     Returns
     -------
     callable
-        A decorator replacing the function by the corresponding rule.
-
-    Raises
-    ------
-    ValueError
-        If the name is not kebab-case or the function has no docstring.
+        A decorator replacing the function by the corresponding rule, whose
+        documentation is the cleaned docstring of the function.
     """
-    if _NAME.fullmatch(name) is None:
-        raise ValueError(f"invalid rule name '{name}'")
 
     def decorator(function: RuleFunction) -> Rule:
         doc = inspect.cleandoc(function.__doc__ or "")
-        if not doc:
-            raise ValueError(f"rule '{name}' has no docstring")
         return Rule(name=name, fixable=fixable, scope=scope, check=function, doc=doc)
 
     return decorator
@@ -201,12 +177,6 @@ def _fields_named(entry: Entry, name: str) -> list[Field]:
     return [field for field in entry.fields if field.key.lower() == lowered]
 
 
-def _has_field(entry: Entry, name: str) -> bool:
-    """Check whether an entry has a field with a given name."""
-    lowered = name.lower()
-    return any(field.key.lower() == lowered for field in entry.fields)
-
-
 def _single_text(value: Value) -> str | None:
     """Return the collapsed text of a value made of one braced or quoted part."""
     if len(value.parts) != 1:
@@ -215,11 +185,3 @@ def _single_text(value: Value) -> str | None:
     if part.kind == "bare":
         return None
     return collapse_whitespace(part.text).strip()
-
-
-def _remove_field(entry: Entry, field: Field) -> None:
-    """Remove a field from an entry, identified by identity."""
-    for index, item in enumerate(entry.fields):
-        if item is field:
-            del entry.fields[index]
-            return

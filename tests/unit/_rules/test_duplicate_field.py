@@ -63,14 +63,12 @@ def test_exclude_types(
     assert rows == []
 
 
-def test_removal_runs_before_strip_field(
-    rules_reported: Callable[..., list[str]],
-) -> None:
-    """Test that the repeat is gone before strip-field looks at the entry."""
-    source = "@article{k,\n  issn = {1},\n  issn = {1}\n}\n"
+def test_runs_after_strip_field(rules_reported: Callable[..., list[str]]) -> None:
+    """Test that a repeated field stripped by strip-field is not compared."""
+    source = "@article{k,\n  issn = {1},\n  issn = {2}\n}\n"
     reported = rules_reported(source)
-    assert reported.count("strip-field") == 1
-    assert reported.count(NAME) == 1
+    assert reported.count("strip-field") == 2
+    assert reported.count(NAME) == 0
 
 
 def test_ignore(

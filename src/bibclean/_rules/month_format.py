@@ -11,38 +11,11 @@ if TYPE_CHECKING:
     from bibclean._config import Month
     from bibclean._rules._base import Context
 
-_DIGITS = frozenset("0123456789")
-
-
-def parse_month(value: Value) -> int | None:
-    """Read a month value as a number.
-
-    Parameters
-    ----------
-    value : Value
-        Value of a ``month`` field.
-
-    Returns
-    -------
-    int | None
-        The month number between 1 and 12, None when the value is not a single
-        recognised month. Recognised are the twelve macros, the English names,
-        the three-letter abbreviations with or without a trailing period in any
-        case, and the numbers 1 to 12 with or without a leading zero.
-    """
-    if len(value.parts) != 1:
-        return None
-    part = value.parts[0]
-    text = part.text if part.kind == "bare" else collapse_whitespace(part.text).strip()
-    text = text.lower()
-    if text.endswith("."):
-        text = text[:-1]
-    for number, (macro, name) in enumerate(MONTHS, start=1):
-        if text == macro or text == name.lower():
-            return number
-    if 1 <= len(text) <= 2 and set(text) <= _DIGITS and 1 <= int(text) <= 12:
-        return int(text)
-    return None
+_NUMBERS: dict[str, int] = {
+    form: number
+    for number, (macro, name) in enumerate(MONTHS, start=1)
+    for form in (macro, f"{macro}.", name.lower(), str(number), f"{number:02}")
+}
 
 
 def month_target(number: int, mode: Month) -> Part:
@@ -72,7 +45,9 @@ def month_format(ctx: Context) -> list[Diagnostic]:
     """Report a ``month`` field that is not in the configured form.
 
     The value is rewritten as the macro, the English name or the number,
-    following the ``month`` option. A value that is not a recognised month is
+    following the ``month`` option. Recognised are the twelve macros, the English
+    names, the three-letter abbreviations with or without a trailing period, in any
+    case, and the numbers 1 to 12 with or without a leading zero. Any other value is
     reported and left untouched.
 
     .. code-block:: bibtex
@@ -88,34 +63,20 @@ def month_format(ctx: Context) -> list[Diagnostic]:
         if ctx.is_excluded(entry):
             continue
         for field in _fields_named(entry, "month"):
-            number = parse_month(field.value)
-            original = _original(field.value)
+            parts = field.value.parts
+            text = parts[0].text
+            if parts[0].kind != "bare":
+                text = collapse_whitespace(text).strip()
+            number = _NUMBERS.get(text.lower()) if len(parts) == 1 else None
+            written = render_value(field.value)
             if number is None:
-                message = f"unrecognised month '{original}'"
+                message = f"unrecognised month '{written}'"
                 findings.append(Diagnostic(field.start, message, False))
                 continue
             target = month_target(number, mode)
-            parts = field.value.parts
-            if (
-                len(parts) == 1
-                and parts[0].kind == target.kind
-                and parts[0].text == target.text
-            ):
+            if parts == [target]:
                 continue
             field.value = Value([target])
-            if mode == "abbreviation":
-                message = f"month '{original}' should be the macro '{target.text}'"
-            else:
-                message = f"month '{original}' should be '{target.text}'"
+            message = f"month '{written}' should be '{render_value(field.value)}'"
             findings.append(Diagnostic(field.start, message, True))
     return findings
-
-
-def _original(value: Value) -> str:
-    """Render a month value as it appears in the message of a finding."""
-    if len(value.parts) != 1:
-        return render_value(value)
-    part = value.parts[0]
-    if part.kind == "bare":
-        return part.text
-    return collapse_whitespace(part.text).strip()

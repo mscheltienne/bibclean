@@ -3,8 +3,10 @@
 Rules
 =====
 
-Thirteen rules run over every file, always in the order below. Each one reports
-what it found and, when it can, repairs the model before the next rule sees it.
+Fourteen rules run over every file, always in the order below. Each one reports
+what it found and, when it can, repairs the model before the next rule sees it:
+the rules repairing a value run before the rules comparing fields and entries, so
+that a single ``fix`` merges the repeats that only become identical once repaired.
 ``bibclean check`` and ``bibclean fix`` run exactly the same pipeline, so both
 report the same violations; only ``fix`` writes the result.
 

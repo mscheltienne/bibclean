@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bibclean._defaults import DOI_PREFIXES, MONTH_MACROS, MONTHS, TYPES
+from bibclean._defaults import MONTH_MACROS, MONTHS, TYPES
 
 _EXPECTED_TYPES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "article": (
@@ -155,16 +155,3 @@ def test_months() -> None:
             "dec",
         }
     )
-
-
-def test_doi_prefixes() -> None:
-    """Test the DOI resolver prefixes."""
-    assert DOI_PREFIXES == (
-        "https://doi.org/",
-        "http://doi.org/",
-        "https://dx.doi.org/",
-        "http://dx.doi.org/",
-        "https://www.doi.org/",
-        "doi:",
-    )
-    assert all(prefix == prefix.lower() for prefix in DOI_PREFIXES)

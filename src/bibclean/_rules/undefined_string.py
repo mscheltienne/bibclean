@@ -15,9 +15,11 @@ if TYPE_CHECKING:
 def undefined_string(ctx: Context) -> list[Diagnostic]:
     """Report a bare macro that no ``@string`` block defines.
 
-    The twelve month macros are always defined. A ``@string`` block may only
-    reference macros defined above it, since definitions are processed in order.
-    Names are compared case-insensitively.
+    The twelve month macros are always defined. An entry may reference any
+    ``@string`` of the file, since the canonical format writes every ``@string``
+    before the entries. A ``@string`` or ``@preamble`` block may only reference
+    macros defined above it, since definitions are processed in order. Names are
+    compared case-insensitively.
 
     .. code-block:: bibtex
 
@@ -27,6 +29,7 @@ def undefined_string(ctx: Context) -> list[Diagnostic]:
     pybtex: the documentation build fails with an undefined macro error.
     """
     findings: list[Diagnostic] = []
+    every = {block.key.lower() for block in ctx.blocks if isinstance(block, StringDef)}
     defined: set[str] = set()
     for block in ctx.blocks:
         if isinstance(block, StringDef):
@@ -36,7 +39,7 @@ def undefined_string(ctx: Context) -> list[Diagnostic]:
             findings += _check(block.value, block.start, defined)
         elif isinstance(block, Entry) and not ctx.is_excluded(block):
             for field in block.fields:
-                findings += _check(field.value, field.start, defined)
+                findings += _check(field.value, field.start, every)
     return findings
 
 

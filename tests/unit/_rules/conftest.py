@@ -9,7 +9,7 @@ from bibclean._config import default_config
 from bibclean._engine import lint
 from bibclean._formatter import format_blocks
 from bibclean._parser import parse
-from bibclean._rules import get_rule
+from bibclean._rules import RULES
 from bibclean._rules._base import Context
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ def apply_rule() -> Callable[..., tuple[list[tuple[Any, ...]], str]]:
     ) -> tuple[list[tuple[Any, ...]], str]:
         cfg = default_config() if cfg is None else cfg
         context = Context(blocks=parse(source), config=cfg)
-        findings = get_rule(name).check(context)
+        findings = next(item for item in RULES if item.name == name).check(context)
         rows = [
             (
                 None if item.position is None else item.position.line,

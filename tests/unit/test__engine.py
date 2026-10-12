@@ -129,6 +129,22 @@ def test_fix_converges_on_random_input() -> None:
         assert_converged(text.encode("utf-8"), rng.choice((base, alt)))
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "@misc{a, title = {T}}\n\n@misc{A, title = {T}, file = {f}}\n",
+        "@misc{a, doi = {10.1/x}, doi = {https://doi.org/10.1/x}}\n",
+    ],
+)
+def test_fix_merges_values_identical_once_fixed(source: str) -> None:
+    """Test that entries or fields only identical once fixed are merged in one fix."""
+    report = process(source.encode(), "utf-8", default_config())
+    assert report.output is not None
+    assert report.output.count(b"@misc") == 1
+    assert report.output.count(b"doi") <= 1
+    assert_converged(source.encode(), default_config())
+
+
 def test_not_formatted_finding() -> None:
     """Test the file-level finding, sorted after the positioned ones."""
     data = b"@misc{k, title = {1}, title = {1}}\n"

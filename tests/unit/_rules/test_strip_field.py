@@ -31,6 +31,25 @@ def test_detection(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
     assert "title = {T}" in output
 
 
+def test_crossref_is_kept(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
+    """Test that crossref is never stripped, as the entry inherits through it."""
+    rows, _ = apply_rule(NAME, "@article{k, crossref = {p}}\n")
+    assert rows == []
+
+
+def test_crossref_target_is_kept(
+    apply_rule: Callable[..., tuple[list[Any], str]],
+) -> None:
+    """Test that an entry referenced by crossref keeps the fields it hands down."""
+    source = (
+        "@inproceedings{c, crossref = {P}, title = {T}}\n"
+        "@proceedings{p, booktitle = {B}, title = {Proc}}\n"
+    )
+    rows, output = apply_rule(NAME, source)
+    assert rows == []
+    assert "booktitle = {B}" in output
+
+
 def test_note_is_kept_for_misc(
     apply_rule: Callable[..., tuple[list[Any], str]],
 ) -> None:

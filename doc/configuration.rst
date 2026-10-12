@@ -120,8 +120,10 @@ keeps.
 present, and is reported as written when none is.
 
 ``keep`` drives :ref:`rule-strip-field`. The effective list always contains the
-required names on top of the names listed, and ``doi`` and ``url`` are never
-stripped, so a citation keeps its link.
+required names on top of the names listed, ``doi`` and ``url`` are never
+stripped, so a citation keeps its link, and ``crossref`` is never stripped, so an
+entry keeps the fields it inherits. An entry referenced by a ``crossref`` is not
+stripped either, since its fields are inherited.
 
 The shipped tables below are the base. A user table overrides ``required`` and
 ``keep`` independently: a key left out keeps its default. A table for a type that

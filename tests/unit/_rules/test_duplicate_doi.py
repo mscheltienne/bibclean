@@ -32,13 +32,13 @@ def test_different_is_reported(
     assert output.count("@article{") == 2
 
 
-def test_identical_is_removed(
+def test_identical_is_kept(
     apply_rule: Callable[..., tuple[list[Any], str]],
 ) -> None:
-    """Test that an identical repeat is removed."""
+    """Test that an identical repeat is kept, since its cite key may be cited."""
     rows, output = apply_rule(NAME, IDENTICAL)
-    assert rows == [(6, 1, "entry shares DOI '10.1/x' with 'a' at line 1", True)]
-    assert output.count("@article{") == 1
+    assert rows == [(6, 1, "entry shares DOI '10.1/x' with 'a' at line 1", False)]
+    assert output.count("@article{") == 2
 
 
 @pytest.mark.parametrize(

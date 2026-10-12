@@ -35,9 +35,18 @@ def test_forward_reference(apply_rule: Callable[..., tuple[list[Any], str]]) -> 
     assert rows == [(1, 1, "undefined string 'b'", False)]
 
 
+def test_entry_above_its_string(
+    apply_rule: Callable[..., tuple[list[Any], str]],
+) -> None:
+    """Test that an entry may use a string defined below it, written above by fix."""
+    source = "@misc{k, journal = j}\n\n@string{j = {J}}\n"
+    rows, _ = apply_rule(NAME, source)
+    assert rows == []
+
+
 def test_preamble(apply_rule: Callable[..., tuple[list[Any], str]]) -> None:
-    """Test that a preamble value is checked too."""
-    rows, _ = apply_rule(NAME, "@preamble{missing}\n")
+    """Test that a preamble value is checked against the strings above it."""
+    rows, _ = apply_rule(NAME, "@preamble{missing}\n\n@string{missing = {x}}\n")
     assert rows == [(1, 1, "undefined string 'missing'", False)]
 
 
