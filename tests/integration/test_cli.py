@@ -133,6 +133,16 @@ def test_fix_blocks_on_one_line(tmp_path: Path, runner: CliRunner, text: str) ->
     assert path.read_text(encoding="utf-8") == fixed
 
 
+def test_at_in_a_comment_line(tmp_path: Path, runner: CliRunner) -> None:
+    """Test that an e-mail address in a '%' line is a syntax error, as in pybtex."""
+    text = "% write to me@example.org\n" + CLEAN
+    path = _write(tmp_path, "a.bib", text)
+    result = runner.invoke(run, ["fix", "--isolated", str(path)])
+    assert result.exit_code == 1
+    assert "a.bib:1:14: syntax-error @example.org block could not" in result.stdout
+    assert path.read_text(encoding="utf-8") == text
+
+
 def test_fix_diff_writes_nothing(tmp_path: Path, runner: CliRunner) -> None:
     """Test that --diff prints the change and leaves the file alone."""
     path = _write(tmp_path, "a.bib", DIRTY)

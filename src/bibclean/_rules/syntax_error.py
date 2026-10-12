@@ -18,7 +18,12 @@ def syntax_error(ctx: Context) -> list[Diagnostic]:
     every rule still reports its violations, but none of them is fixable, as the
     text swallowed by the broken block cannot be reordered safely.
 
+    Like BibTeX, every ``@`` starts a block, so an e-mail address in a ``%`` line is
+    a syntax error too.
+
     .. code-block:: bibtex
+
+       % write to me@example.org
 
        @article{broken,
          title = {Missing closing brace,

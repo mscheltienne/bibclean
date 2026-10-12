@@ -4,15 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from bibclean._model import (
-    Block,
-    Entry,
-    ExplicitComment,
-    Junk,
-    Malformed,
-    Preamble,
-    StringDef,
-)
+from bibclean._model import Block, Entry, Junk, Malformed, Preamble, StringDef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -132,9 +124,6 @@ def render_block(block: Block, options: FormatOptions) -> str:
         return "@string{" + block.key + " = " + render_value(block.value) + "}"
     if isinstance(block, Preamble):
         return "@preamble{" + render_value(block.value) + "}"
-    if isinstance(block, ExplicitComment):
-        closing = "}" if block.delimiter == "{" else ")"
-        return "@comment" + block.delimiter + block.body + closing
     if isinstance(block, Malformed):
         return block.raw.rstrip()
     return _BLANK_LINES.sub("\n\n", block.raw.strip(_BLANK))
@@ -153,9 +142,9 @@ def format_blocks(blocks: Sequence[Block], options: FormatOptions) -> str:
     Returns
     -------
     str
-        The canonical text: strings and preambles in source order, then entries
-        with the malformed blocks back at their original index, one blank line between
-        units and exactly one final newline. An input without any block renders
+        The canonical text: strings and preambles in source order, entries, then
+        malformed blocks in source order, one blank line between units and exactly
+        one final newline. An input without any block renders
         as the empty string.
     """
     units = _order_units(_group_units(blocks), options)
@@ -191,9 +180,6 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
             if block.raw.strip(_BLANK):
                 pending.append(block)
             continue
-        if isinstance(block, ExplicitComment):
-            pending.append(block)
-            continue
         units.append(_Unit(prefixes=pending, block=block))
         pending = []
     if pending:
@@ -202,28 +188,26 @@ def _group_units(blocks: Sequence[Block]) -> list[_Unit]:
 
 
 def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
-    """Order units: strings and preambles in source order, entries, trailing prose."""
+    """Order units: strings and preambles, entries, malformed blocks, trailing prose.
+
+    Only the entries are sorted; the other groups keep their source order.
+    """
     header: list[_Unit] = []
     entries: list[_Unit] = []
+    malformed: list[_Unit] = []
     trailing: list[_Unit] = []
     for unit in units:
         if unit.block is None:
             trailing.append(unit)
         elif isinstance(unit.block, Preamble | StringDef):
             header.append(unit)
-        else:
+        elif isinstance(unit.block, Entry):
             entries.append(unit)
-    malformed = [
-        (index, unit)
-        for index, unit in enumerate(entries)
-        if isinstance(unit.block, Malformed)
-    ]
-    ordered = [unit for unit in entries if isinstance(unit.block, Entry)]
+        else:
+            malformed.append(unit)
     if options.sort_entries:
-        ordered.sort(key=lambda unit: unit.block.key.lower())
-    for index, unit in malformed:
-        ordered.insert(index, unit)
-    return [*header, *ordered, *trailing]
+        entries.sort(key=lambda unit: unit.block.key.lower())
+    return [*header, *entries, *malformed, *trailing]
 
 
 def _render_unit(unit: _Unit, options: FormatOptions) -> str:

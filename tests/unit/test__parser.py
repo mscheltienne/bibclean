@@ -8,7 +8,6 @@ import pytest
 from bibclean._model import (
     Block,
     Entry,
-    ExplicitComment,
     Junk,
     Malformed,
     Position,
@@ -28,6 +27,7 @@ _CONSTRUCTS = (
     "@comment{a {nested} comment}\n",
     "@article(p{index}, a = 1)\n",
     "% a comment line with me@example.org\n",
+    "@comment{ a { b \n",
     "some prose\n",
     "\n",
     "@misc{t{index},}\n",
@@ -79,9 +79,7 @@ def test_round_trip_property() -> None:
         blocks = parse(source)
         assert "".join(block.raw for block in blocks) == source
         assert all(
-            isinstance(
-                block, Junk | Preamble | StringDef | ExplicitComment | Entry | Malformed
-            )
+            isinstance(block, Junk | Preamble | StringDef | Entry | Malformed)
             for block in blocks
         )
 
@@ -131,16 +129,14 @@ def test_delimiters() -> None:
         '@article(k, a = 1)\n@string(a = "b")\n@preamble("x")\n@comment(y)\n'
     )
     kinds = [block for block in blocks if not isinstance(block, Junk)]
-    entry, string, preamble, comment = kinds
+    entry, string, preamble = kinds
     assert isinstance(entry, Entry)
     assert entry.delimiter == "("
     assert entry.fields[0].value.parts[0].text == "1"
     assert isinstance(string, StringDef)
     assert string.value.parts[0].kind == "quoted"
     assert isinstance(preamble, Preamble)
-    assert isinstance(comment, ExplicitComment)
-    assert comment.delimiter == "("
-    assert comment.body == "y"
+    assert blocks[-1].raw == "@comment(y)\n"
 
 
 def test_values() -> None:
@@ -214,8 +210,11 @@ def test_entry_without_fields() -> None:
             "unbalanced '}' in field 'title'",
             Position(1, 23),
         ),
-        ("@comment{abc\n", "unterminated @comment", Position(2, 1)),
-        ("@comment(a}b)\n", "unbalanced '}' in @comment", Position(1, 11)),
+        (
+            "@comment this is junk\n",
+            "expected '{' or '(' after '@comment'",
+            Position(1, 10),
+        ),
         (
             "@article{k, title = {a \\{ b}}\n",
             "expected ',' or '}' after field 'title'",
@@ -271,18 +270,54 @@ def test_recovery() -> None:
     assert blocks[2].key == "b"
 
 
-def test_at_in_junk() -> None:
-    """Test that an '@' that does not start a line is junk."""
-    blocks = parse("% mail me@x.org\n@misc{k,\n}\n")
-    assert [type(block).__name__ for block in blocks] == ["Junk", "Entry", "Junk"]
-    single = parse("foo @misc{k}\n")
-    assert [type(block).__name__ for block in single] == ["Junk"]
-    indented = parse("  @misc{k}\n")
-    assert [type(block).__name__ for block in indented] == ["Junk", "Entry", "Junk"]
-    note = parse("@misc{k} % note @x\n")
-    assert [type(block).__name__ for block in note] == ["Entry", "Junk"]
-    broken = parse("@misc{k, a = {b\n} @misc{j}\n")
-    assert [type(block).__name__ for block in broken] == ["Malformed"]
+@pytest.mark.parametrize(
+    ("source", "kinds"),
+    [
+        ("foo @misc{k}\n", ["Junk", "Entry", "Junk"]),
+        ("  @misc{k}\n", ["Junk", "Entry", "Junk"]),
+        ("% @misc{old, a = {1}}\n", ["Junk", "Entry", "Junk"]),
+        ("% write to me@example.org\n", ["Junk", "Malformed"]),
+        ("@misc{k} % note @x\n", ["Entry", "Junk", "Malformed"]),
+        ("@misc{k, a = {b\n} @misc{j}\n", ["Malformed", "Entry", "Junk"]),
+    ],
+)
+def test_every_at_starts_a_block(source: str, kinds: list[str]) -> None:
+    """Test that every '@' outside a block starts a block, as in BibTeX and pybtex."""
+    blocks = parse(source)
+    assert [type(block).__name__ for block in blocks] == kinds
+    assert all("@" not in block.raw for block in blocks if isinstance(block, Junk))
+
+
+def test_at_in_a_comment_line() -> None:
+    """Test that an e-mail address in a '%' line is a syntax error, as in pybtex."""
+    malformed = parse("% write to me@example.org\n")[1]
+    assert isinstance(malformed, Malformed)
+    assert malformed.raw == "@example.org\n"
+    assert "expected '{' or '(' after '@example.org'" in malformed.message
+
+
+def test_commented_entry_is_live() -> None:
+    """Test that a '%'-commented entry is a live entry, as in pybtex."""
+    entry = parse("% @misc{old, title = {T}}\n")[1]
+    assert isinstance(entry, Entry)
+    assert entry.key == "old"
+
+
+@pytest.mark.parametrize(
+    "source", ["@comment{ a { b \n", "@Comment ( x } y\n", "@comment{x}\n"]
+)
+def test_comment(source: str) -> None:
+    """Test that an @comment and the text after its delimiter are free text."""
+    blocks = parse(source + "@misc{k}")
+    assert [type(block).__name__ for block in blocks] == ["Junk", "Entry"]
+    assert blocks[0].raw == source
+
+
+def test_comment_without_delimiter() -> None:
+    """Test that an @comment without delimiter is a syntax error, as in pybtex."""
+    blocks = parse("@comment this is junk\n@misc{k}")
+    assert [type(block).__name__ for block in blocks] == ["Malformed", "Entry"]
+    assert blocks[0].raw == "@comment this is junk\n"
 
 
 @pytest.mark.parametrize(
@@ -292,7 +327,7 @@ def test_at_in_junk() -> None:
             "@article{a, title={A}} @article{b, title={B}}\n",
             ["Entry", "Junk", "Entry", "Junk"],
         ),
-        ("@comment{x}@string{s={S}}\n", ["ExplicitComment", "StringDef", "Junk"]),
+        ("@comment{x}@string{s={S}}\n", ["Junk", "StringDef", "Junk"]),
         ("@misc{a}\t@misc{b,} @misc{c}", ["Entry", "Junk", "Entry", "Junk", "Entry"]),
     ],
 )
@@ -307,13 +342,6 @@ def test_zotero_file_field() -> None:
     entry = parse(f"@misc{{k,\n  file = {{{value}}}\n}}\n")[0]
     assert isinstance(entry, Entry)
     assert entry.fields[0].value.parts[0].text == value
-
-
-def test_comment_nested_braces(assets: Path) -> None:
-    """Test that a comment body keeps its nested braces."""
-    blocks = parse(_read(assets / "blocks.bib"))
-    comment = next(block for block in blocks if isinstance(block, ExplicitComment))
-    assert comment.body == "Entries exported from Zotero, see the wiki for {details}."
 
 
 def test_empty_source() -> None:

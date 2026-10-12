@@ -77,9 +77,11 @@ Besides entries, a file may hold three other kinds of block, all preserved by
       month = feb
     }
 
-``@preamble`` holds LaTeX inserted at the top of the generated bibliography, and
-``@comment`` holds text that BibTeX ignores. Free text outside any block, such as
-lines starting with ``%``, is kept as well.
+``@preamble`` holds LaTeX inserted at the top of the generated bibliography.
+BibTeX ignores ``@comment{`` and the plain text after it up to the next ``@``, as
+well as any free text outside a block; both are kept. ``%`` is not a comment
+character for BibTeX: an ``@`` in a ``%`` line still starts a block, see
+:doc:`format`.
 
 Concatenation
 -------------

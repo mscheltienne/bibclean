@@ -147,8 +147,8 @@ Blocks and ordering
 -------------------
 
 A file is read as a sequence of blocks: entries, ``@string`` macro definitions,
-``@preamble`` blocks, ``@comment`` blocks and the free text between them. Nothing
-is dropped.
+``@preamble`` blocks and the free text between them, ``@comment`` included.
+Nothing is dropped.
 
 Blocks are grouped into units before they are ordered: a unit is one block
 together with the comments and free text written directly above it, so an
@@ -163,23 +163,25 @@ Reading conventions
 Two details of how a file is read are worth knowing, because they decide whether
 a line is data or text.
 
-**A block starts at the beginning of a line or right after another block.** An
-``@`` is read as the start of a block when it is the first non-blank character of
-its line, or when only spaces and tabs separate it from the end of the previous
-block. Anywhere else it is free text, so a commented-out entry and an e-mail
-address survive untouched instead of becoming a syntax error:
+**Every @ starts a block.** Like BibTeX and `pybtex`_, every ``@`` outside a block
+starts a block, wherever it is. ``%`` is not a comment character for BibTeX, so an
+``@`` in a ``%`` line starts a block too: an e-mail address there is a syntax error
+that also breaks a pybtex or Sphinx build, and a ``%``-commented entry is a live
+entry. To disable an entry, delete its ``@``. ``@comment`` must be followed by
+``{`` or ``(``, then by plain text up to the next ``@``:
 
 .. code-block:: bibtex
 
-    % write to me@example.org
-    % @article{old_entry, title = {Not an entry any more}}
-    @misc{a, title = {A}} @misc{b, title = {B}}  % two entries, then a note @x
+    % write to me@example.org                    <- syntax error at '@example.org'
+    % @article{old, title = {Still an entry}}    <- a live entry
+    % article{old, title = {Disabled}}           <- free text
+    @comment{ unbalanced { braces are fine here
 
-After a block that cannot be parsed, reading resumes at the next line whose first
-non-blank character is ``@``. Since the broken block swallows the text up to that
-line, a file with a syntax error is never rewritten, like ``black`` or
-``ruff format`` refuse a file they cannot parse: ``check`` and ``fix`` still report
-every violation, none of them as fixable, and ``fix`` leaves the file untouched.
+After a block that cannot be parsed, reading resumes at the next ``@``. Since the
+broken block swallows the text up to there, a file with a syntax error is never
+rewritten, like ``black`` or ``ruff format`` refuse a file they cannot parse:
+``check`` and ``fix`` still report every violation, none of them as fixable, and
+``fix`` leaves the file untouched.
 
 **Braces are counted as BibTeX counts them.** A backslash has no special meaning
 to the parser: ``\{`` opens a brace and ``\"`` closes a quoted value. A value such

@@ -26,7 +26,8 @@ ATOMS = (
     "@article{", "@string{", "@preamble{", "@comment{", "@misc(", "k", ",", " ", "\n",
     "=", "{", "}", '"', "#", "%", "\\", "a", "1", "title", "doi", "month = jan", "(",
     ")", "\t", "@", "x = {y}", "\r\n", "\n\n\n", " \n \n", "@string{s = {S}}",
-    "@preamble{s # {x}}", "doi = {https://doi.org/10.1/x}", "pages = {1-2}",
+    "@preamble{s # {x}}", "doi = {https://doi.org/10.1/x}", "pages = {1-2}", "﻿",
+    "me@example.org", "% @misc{x, a = {1}}", "@comment{ a { b ",
 )  # fmt: skip
 
 _HEAVY = ("numpy", "psutil", "packaging", "bibtexparser", "click")

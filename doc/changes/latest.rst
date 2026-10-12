@@ -37,7 +37,8 @@ Enhancements
   files. A file that cannot be read is reported and the batch continues.
 - Files are parsed by ``bibclean`` itself. Comments, ``@string`` macros,
   ``@preamble`` blocks and unknown entry types are preserved, and a file with a
-  block that cannot be parsed is reported and never rewritten.
+  block that cannot be parsed is reported and never rewritten. Like BibTeX and
+  ``pybtex``, every ``@`` starts a block, including one in a ``%`` line.
 - One canonical format, with a two-space indent, braced values, sorted entries and
   sorted fields, described in :doc:`../format`.
 - Thirteen rules, each disabled by name with ``ignore`` or ``--ignore``, described

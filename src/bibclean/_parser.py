@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import re
 from bisect import bisect_right
 
 from bibclean._model import (
     Block,
     Entry,
-    ExplicitComment,
     Field,
     Junk,
     Malformed,
@@ -20,11 +18,26 @@ from bibclean._model import (
 WHITESPACE = " \t\n\r\f\v"
 _NOT_IDENTIFIER = frozenset(WHITESPACE + "#%'(),={}")
 _NOT_CITE_KEY = frozenset(WHITESPACE + ",{}()")
-# an '@' that is the first non-blank character of its line; with a start offset, '^'
-# matches only at real line starts, never at the offset itself
-_LINE_START = re.compile(r"^[ \t]*@", re.MULTILINE)
-# an '@' separated from the end of the previous block by spaces and tabs only
-_AFTER_BLOCK = re.compile(r"[ \t]*@")
+
+
+def _next_at(source: str, pos: int) -> int:
+    """Find the next ``'@'``.
+
+    Parameters
+    ----------
+    source : str
+        Source text.
+    pos : int
+        Offset at which the search starts.
+
+    Returns
+    -------
+    int
+        Offset of the first ``'@'`` at or after ``pos``, the length of the source
+        when there is none.
+    """
+    at = source.find("@", pos)
+    return len(source) if at == -1 else at
 
 
 class LineIndex:
@@ -115,9 +128,10 @@ class _Scanner:
         Returns
         -------
         block : Block
-            The parsed block, a :class:`~bibclean._model.Malformed` on failure. A
-            malformed block extends to the start of the next line whose first
-            non-blank character is ``'@'``.
+            The parsed block. An ``@comment`` and the text after its delimiter, up to
+            the next ``'@'``, form a :class:`~bibclean._model.Junk`. A block that
+            cannot be read is a :class:`~bibclean._model.Malformed` extending to the
+            next ``'@'``.
         end : int
             Offset of the first character after the block.
         """
@@ -138,7 +152,10 @@ class _Scanner:
             closing = "}" if opening == "{" else ")"
             kind = kind_text.lower()
             if kind == "comment":
-                block = self._scan_comment(at, opening)
+                self.pos = _next_at(self.source, self.pos)
+                block = Junk(
+                    start=self.index.position(at), raw=self.source[at : self.pos]
+                )
             elif kind == "string":
                 block = self._scan_string(at, closing)
             elif kind == "preamble":
@@ -153,8 +170,7 @@ class _Scanner:
             else:
                 what = "block"
             position = self.index.position(min(error.offset, len(self.source)))
-            resync = _LINE_START.search(self.source, at + 1)
-            end = resync.start() if resync else len(self.source)
+            end = _next_at(self.source, at + 1)
             malformed = Malformed(
                 start=self.index.position(at),
                 raw=self.source[at:end],
@@ -166,40 +182,6 @@ class _Scanner:
             )
             return malformed, end
         return block, self.pos
-
-    def _scan_comment(self, at: int, opening: str) -> ExplicitComment:
-        source = self.source
-        end = len(source)
-        body_start = self.pos
-        depth = 0
-        while self.pos < end:
-            char = source[self.pos]
-            if char == "{":
-                depth += 1
-            elif char == "}":
-                if depth == 0:
-                    if opening != "{":
-                        raise _ParseError("unbalanced '}' in @comment", self.pos)
-                    body = source[body_start : self.pos]
-                    self.pos += 1
-                    return ExplicitComment(
-                        start=self.index.position(at),
-                        raw=source[at : self.pos],
-                        body=body,
-                        delimiter="{",
-                    )
-                depth -= 1
-            elif char == ")" and depth == 0 and opening == "(":
-                body = source[body_start : self.pos]
-                self.pos += 1
-                return ExplicitComment(
-                    start=self.index.position(at),
-                    raw=source[at : self.pos],
-                    body=body,
-                    delimiter="(",
-                )
-            self.pos += 1
-        raise _ParseError("unterminated @comment", end)
 
     def _scan_string(self, at: int, closing: str) -> StringDef:
         self._skip_ws()
@@ -358,30 +340,24 @@ def parse(source: str) -> list[Block]:
     list of Block
         Blocks covering the source exactly: joining their raw text reproduces the
         input. A block the parser could not read becomes a
-        :class:`~bibclean._model.Malformed` and the scan resumes at the next line
-        whose first non-blank character is ``'@'``.
+        :class:`~bibclean._model.Malformed` and the scan resumes at the next ``'@'``.
 
     Notes
     -----
-    An ``'@'`` starts a block when it is the first non-blank character of its line,
-    or when only spaces and tabs separate it from the end of the previous parsed
-    block. Any other ``'@'`` belongs to free text.
+    Like BibTeX and pybtex, every ``'@'`` outside a block starts a block, wherever
+    it is: ``'%'`` is not a comment character. An ``@comment`` and the text after its
+    delimiter, up to the next ``'@'``, are free text.
     """
     scanner = _Scanner(source)
     blocks: list[Block] = []
     pos = 0
     end = len(source)
-    after_block = False
     while pos < end:
-        match = (after_block and _AFTER_BLOCK.match(source, pos)) or (
-            _LINE_START.search(source, pos)
-        )
-        at = match.end() - 1 if match else end
+        at = _next_at(source, pos)
         if at > pos:
             blocks.append(Junk(start=scanner.index.position(pos), raw=source[pos:at]))
         if at == end:
             break
         block, pos = scanner.scan_block(at)
         blocks.append(block)
-        after_block = not isinstance(block, Malformed)
     return blocks

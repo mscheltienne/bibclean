@@ -157,14 +157,12 @@ def test_sort_entries() -> None:
     ]
 
 
-@pytest.mark.parametrize("index", [0, 1, 2])
-def test_malformed_reinsertion(index: int) -> None:
-    """Test that a malformed block keeps its index among the entries."""
-    entries = ["@misc{c, a = {1}}\n", "@misc{b, a = {2}}\n", "@misc{a, a = {3}}\n"]
-    entries.insert(index, "@misc{broken, a = {1\n")
-    ordered = format_blocks(parse("\n".join(entries)), DEFAULTS)
+def test_malformed_after_entries() -> None:
+    """Test that malformed blocks follow the sorted entries, in source order."""
+    source = "@misc{y, a = {1\n@misc{b, a = {2}}\n@misc{x, a = {1\n@misc{a, a = {3}}\n"
+    ordered = format_blocks(parse(source), DEFAULTS)
     heads = [line for line in ordered.splitlines() if line.startswith("@")]
-    assert heads[index] == "@misc{broken, a = {1"
+    assert heads == ["@misc{a,", "@misc{b,", "@misc{y, a = {1", "@misc{x, a = {1"]
 
 
 def test_block_order() -> None:
@@ -210,6 +208,8 @@ def test_idempotency(assets: Path) -> None:
     """Test that formatting a canonical file changes nothing."""
     for path in sorted(assets.glob("*.fixed.bib")):
         case = path.name.split(".")[0]
+        if case == "malformed":
+            continue  # a file with a syntax error is never rewritten
         toml = assets / f"{case}.toml"
         options = (
             load_config(toml, known_rules=("url-with-doi", "strip-field")).format

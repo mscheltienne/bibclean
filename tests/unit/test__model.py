@@ -6,7 +6,6 @@ import pytest
 
 from bibclean._model import (
     Entry,
-    ExplicitComment,
     Field,
     Malformed,
     Part,
@@ -51,15 +50,11 @@ def test_other_blocks() -> None:
     string = StringDef(
         start=Position(1, 1), raw="@string{a = acm}", key="a", value=value
     )
-    comment = ExplicitComment(
-        start=Position(1, 1), raw="@comment{x}", body="x", delimiter="{"
-    )
     malformed = Malformed(
         start=Position(1, 1), raw="@article{k", message="boom", error=Position(1, 11)
     )
     assert preamble.value is value
     assert string.key == "a"
-    assert comment.delimiter == "{"
     assert malformed.error == Position(1, 11)
 
 

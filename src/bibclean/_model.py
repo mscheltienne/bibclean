@@ -99,7 +99,10 @@ class Block:
 
 @dataclass(slots=True)
 class Junk(Block):
-    """Text outside of any ``'@'`` block: whitespace, ``%`` lines and prose."""
+    """Free text between blocks: whitespace, ``%`` lines, prose and ``@comment``.
+
+    Free text holds no ``'@'``, except the one opening an ``@comment`` at its start.
+    """
 
 
 @dataclass(slots=True)
@@ -129,22 +132,6 @@ class StringDef(Block):
 
     key: str
     value: Value
-
-
-@dataclass(slots=True)
-class ExplicitComment(Block):
-    """``@comment`` block.
-
-    Parameters
-    ----------
-    body : str
-        Verbatim content between the delimiters.
-    delimiter : str
-        Opening delimiter, ``'{'`` or ``'('``.
-    """
-
-    body: str
-    delimiter: Literal["{", "("]
 
 
 @dataclass(slots=True)
