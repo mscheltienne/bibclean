@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._formatter import collapse_whitespace
+from bibclean._model import collapse_whitespace
 from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
@@ -33,9 +33,7 @@ def empty_field(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
+    for entry in ctx.checked_entries():
         for field in list(entry.fields):
             parts = field.value.parts
             if any(part.kind == "bare" for part in parts):

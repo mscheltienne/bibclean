@@ -15,6 +15,7 @@ from bibclean._rules._base import Context
 
 if TYPE_CHECKING:
     from bibclean._config import Config
+    from bibclean._engine import Report
 
 ASSETS = Path(__file__).parent / "assets"
 Row = tuple[int | None, int | None, str, bool]
@@ -110,7 +111,7 @@ def rules_reported(source: str) -> list[str]:
     return [item.rule for item in lint(context)]
 
 
-def assert_converged(data: bytes, config: Config) -> None:
+def assert_converged(data: bytes, config: Config) -> tuple[bytes, Report]:
     """Check that one fix leaves a fixed point with nothing left to fix.
 
     Parameters
@@ -120,15 +121,23 @@ def assert_converged(data: bytes, config: Config) -> None:
         rewritten.
     config : Config
         Configuration used by both passes.
+
+    Returns
+    -------
+    fixed : bytes
+        Content after one fix.
+    again : Report
+        Report of the fixed content, reused from the first pass when the fix wrote
+        nothing, since the pipeline is deterministic.
     """
     report = process(data, "utf-8", config)
-    if any(item.rule == "syntax-error" for item in report.diagnostics):
-        return
     fixed = data if report.output is None else report.output
-    again = process(fixed, "utf-8", config)
-    assert again.output is None, data
-    assert not any(item.fixable for item in again.diagnostics), data
-    assert not any(item.rule == "syntax-error" for item in again.diagnostics), data
+    again = report if report.output is None else process(fixed, "utf-8", config)
+    if not any(item.rule == "syntax-error" for item in report.diagnostics):
+        assert again.output is None, data
+        assert not any(item.fixable for item in again.diagnostics), data
+        assert not any(item.rule == "syntax-error" for item in again.diagnostics), data
+    return fixed, again
 
 
 def corpus_manifest() -> dict[str, tuple[str, str]]:

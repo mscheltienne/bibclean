@@ -11,6 +11,7 @@ from importlib import import_module
 from pathlib import Path
 
 from intersphinx_registry import get_intersphinx_mapping
+from numpydoc.docscrape import NumpyDocString
 from sphinx.util import logging as sphinx_logging
 
 import bibclean
@@ -36,6 +37,7 @@ def _write_rules() -> None:
     lines: list[str] = []
     for item in RULES:
         title = f"``{item.name}``"
+        doc = NumpyDocString(item.check.__doc__)
         lines += [
             f".. _rule-{item.name}:",
             "",
@@ -44,7 +46,9 @@ def _write_rules() -> None:
             "",
             f"Fix: {item.fixable}. Scope: {item.scope}.",
             "",
-            item.doc,
+            *doc["Summary"],
+            "",
+            *doc["Extended Summary"],
             "",
         ]
     _GENERATED.mkdir(exist_ok=True)

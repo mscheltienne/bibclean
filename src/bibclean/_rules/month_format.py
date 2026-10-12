@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bibclean._defaults import MONTHS
-from bibclean._formatter import collapse_whitespace, render_value
-from bibclean._model import Part, Value
-from bibclean._rules._base import Diagnostic, _fields_named, rule
+from bibclean._formatter import render_value
+from bibclean._model import Part, Value, fields_named, single_text
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._config import Month
@@ -70,16 +70,13 @@ def month_format(ctx: Context) -> list[Diagnostic]:
     """
     mode = ctx.config.lint.month
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
-        for field in _fields_named(entry, "month"):
+    for entry in ctx.checked_entries():
+        for field in fields_named(entry, "month"):
             parts = field.value.parts
             if len(parts) > 1:
                 continue
-            text = parts[0].text
-            if parts[0].kind != "bare":
-                text = collapse_whitespace(text).strip()
+            part = parts[0]
+            text = part.text if part.kind == "bare" else single_text(field.value)
             number = _NUMBERS.get(text.lower())
             written = render_value(field.value)
             if number is None:

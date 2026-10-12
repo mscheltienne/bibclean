@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from bibclean._model import Part, Value
-from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
+from bibclean._model import Part, Value, fields_named, single_text
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -30,22 +30,6 @@ def strip_doi_prefix(text: str) -> str:
         identifier itself is preserved.
     """
     return text[_PREFIXES.match(text).end() :].strip()
-
-
-def normalize_doi(text: str) -> str:
-    """Build the comparison form of a DOI.
-
-    Parameters
-    ----------
-    text : str
-        DOI as written.
-
-    Returns
-    -------
-    str
-        The DOI without any resolver prefix, lowercased.
-    """
-    return strip_doi_prefix(text).lower()
 
 
 @rule(name="doi-prefix", fixable="yes", scope="value")
@@ -74,11 +58,9 @@ def doi_prefix(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
-        for field in _fields_named(entry, "doi"):
-            text = _single_text(field.value)
+    for entry in ctx.checked_entries():
+        for field in fields_named(entry, "doi"):
+            text = single_text(field.value)
             if text is None:
                 continue
             stripped = strip_doi_prefix(text)

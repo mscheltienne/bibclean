@@ -4,7 +4,6 @@ import pytest
 
 from bibclean._config import FormatOptions
 from bibclean._formatter import (
-    collapse_whitespace,
     format_blocks,
     render_block,
     render_entry,
@@ -24,15 +23,6 @@ def _first_entry(source: str) -> Entry:
 
 def _first_value(source: str) -> str:
     return render_value(_first_entry(source).fields[0].value)
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [("a  b", "a b"), ("a\n\tb", "a b"), ("", ""), (" ", " ")],
-)
-def test_collapse_whitespace(text: str, expected: str) -> None:
-    """Test the collapse of whitespace runs."""
-    assert collapse_whitespace(text) == expected
 
 
 @pytest.mark.parametrize(

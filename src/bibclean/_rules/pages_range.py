@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from bibclean._model import Part, Value
-from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
+from bibclean._model import Part, Value, fields_named, single_text
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -37,11 +37,9 @@ def pages_range(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
-        for field in _fields_named(entry, "pages"):
-            text = _single_text(field.value)
+    for entry in ctx.checked_entries():
+        for field in fields_named(entry, "pages"):
+            text = single_text(field.value)
             if text is None:
                 continue
             match = _RANGE.fullmatch(text)

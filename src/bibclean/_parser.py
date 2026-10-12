@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import re
 from bisect import bisect_right
 
 from bibclean._model import (
+    WHITESPACE,
     Block,
     Entry,
     Field,
@@ -15,7 +17,6 @@ from bibclean._model import (
     Value,
 )
 
-WHITESPACE = " \t\n\r\f\v"
 _NOT_IDENTIFIER = frozenset(WHITESPACE + "\"#%'(),={}")
 _NOT_CITE_KEY = frozenset(WHITESPACE + ",{}()")
 
@@ -50,8 +51,7 @@ class LineIndex:
     """
 
     def __init__(self, source: str) -> None:
-        self._starts = [0]
-        self._starts += [index + 1 for index, char in enumerate(source) if char == "\n"]
+        self._starts = [0] + [match.end() for match in re.finditer("\n", source)]
 
     def position(self, offset: int) -> Position:
         """Convert a character offset into a position.

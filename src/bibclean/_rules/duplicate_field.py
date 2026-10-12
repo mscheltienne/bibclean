@@ -35,9 +35,7 @@ def duplicate_field(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
+    for entry in ctx.checked_entries():
         seen: dict[str, Field] = {}
         for field in list(entry.fields):
             name = field.key.lower()

@@ -55,6 +55,31 @@ def lint(context: Context) -> list[Diagnostic]:
     ]
 
 
+def decode(data: bytes, encoding: str) -> str:
+    r"""Decode the content of a file into the text the parser reads.
+
+    Parameters
+    ----------
+    data : bytes
+        Content of the file.
+    encoding : str
+        Encoding of the content.
+
+    Returns
+    -------
+    str
+        The decoded text, without leading ``U+FEFF`` characters and with every line
+        ending normalised to ``'\n'``.
+
+    Raises
+    ------
+    UnicodeDecodeError
+        If the content cannot be decoded with the encoding.
+    """
+    text = data.decode(encoding).lstrip("\N{BYTE ORDER MARK}")
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def process(data: bytes, encoding: str, config: Config) -> Report:
     """Run the whole pipeline over the content of one file.
 
@@ -81,10 +106,9 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
     UnicodeDecodeError
         If the content cannot be decoded with the encoding.
     """
-    text = data.decode(encoding).lstrip("\N{BYTE ORDER MARK}")
+    blocks = parse(decode(data, encoding))
     if codecs.lookup(encoding).name == "utf-8-sig":
         encoding = "utf-8"
-    blocks = parse(text.replace("\r\n", "\n").replace("\r", "\n"))
     malformed = any(isinstance(block, Malformed) for block in blocks)
     formatted = None if malformed else format_blocks(blocks, config.format)
     context = Context(blocks=blocks, config=config)
@@ -93,9 +117,14 @@ def process(data: bytes, encoding: str, config: Config) -> Report:
         diagnostics = [replace(item, fixable=False) for item in diagnostics]
         output = None
     else:
-        if formatted.encode(encoding) != data:
+        # a rule emits a fixable diagnostic exactly when it mutates the model, so the
+        # model is unchanged and renders as 'formatted' when none is fixable
+        mutated = any(item.fixable for item in diagnostics)
+        output = formatted.encode(encoding)
+        if output != data:
             diagnostics.append(Diagnostic(None, NOT_FORMATTED_MESSAGE, True))
-        output = format_blocks(context.blocks, config.format).encode(encoding)
+        if mutated:
+            output = format_blocks(context.blocks, config.format).encode(encoding)
         if output == data:
             output = None
     diagnostics.sort(key=lambda item: (item.position is None, item.position))

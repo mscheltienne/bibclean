@@ -18,8 +18,6 @@ from tests.helpers import write
 if TYPE_CHECKING:
     from pathlib import Path
 
-RULES = ("doi-prefix", "duplicate-key", "url-with-doi")
-
 
 def test_default_config() -> None:
     """Test the shipped defaults."""
@@ -53,7 +51,6 @@ def test_parse_config_values() -> None:
             "exclude-types": ["Software"],
         },
         path=None,
-        known_rules=RULES,
     )
     assert config.format.indent == "tab"
     assert config.format.align_values is True
@@ -138,13 +135,13 @@ def test_parse_config_values() -> None:
 def test_validation_messages(table: dict[str, Any], message: str) -> None:
     """Test the exact text of every validation error."""
     with pytest.raises(ConfigError, match=re.escape(message)):
-        parse_config(table, path=None, known_rules=RULES)
+        parse_config(table, path=None)
 
 
 def test_validation_stops_at_the_first_problem() -> None:
     """Test that keys are validated in document order."""
     with pytest.raises(ConfigError, match=re.escape("'month' in")):
-        parse_config({"month": "names", "indent": 0}, path=None, known_rules=RULES)
+        parse_config({"month": "names", "indent": 0}, path=None)
 
 
 def test_merge_types() -> None:
@@ -157,7 +154,6 @@ def test_merge_types() -> None:
             "other": {"required": [], "keep": ["note"]},
         },
         path=None,
-        known_rules=RULES,
     )
     types = config.lint.types
     assert types["article"].required == ("author", "title", "year", "doi")
@@ -176,7 +172,7 @@ def test_merge_types() -> None:
 
 def test_exclude_types_keeps_the_tables() -> None:
     """Test that an excluded type keeps its table and is skipped by the rules."""
-    config = parse_config({"exclude-types": ["article"]}, path=None, known_rules=RULES)
+    config = parse_config({"exclude-types": ["article"]}, path=None)
     assert "article" in config.lint.types
     assert config.lint.exclude_types == frozenset({"article"})
 
@@ -184,25 +180,25 @@ def test_exclude_types_keeps_the_tables() -> None:
 def test_load_config_top_level(tmp_path: Path) -> None:
     """Test a dedicated file using top-level keys."""
     path = write(tmp_path / "bibclean.toml", 'indent = 4\n[Book]\nkeep = ["note"]\n')
-    config = load_config(path, known_rules=RULES)
+    config = load_config(path)
     assert config.format.indent == 4
     assert "note" in config.lint.types["book"].keep
-    assert load_config(path, known_rules=RULES) is config
+    assert load_config(path) is config
 
 
 def test_load_config_tool_table_in_dedicated_file(tmp_path: Path) -> None:
     """Test that a dedicated file cannot use a [tool.bibclean] table."""
     path = write(tmp_path / "bibclean.toml", "[tool.bibclean]\nindent = 4\n")
     with pytest.raises(ConfigError, match=re.escape("[tool] tables are read from")):
-        load_config(path, known_rules=RULES)
+        load_config(path)
 
 
 def test_load_config_extra_ignore(tmp_path: Path) -> None:
     """Test that extra rule names are added to the ignore set."""
     path = write(tmp_path / "bibclean.toml", 'ignore = ["doi-prefix"]\n')
-    config = load_config(path, known_rules=RULES, extra_ignore=("duplicate-key",))
+    config = load_config(path, extra_ignore=("duplicate-key",))
     assert config.lint.ignore == frozenset({"doi-prefix", "duplicate-key"})
-    config = load_config(None, known_rules=RULES, extra_ignore=("duplicate-key",))
+    config = load_config(None, extra_ignore=("duplicate-key",))
     assert config.lint.ignore == frozenset({"duplicate-key"})
 
 
@@ -211,29 +207,28 @@ def test_load_config_pyproject_without_table(tmp_path: Path, text: str) -> None:
     """Test that a pyproject.toml must hold a [tool.bibclean] table."""
     path = write(tmp_path / "pyproject.toml", text)
     with pytest.raises(ConfigError, match=re.escape("no [tool.bibclean] table")):
-        load_config(path, known_rules=RULES)
+        load_config(path)
 
 
 def test_load_config_invalid_toml(tmp_path: Path) -> None:
     """Test the message of a TOML syntax error."""
     path = write(tmp_path / "bibclean.toml", "indent = \n")
     with pytest.raises(ConfigError, match="invalid TOML"):
-        load_config(path, known_rules=RULES)
+        load_config(path)
 
 
 def test_load_config_missing_file(tmp_path: Path) -> None:
     """Test the message of an unreadable file."""
     with pytest.raises(ConfigError, match="cannot read file"):
-        load_config(tmp_path / "absent.toml", known_rules=RULES)
+        load_config(tmp_path / "absent.toml")
 
 
-def test_config_error_attributes(tmp_path: Path) -> None:
-    """Test that the error carries the path and names the dedicated file."""
+def test_config_error_message(tmp_path: Path) -> None:
+    """Test that the error names the dedicated file and is raised on every load."""
     path = write(tmp_path / "bibclean.toml", "unknown-key = 1\n")
     for _ in range(2):  # failures are not memoized
         with pytest.raises(ConfigError) as excinfo:
-            load_config(path, known_rules=RULES)
-    assert excinfo.value.path == path
+            load_config(path)
     assert str(excinfo.value) == "unknown key 'unknown-key' in bibclean.toml"
 
 
@@ -282,5 +277,5 @@ def test_find_config_none(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
 
 def test_sort_fields_boolean() -> None:
     """Test that sort-fields also accepts a boolean."""
-    config = parse_config({"sort-fields": False}, path=None, known_rules=RULES)
+    config = parse_config({"sort-fields": False}, path=None)
     assert config.format.sort_fields is False

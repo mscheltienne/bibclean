@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._model import entry_type
-from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
+from bibclean._model import crossref_target, entry_type
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._model import Entry
@@ -43,17 +43,14 @@ def required_field(ctx: Context) -> list[Diagnostic]:
     by_key: dict[str, Entry] = {}
     for entry in ctx.entries():
         by_key.setdefault(entry.key.lower(), entry)
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
+    for entry in ctx.checked_entries():
         rules = ctx.type_rules(entry)
         if rules is None:
             continue
         names = {field.key.lower() for field in entry.fields}
-        for field in _fields_named(entry, "crossref"):
-            target = by_key.get((_single_text(field.value) or "").lower())
-            if target is not None:
-                names |= {item.key.lower() for item in target.fields}
+        target = by_key.get(crossref_target(entry))
+        if target is not None:
+            names |= {item.key.lower() for item in target.fields}
         for required in rules.required:
             if names.isdisjoint(required.lower().split("|")):
                 message = (

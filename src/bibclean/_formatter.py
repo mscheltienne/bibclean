@@ -4,7 +4,17 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from bibclean._model import Block, Entry, Junk, Preamble, StringDef
+from bibclean._model import (
+    WHITESPACE,
+    Block,
+    Entry,
+    Junk,
+    Preamble,
+    StringDef,
+    collapse_whitespace,
+    crossref_target,
+    entry_type,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -12,10 +22,9 @@ if TYPE_CHECKING:
     from bibclean._config import FormatOptions
     from bibclean._model import Field, Value
 
-_WHITESPACE_RUN = re.compile(r"[ \t\n\r\f\v]+")
 _BLANK_LINES = re.compile(r"\n(?:[ \t\r\f\v]*\n)+")
 # whitespace and the zero width no-break space, which a byte order mark decodes to
-_BLANK = " \t\n\r\f\v\N{BYTE ORDER MARK}"
+_BLANK = WHITESPACE + "\N{BYTE ORDER MARK}"
 
 
 @dataclass(slots=True)
@@ -32,22 +41,6 @@ class _Unit:
 
     prefixes: list[Block]
     block: Block | None
-
-
-def collapse_whitespace(text: str) -> str:
-    r"""Replace every run of whitespace by a single space.
-
-    Parameters
-    ----------
-    text : str
-        Text to collapse.
-
-    Returns
-    -------
-    str
-        The text with every run of ``[ \t\n\r\f\v]`` replaced by one space.
-    """
-    return _WHITESPACE_RUN.sub(" ", text)
 
 
 def render_value(value: Value, *, strip: bool = True) -> str:
@@ -98,7 +91,7 @@ def render_entry(entry: Entry, options: FormatOptions) -> str:
         The entry, without a trailing newline.
     """
     fields = _sorted_fields(entry, options)
-    head = "@" + entry.entry_type.lower() + "{" + entry.key
+    head = "@" + entry_type(entry) + "{" + entry.key
     if fields or options.trailing_comma:
         head += ","
     width = max((len(f.key) for f in fields), default=0) if options.align_values else 0
@@ -183,7 +176,7 @@ def _sorted_fields(entry: Entry, options: FormatOptions) -> list[Field]:
         return list(entry.fields)
     if order is True:
         return sorted(entry.fields, key=lambda item: item.key.lower())
-    rank = {name: i for i, name in enumerate(dict.fromkeys(n.lower() for n in order))}
+    rank = {name: i for i, name in enumerate(dict.fromkeys(order))}
 
     def key(item: Field) -> tuple[int, str]:
         """Return the sort key of a field.
@@ -263,12 +256,7 @@ def _order_units(units: Sequence[_Unit], options: FormatOptions) -> list[_Unit]:
         else:
             header.append(unit)
     if options.sort_entries:
-        targets = {
-            field.value.parts[0].text.strip().lower()
-            for unit in entries
-            for field in unit.block.fields
-            if field.key.lower() == "crossref" and len(field.value.parts) == 1
-        }
+        targets = {crossref_target(unit.block) for unit in entries}
         entries.sort(
             key=lambda unit: (unit.block.key.lower() in targets, unit.block.key.lower())
         )

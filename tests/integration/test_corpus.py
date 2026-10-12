@@ -19,8 +19,8 @@ from typing import TYPE_CHECKING
 import pytest
 from pybtex.database.input.bibtex import Parser
 
-from bibclean._config import FormatOptions, default_config
-from bibclean._engine import process
+from bibclean._config import default_config
+from bibclean._engine import decode
 from bibclean._formatter import format_blocks
 from bibclean._model import Malformed
 from bibclean._parser import parse
@@ -30,32 +30,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 NAMES = sorted(corpus_manifest())
-
-
-def _read(corpus: dict[str, Path | None], name: str) -> tuple[bytes, str]:
-    """Read one corpus file, skipping the test when it is not available.
-
-    Parameters
-    ----------
-    corpus : dict
-        The corpus fixture.
-    name : str
-        Name of the file in the corpus.
-
-    Returns
-    -------
-    data : bytes
-        Content of the file.
-    text : str
-        Decoded content, without byte order mark.
-    """
-    if corpus[name] is None:
-        pytest.skip("file not downloaded")
-    data = corpus[name].read_bytes()
-    try:
-        return data, data.decode("utf-8").removeprefix("\N{BYTE ORDER MARK}")
-    except UnicodeDecodeError:
-        pytest.skip("file not encoded in UTF-8")
 
 
 def _pybtex(text: str) -> tuple[dict[str, tuple[str, dict[str, str]]], list[str]]:
@@ -86,35 +60,29 @@ def _pybtex(text: str) -> tuple[dict[str, tuple[str, dict[str, str]]], list[str]
 
 @pytest.mark.parametrize("name", NAMES)
 def test_corpus(name: str, corpus: dict[str, Path | None]) -> None:
-    """Test that a corpus file round-trips and that fixing it converges."""
-    data, text = _read(corpus, name)
-    assert "".join(block.raw for block in parse(text)) == text
-    assert_converged(data, default_config())
+    """Test a corpus file: round-trip, convergence of fix and readability by pybtex.
 
-
-@pytest.mark.parametrize("name", NAMES)
-def test_corpus_pybtex(name: str, corpus: dict[str, Path | None]) -> None:
-    """Test that formatting and fixing a corpus file keep it readable by pybtex.
-
-    The formatted file reads the same as the original in pybtex, when pybtex accepts the
-    original. The fixed file is accepted by pybtex when it holds no violation.
+    The file round-trips through the parser and fixing it converges. The formatted file
+    reads the same as the original in pybtex, when pybtex accepts the original. The
+    fixed file is accepted by pybtex when it holds no violation.
     """
-    data, text = _read(corpus, name)
-    blocks = parse(text.replace("\r\n", "\n").replace("\r", "\n"))
-    checked = False
+    if corpus[name] is None:
+        pytest.skip("file not downloaded")
+    data = corpus[name].read_bytes()
+    try:
+        text = decode(data, "utf-8")
+    except UnicodeDecodeError:
+        pytest.skip("file not encoded in UTF-8")
+    blocks = parse(text)
+    assert "".join(block.raw for block in blocks) == text
+    config = default_config()
+    fixed, again = assert_converged(data, config)
     try:
         before = _pybtex(text)
     except Exception:  # pybtex rejects the original, nothing to compare to
         pass
     else:
         if not any(isinstance(block, Malformed) for block in blocks):
-            assert _pybtex(format_blocks(blocks, FormatOptions())) == before
-            checked = True
-    config = default_config()
-    report = process(data, "utf-8", config)
-    fixed = data if report.output is None else report.output
-    if not process(fixed, "utf-8", config).diagnostics:
+            assert _pybtex(format_blocks(blocks, config.format)) == before
+    if not again.diagnostics:
         _pybtex(fixed.decode("utf-8"))
-        checked = True
-    if not checked:
-        pytest.skip("pybtex rejects the file and fix leaves violations")

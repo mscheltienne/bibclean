@@ -8,7 +8,6 @@ import pytest
 
 from bibclean._commands.main import run
 from bibclean._config import default_config, load_config
-from bibclean._rules import RULE_NAMES
 from tests.helpers import ASSETS, assert_converged
 
 if TYPE_CHECKING:
@@ -73,9 +72,7 @@ def test_fix(case: str, runner: CliRunner) -> None:
     assert result.stdout.splitlines()[:-1] == unfixable
     assert result.exit_code == (1 if expected != original or unfixable else 0)
     toml = ASSETS / f"{case}.toml"
-    config = (
-        load_config(toml, known_rules=RULE_NAMES) if toml.exists() else default_config()
-    )
+    config = load_config(toml) if toml.exists() else default_config()
     assert_converged(original, config)
 
 

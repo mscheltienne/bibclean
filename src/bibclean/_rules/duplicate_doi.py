@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
-from bibclean._rules.doi_prefix import normalize_doi
+from bibclean._model import fields_named, single_text
+from bibclean._rules._base import Diagnostic, rule
+from bibclean._rules.doi_prefix import strip_doi_prefix
 
 if TYPE_CHECKING:
     from bibclean._model import Entry
@@ -40,13 +41,13 @@ def duplicate_doi(ctx: Context) -> list[Diagnostic]:
     findings: list[Diagnostic] = []
     seen: dict[str, Entry] = {}
     for entry in ctx.entries():
-        fields = _fields_named(entry, "doi")
+        fields = fields_named(entry, "doi")
         if not fields:
             continue
-        text = _single_text(fields[0].value)
+        text = single_text(fields[0].value)
         if not text:
             continue
-        identifier = normalize_doi(text)
+        identifier = strip_doi_prefix(text).lower()
         if not identifier:
             continue
         first = seen.setdefault(identifier, entry)

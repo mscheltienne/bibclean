@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import inspect
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Literal
 
-from bibclean._formatter import collapse_whitespace, render_entry
+from bibclean._formatter import render_entry
 from bibclean._model import Entry, entry_type
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from bibclean._config import Config, FormatOptions, TypeRules
-    from bibclean._model import Block, Field, Position, Value
+    from bibclean._model import Block, Position
 
 Fixability = Literal["no", "partial", "yes"]
 Scope = Literal["block", "file", "entry", "field", "value"]
@@ -63,6 +64,19 @@ class Context:
         """
         return [block for block in self.blocks if isinstance(block, Entry)]
 
+    def checked_entries(self) -> Iterator[Entry]:
+        """Yield the entries of the working model that the rules inspect.
+
+        Yields
+        ------
+        Entry
+            The entries that are not excluded, in their current order. The list is
+            taken before the first one is yielded, so a rule may mutate the blocks.
+        """
+        for entry in self.entries():
+            if not self.is_excluded(entry):
+                yield entry
+
     def is_excluded(self, entry: Entry) -> bool:
         """Check whether an entry is exempt from the rules.
 
@@ -112,17 +126,14 @@ class Rule:
     scope : str
         One of ``'block'``, ``'file'``, ``'entry'``, ``'field'`` or ``'value'``.
     check : callable
-        Function running the rule over a context and returning its diagnostics.
-    doc : str
-        User documentation of the rule: the summary and extended summary of the
-        docstring of the function.
+        Function running the rule over a context and returning its diagnostics. The
+        summary and extended summary of its docstring document the rule.
     """
 
     name: str
     fixable: Fixability
     scope: Scope
     check: RuleFunction
-    doc: str
 
 
 def rule(
@@ -156,11 +167,9 @@ def rule(
         Returns
         -------
         Rule
-            The rule, documented by the docstring of the function up to its
-            ``Parameters`` section.
+            The rule.
         """
-        doc = inspect.cleandoc(function.__doc__ or "").split("\n\nParameters\n")[0]
-        return Rule(name=name, fixable=fixable, scope=scope, check=function, doc=doc)
+        return Rule(name=name, fixable=fixable, scope=scope, check=function)
 
     return decorator
 
@@ -182,44 +191,3 @@ def signature(entry: Entry, options: FormatOptions) -> str:
         cite key is not part of the signature.
     """
     return render_entry(replace(entry, key=""), options)
-
-
-def _fields_named(entry: Entry, name: str) -> list[Field]:
-    """Return the fields of an entry with a given name, case-insensitively.
-
-    Parameters
-    ----------
-    entry : Entry
-        Entry to inspect.
-    name : str
-        Field name.
-
-    Returns
-    -------
-    list of Field
-        The fields with that name, in source order.
-    """
-    lowered = name.lower()
-    return [field for field in entry.fields if field.key.lower() == lowered]
-
-
-def _single_text(value: Value) -> str | None:
-    """Return the text of a value made of one braced or quoted part.
-
-    Parameters
-    ----------
-    value : Value
-        Value to inspect.
-
-    Returns
-    -------
-    str | None
-        The text with its whitespace collapsed and stripped, None for a macro or a
-        concatenation.
-    """
-    if len(value.parts) != 1:
-        return None
-    part = value.parts[0]
-    if part.kind == "bare":
-        return None
-    return collapse_whitespace(part.text).strip()

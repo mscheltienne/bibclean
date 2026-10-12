@@ -13,6 +13,7 @@ _CODE = (
     "assert 'click' not in sys.modules, 'click'\n"
     "import bibclean._commands.main\n"
     "assert 'packaging' not in sys.modules, 'packaging'\n"
+    "assert 'importlib.metadata' not in sys.modules, 'importlib.metadata'\n"
 )
 
 
@@ -28,7 +29,7 @@ def test_entry_point() -> None:
 
 
 def test_startup_imports() -> None:
-    """Test that the engine imports no click and the CLI no packaging at startup."""
+    """Test that the engine imports no click and the CLI no packaging or metadata."""
     result = subprocess.run(
         [sys.executable, "-W", "error", "-c", _CODE],
         capture_output=True,

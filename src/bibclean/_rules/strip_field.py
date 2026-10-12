@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._model import entry_type
-from bibclean._rules._base import Diagnostic, _fields_named, _single_text, rule
+from bibclean._model import crossref_target, entry_type
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -38,14 +38,9 @@ def strip_field(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    targets = {
-        text.lower()
-        for entry in ctx.entries()
-        for field in _fields_named(entry, "crossref")
-        if (text := _single_text(field.value))
-    }
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry) or entry.key.lower() in targets:
+    targets = {crossref_target(entry) for entry in ctx.entries()}
+    for entry in ctx.checked_entries():
+        if entry.key.lower() in targets:
             continue
         rules = ctx.type_rules(entry)
         if rules is None or rules.keep is None:

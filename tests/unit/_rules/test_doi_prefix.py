@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from bibclean._rules.doi_prefix import normalize_doi, strip_doi_prefix
+from bibclean._rules.doi_prefix import strip_doi_prefix
 from tests.helpers import apply_rule
 
 NAME = "doi-prefix"
@@ -30,11 +30,6 @@ NAME = "doi-prefix"
 def test_strip_doi_prefix(text: str, expected: str) -> None:
     """Test the prefix removal on every documented input form."""
     assert strip_doi_prefix(text) == expected
-
-
-def test_normalize_doi() -> None:
-    """Test that the comparison form is lowercased."""
-    assert normalize_doi("https://doi.org/10.1000/THINGS") == "10.1000/things"
 
 
 def test_detection() -> None:

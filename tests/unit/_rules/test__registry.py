@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import inspect
+
 import pytest
 
 from bibclean._rules import RULE_NAMES, RULES
@@ -29,10 +31,11 @@ def test_order() -> None:
 @pytest.mark.parametrize("item", RULES, ids=lambda item: item.name)
 def test_documentation_contract(item: Rule) -> None:
     """Test the docstring contract the generated rule page relies on."""
-    lines = item.doc.splitlines()
+    doc = inspect.cleandoc(item.check.__doc__)
+    lines = doc.splitlines()
     assert lines[0].endswith(".")
     assert len(lines) > 1
     assert lines[1] == ""
     assert not any(line.startswith("Fix:") for line in lines)
-    assert "pybtex:" in item.doc
-    assert ".. code-block:: bibtex" in item.doc
+    assert "pybtex:" in doc
+    assert ".. code-block:: bibtex" in doc

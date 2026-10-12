@@ -131,12 +131,10 @@ def execute(
     if isolated or config is not None:
         try:
             override = load_config(
-                None if isolated else config.resolve(),
-                known_rules=RULE_NAMES,
-                extra_ignore=ignore,
+                None if isolated else config.resolve(), extra_ignore=ignore
             )
         except ConfigError as exc:
-            _echo_error(str(config), exc.message)
+            _echo_error(str(config), str(exc))
             return 2
     lines: list[str] = []
     errors = 0
@@ -145,50 +143,44 @@ def execute(
     unique: dict[Path, str] = {}
     for file in files:
         unique.setdefault(Path(file).resolve(), file)
-    for file in unique.values():
+    for path, file in unique.items():
         try:
             configuration = override or load_config(
-                find_config(Path(file).resolve().parent),
-                known_rules=RULE_NAMES,
-                extra_ignore=ignore,
+                find_config(path.parent), extra_ignore=ignore
             )
-            data = Path(file).read_bytes()
+            data = path.read_bytes()
             report = process(data, encoding, configuration)
         except ConfigError as exc:
-            _echo_error(file, exc.message)
-            errors += 1
-            continue
+            error = str(exc)
         except OSError as exc:
-            _echo_error(file, f"cannot read file: {exc.strerror or exc}")
-            errors += 1
-            continue
+            error = f"cannot read file: {exc.strerror or exc}"
         except UnicodeDecodeError as exc:
-            _echo_error(
-                file,
+            error = (
                 f"cannot decode file with encoding '{encoding}': "
-                f"{exc.reason} at byte {exc.start}",
+                f"{exc.reason} at byte {exc.start}"
             )
-            errors += 1
-            continue
-        fixable += sum(item.fixable for item in report.diagnostics)
-        lines.extend(
-            format_diagnostic(file, item)
-            for item in report.diagnostics
-            if mode == "check" or not item.fixable
-        )
-        if mode == "check" or report.output is None:
-            continue
-        if diff:
-            before, after = data.decode(encoding), report.output.decode(encoding)
-            click.echo(unified_diff(file, before, after), nl=False)
         else:
-            try:
-                Path(file).write_bytes(report.output)
-            except OSError as exc:
-                _echo_error(file, f"cannot write file: {exc.strerror or exc}")
-                errors += 1
-                continue
-        written += 1
+            error = None
+            fixable += sum(item.fixable for item in report.diagnostics)
+            lines.extend(
+                format_diagnostic(file, item)
+                for item in report.diagnostics
+                if mode == "check" or not item.fixable
+            )
+            if mode == "fix" and report.output is not None:
+                if diff:
+                    before = data.decode(encoding)
+                    after = report.output.decode(encoding)
+                    click.echo(unified_diff(file, before, after), nl=False)
+                else:
+                    try:
+                        path.write_bytes(report.output)
+                    except OSError as exc:
+                        error = f"cannot write file: {exc.strerror or exc}"
+                written += error is None
+        if error is not None:
+            _echo_error(file, error)
+            errors += 1
     if mode == "check":
         summary = f"Found {pluralize(len(lines), 'violation')} ({fixable} fixable)."
         failed = bool(lines)

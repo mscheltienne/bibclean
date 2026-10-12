@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import click
 
-from bibclean.utils.config import sys_info
-
 
 @click.command(
     name="sys-info", help="Print the platform, Python and dependency versions."
@@ -21,4 +19,7 @@ def run(developer: bool) -> None:
     developer : bool
         Also print the developer dependencies.
     """
+    # imported on use, so that check and fix do not pay for importlib.metadata
+    from bibclean.utils.config import sys_info
+
     sys_info(developer=developer)

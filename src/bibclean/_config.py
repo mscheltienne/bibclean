@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import difflib
 import tomllib
-from dataclasses import dataclass, field, fields, replace
+from dataclasses import dataclass, fields, replace
 from functools import cache
 from typing import TYPE_CHECKING, Any, Literal, get_args
 
 from bibclean._defaults import TYPES
+from bibclean._rules import RULE_NAMES
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
@@ -29,20 +30,7 @@ _TYPE_KEYS: tuple[str, ...] = ("required", "keep")
 
 
 class ConfigError(Exception):
-    """Invalid or unreadable configuration file.
-
-    Parameters
-    ----------
-    path : Path | None
-        File the error comes from, None for a configuration built in memory.
-    message : str
-        Description of the problem.
-    """
-
-    def __init__(self, path: Path | None, message: str) -> None:
-        super().__init__(message)
-        self.path = path
-        self.message = message
+    """Invalid or unreadable configuration file, described by the message."""
 
 
 @dataclass(slots=True, frozen=True)
@@ -61,7 +49,7 @@ class FormatOptions:
         Sort entries by cite key, case-insensitively and stably.
     sort_fields : bool | tuple of str
         Sort fields alphabetically, preserve their order, or place the listed
-        names first and sort the remaining ones alphabetically.
+        lowercased names first and sort the remaining ones alphabetically.
     """
 
     indent: int | Literal["tab"] = 2
@@ -95,6 +83,8 @@ class LintOptions:
 
     Parameters
     ----------
+    types : dict of str to TypeRules
+        Per-type field requirements, keyed by lowercased entry type.
     ignore : frozenset of str
         Names of the rules that never run.
     exclude : frozenset of str
@@ -103,15 +93,13 @@ class LintOptions:
         Lowercased entry types exempt from every rule.
     month : str
         Target form of the ``month`` field.
-    types : dict of str to TypeRules
-        Per-type field requirements, keyed by lowercased entry type.
     """
 
+    types: Mapping[str, TypeRules]
     ignore: frozenset[str] = frozenset()
     exclude: frozenset[str] = frozenset()
     exclude_types: frozenset[str] = frozenset()
     month: Month = "abbreviation"
-    types: Mapping[str, TypeRules] = field(default_factory=lambda: _merge_types({}))
 
 
 @dataclass(slots=True, frozen=True)
@@ -138,12 +126,10 @@ def default_config() -> Config:
     Config
         The shipped defaults.
     """
-    return parse_config({}, path=None, known_rules=())
+    return parse_config({}, path=None)
 
 
-def parse_config(
-    table: Mapping[str, Any], *, path: Path | None, known_rules: Collection[str]
-) -> Config:
+def parse_config(table: Mapping[str, Any], *, path: Path | None) -> Config:
     """Validate a configuration table and build the configuration it describes.
 
     Parameters
@@ -155,8 +141,6 @@ def parse_config(
         File the table was read from, used in error messages. A dedicated file is
         any file not named ``pyproject.toml``; None stands for a
         ``[tool.bibclean]`` table.
-    known_rules : collection of str
-        Rule names accepted by the ``ignore`` key.
 
     Returns
     -------
@@ -177,20 +161,17 @@ def parse_config(
     user_types: dict[str, dict[str, tuple[str, ...]]] = {}
     for key, value in table.items():
         if key in _KNOWN_KEYS:
-            values[key.replace("-", "_")] = _parse_value(
-                key, value, path, top, known_rules
-            )
+            values[key.replace("-", "_")] = _parse_value(key, value, top)
             continue
         if not isinstance(value, dict):
             raise ConfigError(
-                path, f"unknown key {key!r} in {top}" + _did_you_mean(key, _KNOWN_KEYS)
+                f"unknown key {key!r} in {top}" + _did_you_mean(key, _KNOWN_KEYS)
             )
         name = key.lower()
         where = f"[tool.bibclean.{name}]" if nested else f"[{name}]"
-        user_types[name] = _parse_type_table(value, path, where)
+        user_types[name] = _parse_type_table(value, where)
         if name not in TYPES and "required" not in user_types[name]:
             raise ConfigError(
-                path,
                 f"unknown entry type {name!r} in {where}"
                 + _did_you_mean(name, TYPES)
                 + " (a new entry type must declare 'required')",
@@ -207,12 +188,7 @@ def parse_config(
 
 
 @cache
-def load_config(
-    path: Path | None,
-    *,
-    known_rules: tuple[str, ...],
-    extra_ignore: tuple[str, ...] = (),
-) -> Config:
+def load_config(path: Path | None, *, extra_ignore: tuple[str, ...] = ()) -> Config:
     """Read and validate one configuration file, memoized.
 
     Parameters
@@ -220,8 +196,6 @@ def load_config(
     path : Path | None
         File to read, None for the shipped defaults. A ``pyproject.toml`` must
         hold a ``[tool.bibclean]`` table; any other file uses top-level keys.
-    known_rules : tuple of str
-        Rule names accepted by the ``ignore`` key.
     extra_ignore : tuple of str
         Rule names added to the ``ignore`` set of the configuration.
 
@@ -245,14 +219,13 @@ def load_config(
             tool = document.get("tool")
             document = tool.get("bibclean") if isinstance(tool, dict) else None
             if not isinstance(document, dict):
-                raise ConfigError(path, "no [tool.bibclean] table")
+                raise ConfigError("no [tool.bibclean] table")
         elif "tool" in document:
             raise ConfigError(
-                path,
                 f"[tool] tables are read from pyproject.toml only, write the keys "
-                f"at the top level of {path.name}",
+                f"at the top level of {path.name}"
             )
-        config = parse_config(document, path=path, known_rules=known_rules)
+        config = parse_config(document, path=path)
     lint = replace(config.lint, ignore=config.lint.ignore | frozenset(extra_ignore))
     return replace(config, lint=lint)
 
@@ -290,8 +263,9 @@ def find_config(directory: Path) -> Path | None:
     return None
 
 
+@cache
 def _read_toml(path: Path) -> dict[str, Any]:
-    """Read a TOML document, turning every failure into a ConfigError.
+    """Read a TOML document, memoized, turning every failure into a ConfigError.
 
     Parameters
     ----------
@@ -301,20 +275,20 @@ def _read_toml(path: Path) -> dict[str, Any]:
     Returns
     -------
     dict
-        The parsed document.
+        The parsed document, shared between calls: callers never mutate it.
 
     Raises
     ------
     ConfigError
-        If the file cannot be read or is not valid TOML.
+        If the file cannot be read or is not valid TOML. Failures are not memoized.
     """
     try:
         with path.open("rb") as fid:
             return tomllib.load(fid)
     except OSError as exc:
-        raise ConfigError(path, f"cannot read file: {exc.strerror or exc}")
+        raise ConfigError(f"cannot read file: {exc.strerror or exc}")
     except tomllib.TOMLDecodeError as exc:
-        raise ConfigError(path, f"invalid TOML: {exc}")
+        raise ConfigError(f"invalid TOML: {exc}")
 
 
 def _pyproject_has_table(path: Path) -> bool:
@@ -374,9 +348,7 @@ def _is_string_array(value: Any) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
-def _parse_value(
-    key: str, value: Any, path: Path | None, where: str, known_rules: Collection[str]
-) -> Any:
+def _parse_value(key: str, value: Any, where: str) -> Any:
     """Validate one top-level key and return the value to store.
 
     Parameters
@@ -385,12 +357,8 @@ def _parse_value(
         Known key, as written in the file.
     value : Any
         Value read from the file.
-    path : Path | None
-        File the value was read from, used in error messages.
     where : str
         Location of the key, used in error messages.
-    known_rules : collection of str
-        Rule names accepted by the ``ignore`` key.
 
     Returns
     -------
@@ -415,17 +383,16 @@ def _parse_value(
         valid = _is_string_array(value)
     if not valid:
         raise ConfigError(
-            path, f"'{key}' in {where} must be {_KNOWN_KEYS[key]}, got {value!r}"
+            f"'{key}' in {where} must be {_KNOWN_KEYS[key]}, got {value!r}"
         )
     if key == "sort-fields" and not isinstance(value, bool):
         return tuple(item.lower() for item in value)
     if key == "ignore":
         for name in value:
-            if name not in known_rules:
+            if name not in RULE_NAMES:
                 raise ConfigError(
-                    path,
                     f"unknown rule {name!r} in 'ignore'"
-                    + _did_you_mean(name, known_rules),
+                    + _did_you_mean(name, RULE_NAMES)
                 )
         return frozenset(value)
     if key == "exclude":
@@ -436,7 +403,7 @@ def _parse_value(
 
 
 def _parse_type_table(
-    table: Mapping[str, Any], path: Path | None, where: str
+    table: Mapping[str, Any], where: str
 ) -> dict[str, tuple[str, ...]]:
     """Validate one per-type table and return the field lists it defines.
 
@@ -444,8 +411,6 @@ def _parse_type_table(
     ----------
     table : dict
         Content of the per-type table.
-    path : Path | None
-        File the table was read from, used in error messages.
     where : str
         Name of the table, used in error messages.
 
@@ -463,35 +428,14 @@ def _parse_type_table(
     for key, value in table.items():
         if key not in _TYPE_KEYS:
             raise ConfigError(
-                path,
-                f"unknown key {key!r} in {where}" + _did_you_mean(key, _TYPE_KEYS),
+                f"unknown key {key!r} in {where}" + _did_you_mean(key, _TYPE_KEYS)
             )
         if not _is_string_array(value):
             raise ConfigError(
-                path,
-                f"'{key}' in {where} must be an array of strings, got {value!r}",
+                f"'{key}' in {where} must be an array of strings, got {value!r}"
             )
         parsed[key] = tuple(value)
     return parsed
-
-
-def _effective_keep(required: tuple[str, ...], keep: tuple[str, ...]) -> frozenset[str]:
-    """Combine the required names and the keep list into one lowercased set.
-
-    Parameters
-    ----------
-    required : tuple of str
-        Required field names, alternatives spelled ``'author|editor'``.
-    keep : tuple of str
-        Kept field names.
-
-    Returns
-    -------
-    frozenset of str
-        Every name of both lists, alternatives split, in lower case.
-    """
-    names = {name.lower() for item in required for name in item.split("|")}
-    return frozenset(names | {name.lower() for name in keep})
 
 
 def _merge_types(
@@ -509,16 +453,18 @@ def _merge_types(
     -------
     dict of str to TypeRules
         Field requirements of every shipped or user type. A user key replaces the
-        shipped one; a type without any ``keep`` list is never stripped.
+        shipped one; a type without any ``keep`` list is never stripped. The kept
+        names are lowercased and include every required name, alternatives split.
     """
     merged: dict[str, tuple[tuple[str, ...], tuple[str, ...] | None]] = dict(TYPES)
     for name, table in user_types.items():
         required, keep = merged.get(name, ((), None))
         merged[name] = (table.get("required", required), table.get("keep", keep))
-    return {
-        name: TypeRules(
-            required=required,
-            keep=None if keep is None else _effective_keep(required, keep),
-        )
-        for name, (required, keep) in merged.items()
-    }
+    types: dict[str, TypeRules] = {}
+    for name, (required, keep) in merged.items():
+        kept = None
+        if keep is not None:
+            alternatives = [item for names in required for item in names.split("|")]
+            kept = frozenset(item.lower() for item in (*alternatives, *keep))
+        types[name] = TypeRules(required=required, keep=kept)
+    return types

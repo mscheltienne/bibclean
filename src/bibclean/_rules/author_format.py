@@ -3,7 +3,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from bibclean._rules._base import Diagnostic, _single_text, rule
+from bibclean._model import single_text
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -39,12 +40,10 @@ def author_format(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry):
-            continue
+    for entry in ctx.checked_entries():
         for field in entry.fields:
             name = field.key.lower()
-            text = _single_text(field.value) if name in ("author", "editor") else None
+            text = single_text(field.value) if name in ("author", "editor") else None
             if not text:
                 continue
             for person in _split(text, _AND):

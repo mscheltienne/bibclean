@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._rules._base import Diagnostic, _fields_named, rule
+from bibclean._model import fields_named
+from bibclean._rules._base import Diagnostic, rule
 
 if TYPE_CHECKING:
     from bibclean._rules._base import Context
@@ -32,10 +33,10 @@ def url_with_doi(ctx: Context) -> list[Diagnostic]:
         The violations found.
     """
     findings: list[Diagnostic] = []
-    for entry in ctx.entries():
-        if ctx.is_excluded(entry) or not _fields_named(entry, "doi"):
+    for entry in ctx.checked_entries():
+        if not fields_named(entry, "doi"):
             continue
-        for field in _fields_named(entry, "url"):
+        for field in fields_named(entry, "url"):
             entry.fields.remove(field)
             findings.append(
                 Diagnostic(field.start, "field 'url' is redundant with 'doi'", True)
