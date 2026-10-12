@@ -132,6 +132,7 @@ default_role = "py:obj"
 suppress_warnings = ["config.cache"]
 
 # -- options for HTML output -----------------------------------------------------------
+html_favicon = "_static/favicon.svg"
 html_permalinks_icon = "🔗"
 html_show_sphinx = False
 html_static_path = ["_static"]
@@ -141,6 +142,9 @@ html_title = project
 # Documentation to change footer icons:
 # https://pradyunsg.me/furo/customisation/footer/#changing-footer-icons
 html_theme_options = {
+    "light_logo": "logo-light.svg",
+    "dark_logo": "logo-dark.svg",
+    "sidebar_hide_name": True,
     "footer_icons": [
         {
             "name": "GitHub",
