@@ -50,28 +50,3 @@ def test_sys_info_without_psutil(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "CPU:" in value
     assert "Physical cores:" not in value
     assert "RAM:" not in value
-
-
-def test_sys_info_invalid() -> None:
-    """Test getting information on package without requirements."""
-    out = StringIO()
-    with pytest.raises(RuntimeError, match="could not be retrieved"):
-        sys_info(fid=out, package="packaging")
-    out.close()
-
-
-def test_sys_info_other_package() -> None:
-    """Test getting information on another package."""
-    out = StringIO()
-    sys_info(fid=out, package="pytest")
-    value = out.getvalue()
-    out.close()
-    assert "pluggy" in value
-
-
-def test_sys_info_other_package_dev() -> None:
-    """Test getting developer information on another package."""
-    out = StringIO()
-    with pytest.raises(RuntimeError, match="from source in an editable install"):
-        sys_info(fid=out, package="pytest", developer=True)
-    out.close()

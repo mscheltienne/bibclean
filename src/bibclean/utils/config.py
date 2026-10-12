@@ -4,7 +4,7 @@ import platform
 import sys
 import tomllib
 from functools import partial
-from importlib.metadata import PackageNotFoundError, metadata, requires, version
+from importlib.metadata import metadata, requires, version
 from importlib.util import find_spec
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -17,11 +17,7 @@ if TYPE_CHECKING:
 
 
 def sys_info(
-    fid: IO | None = None,
-    *,
-    extra: bool = False,
-    developer: bool = False,
-    package: str | None = None,
+    fid: IO | None = None, *, extra: bool = False, developer: bool = False
 ) -> None:
     """Print the system information for debugging.
 
@@ -34,16 +30,13 @@ def sys_info(
         If True, display information about optional dependencies.
     developer : bool
         If True, display information about developer dependencies, read from the
-        ``pyproject.toml`` of a package installed from source.
-    package : str | None
-        The package to display information about. If None, display information about the
-        current package.
+        ``pyproject.toml`` of ``bibclean`` installed from source.
 
     Raises
     ------
     RuntimeError
-        If the requirements of the package cannot be retrieved, or if ``developer`` is
-        True and the ``pyproject.toml`` of the package cannot be found.
+        If ``developer`` is True and the ``pyproject.toml`` of ``bibclean`` cannot be
+        found.
     """
     from packaging.requirements import Requirement
 
@@ -54,10 +47,7 @@ def sys_info(
 
     ljust = 26
     out = partial(print, end="", file=fid)
-    if package is None:
-        package = _find_distribution_name(__package__)
-    if "-" in package:
-        package = package.replace("-", "_")
+    package = "bibclean"
 
     out("Platform:".ljust(ljust) + platform.platform() + "\n")
     out("Python:".ljust(ljust) + sys.version.replace("\n", " ") + "\n")
@@ -73,12 +63,7 @@ def sys_info(
     out(f"{package}:".ljust(ljust) + version(package) + "\n")
 
     out("\nCore dependencies\n")
-    requirements = requires(package)
-    if requirements is None:
-        raise RuntimeError(
-            f"The set of requirements for {package} could not be retrieved."
-        )
-    dependencies = [Requirement(elt) for elt in requirements]
+    dependencies = [Requirement(elt) for elt in requires(package) or ()]
     core_dependencies = [dep for dep in dependencies if "extra" not in str(dep.marker)]
     _list_dependencies_info(out, ljust, package, core_dependencies)
 
@@ -174,30 +159,3 @@ def _list_dependencies_info(
             out(f"✘ Not installed: {', '.join(not_found)}\n")
         else:
             out(f"Not installed: {', '.join(not_found)}\n")
-
-
-def _find_distribution_name(module_package: str) -> str:
-    """Find the distribution name from a module's ``__package__``.
-
-    Tries progressively shorter prefixes until finding one with valid metadata, e.g.
-    ``bibclean.utils`` -> ``bibclean``.
-
-    Parameters
-    ----------
-    module_package : str
-        The ``__package__`` of a module.
-
-    Returns
-    -------
-    str
-        The distribution name, or ``module_package`` if no prefix has metadata.
-    """
-    parts = module_package.split(".")
-    for i in range(len(parts), 0, -1):
-        candidate = ".".join(parts[:i])
-        try:
-            version(candidate)
-            return candidate
-        except PackageNotFoundError:
-            continue
-    return module_package
