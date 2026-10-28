@@ -22,7 +22,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.2
       - name: Hooks fail on a malformed file and leave it untouched
         # try-repo builds from a shallow clone without remote, where setuptools_scm
         # cannot fetch the tags; the scratch repository must share the drive of the
