@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from bibclean._commands.main import run
 from bibclean._version import __version__
+
+from bibclean._commands.main import run
 
 if TYPE_CHECKING:
     from click.testing import CliRunner

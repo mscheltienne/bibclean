@@ -34,7 +34,7 @@ test = [
 
 [project]
 authors = [
-  {email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne'},
+  { email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne' },
 ]
 classifiers = [
   'Intended Audience :: Developers',
@@ -65,7 +65,7 @@ keywords = [
 license = "MIT"
 license-files = ["LICENSE"]
 maintainers = [
-  {email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne'},
+  { email = 'mathieu.scheltienne@gmail.com', name = 'Mathieu Scheltienne' },
 ]
 name = 'bibclean'
 readme = 'README.md'
