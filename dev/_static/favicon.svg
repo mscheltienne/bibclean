@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .ink { stroke: #1f2328 } .acc { stroke: #1a7f64 }
+    @media (prefers-color-scheme: dark) {
+      .ink { stroke: #e6edf3 } .acc { stroke: #3fb68b }
+    }
+  </style>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path class="ink" stroke-width="5" d="M22 9C14 9 14 14 14 21v4c0 4-3 7-7 7 4 0 7 3 7 7v4c0 7 0 12 8 12"/>
+    <path class="ink" stroke-width="5" d="M42 9c8 0 8 5 8 12v4c0 4 3 7 7 7-4 0-7 3-7 7v4c0 7 0 12-8 12"/>
+    <path class="acc" stroke-width="5.5" d="M23.5 33l6.5 6.5L41 26"/>
+  </g>
+</svg>
